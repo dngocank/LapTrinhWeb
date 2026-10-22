@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300" viewBox="0 0 300 300" fill="none">
+  <rect width="300" height="300" rx="16" fill="#F8FAFC"/>
+  <rect x="90" y="40" width="120" height="220" rx="20" stroke="#CBD5E1" stroke-width="4" fill="#FFFFFF"/>
+  <rect x="125" y="52" width="50" height="6" rx="3" fill="#E2E8F0"/>
+  <circle cx="150" cy="235" r="10" fill="#E2E8F0"/>
+  <path d="M120 130L145 160L165 140L180 160H120Z" fill="#F43F5E" opacity="0.3"/>
+  <circle cx="135" cy="115" r="8" fill="#F43F5E" opacity="0.4"/>
+  <text x="150" y="190" font-family="system-ui, -apple-system, sans-serif" font-size="13" font-weight="700" fill="#E11D48" text-anchor="middle">KittyStore</text>
+  <text x="150" y="208" font-family="system-ui, -apple-system, sans-serif" font-size="10" fill="#94A3B8" text-anchor="middle">Chính Hãng VN/A</text>
+</svg>

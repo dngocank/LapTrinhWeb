@@ -1,0 +1,574 @@
+@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
+@{
+    var sessionCart = HttpContextAccessor.HttpContext?.Session.GetString("KittyPhone_Cart");
+    int cartCount = 0;
+    if (!string.IsNullOrEmpty(sessionCart))
+    {
+        try
+        {
+            var items = Newtonsoft.Json.JsonConvert.DeserializeObject<List<BTL_PTTKYC.Models.CartItemModel>>(sessionCart);
+            cartCount = items?.Sum(i => i.Quantity) ?? 0;
+        }
+        catch { }
+    }
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - KittyPhone - Điện thoại, máy tính bảng, phụ kiện chính hãng</title>
+    
+    <!-- Google Fonts Inter (KittyPhone Typography) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5 CSS -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <!-- KittyPhone Token-driven CSS -->
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <!-- KittyBot AI Widget CSS -->
+    <link rel="stylesheet" href="~/css/kittybot.css" asp-append-version="true" />
+</head>
+<body>
+    <!-- Top Announcement Bar (KittyPhone Campaign Ribbon) -->
+    <div class="cps-top-ribbon d-none d-md-block">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-3">
+                <span class="cps-ribbon-badge"><i class="bi bi-gift-fill me-1"></i>Mừng Khai Trương - Deal Thật Hời</span>
+                <span>Lên đời tiết kiệm - Trợ giá đến <strong>2.5 triệu</strong></span>
+                <span class="d-none d-lg-inline">Sản phẩm <strong>Chính hãng - Xuất VAT đầy đủ</strong></span>
+                <span class="d-none d-xl-inline">Giao nhanh - Miễn phí toàn quốc</span>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <a href="tel:0396166509" class="text-white text-decoration-none">
+                    <i class="bi bi-telephone-fill me-1"></i>Hotline: <strong>0396166509</strong>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Header (KittyPhone Ocean Blue Bar) -->
+    <header class="cps-main-header">
+        <div class="container">
+            <div class="cps-header-inner">
+                <!-- Brand Logo: KittyPhone Authentic Look -->
+                <a asp-controller="Home" asp-action="Index" class="cps-logo text-decoration-none">
+                    <span class="cps-logo-text"><i class="bi bi-phone-vibrate text-info me-1"></i>Kitty<span class="cps-logo-s">Phone</span></span>
+                </a>
+
+                <!-- Category Button (Dropdown) -->
+                <div class="dropdown d-none d-lg-block">
+                    <button class="cps-btn-pill dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="bi bi-grid-fill"></i>
+                        <span>Danh mục</span>
+                    </button>
+                    <ul class="dropdown-menu shadow-lg border-0 rounded-3 py-2 cps-category-dropdown">
+                        <li><a class="dropdown-item py-2 fw-semibold" asp-controller="Home" asp-action="Index" asp-route-categoryId="1"><i class="bi bi-phone me-2 text-danger"></i>Điện thoại</a></li>
+                        <li><a class="dropdown-item py-2 fw-semibold" asp-controller="Home" asp-action="Index" asp-route-categoryId="2"><i class="bi bi-tablet me-2 text-primary"></i>Máy tính bảng</a></li>
+                        <li><a class="dropdown-item py-2 fw-semibold" asp-controller="Home" asp-action="Index" asp-route-categoryId="4"><i class="bi bi-smartwatch me-2 text-warning"></i>Đồng hồ, Smartwatch</a></li>
+                        <li><a class="dropdown-item py-2 fw-semibold" asp-controller="Home" asp-action="Index" asp-route-categoryId="3"><i class="bi bi-headphones me-2 text-info"></i>Tai nghe, Loa</a></li>
+                        <li><a class="dropdown-item py-2 fw-semibold" asp-controller="Home" asp-action="Index" asp-route-categoryId="3"><i class="bi bi-plug me-2 text-success"></i>Phụ kiện chính hãng</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item py-2 fw-semibold text-danger" href="javascript:void(0)" data-bs-toggle="modal" data-bs-target="#modalTradeIn"><i class="bi bi-arrow-repeat me-2"></i>Thu cũ đổi mới trợ giá 2.5Tr</a></li>
+                    </ul>
+                </div>
+
+
+
+                <!-- Search Bar -->
+                <div class="cps-search-wrap">
+                    <form asp-controller="Home" asp-action="Index" method="get" class="cps-search-form">
+                        <i class="bi bi-search cps-search-icon"></i>
+                        <input type="text" name="keyword" class="cps-search-input" 
+                               placeholder="Bạn cần tìm gì hôm nay?" 
+                               value="@Context.Request.Query["keyword"]" />
+                    </form>
+                </div>
+
+                <!-- Header Actions -->
+                <div class="cps-header-actions">
+                    <!-- Hotline -->
+                    <a href="tel:0396166509" class="cps-header-action d-none d-xl-flex text-decoration-none">
+                        <i class="bi bi-telephone"></i>
+                        <div class="d-flex flex-column text-start">
+                            <span class="cps-action-sub">Gọi mua hàng</span>
+                            <span class="cps-action-main">0396166509</span>
+                        </div>
+                    </a>
+
+
+                    <!-- Tra cứu đơn hàng -->
+                    <a asp-controller="Customer" asp-action="Orders" class="cps-header-action d-none d-md-flex text-decoration-none">
+                        <i class="bi bi-truck"></i>
+                        <div class="d-flex flex-column text-start">
+                            <span class="cps-action-sub">Tra cứu</span>
+                            <span class="cps-action-main">Đơn hàng</span>
+                        </div>
+                    </a>
+
+                    <!-- Giỏ hàng -->
+                    <a asp-controller="Cart" asp-action="Index" class="cps-header-action cps-cart-action text-decoration-none">
+                        <div class="position-relative">
+                            <i class="bi bi-bag"></i>
+                            <span class="cps-cart-badge" id="cartBadgeCount">@cartCount</span>
+                        </div>
+                        <div class="d-flex flex-column text-start d-none d-sm-flex">
+                            <span class="cps-action-sub">Giỏ</span>
+                            <span class="cps-action-main">hàng</span>
+                        </div>
+                    </a>
+
+                    <!-- KittyMember / Đăng nhập tài khoản -->
+                    @if (User.Identity != null && User.Identity.IsAuthenticated)
+                    {
+                        @if (User.IsInRole("Customer"))
+                        {
+                            <div class="dropdown">
+                                <button class="cps-header-action dropdown-toggle border-0" type="button" data-bs-toggle="dropdown">
+                                    <div class="cps-user-avatar">
+                                        @(User.Identity.Name?.Substring(0, 1).ToUpper() ?? "U")
+                                    </div>
+                                    <div class="d-flex flex-column text-start">
+                                        <span class="cps-action-sub">KittyMember</span>
+                                        <span class="cps-action-main text-truncate" style="max-width: 90px;">@User.Identity.Name</span>
+                                    </div>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 py-2">
+                                    <li><a class="dropdown-item fw-semibold text-primary" asp-controller="Customer" asp-action="Profile"><i class="bi bi-person-badge me-2"></i>Tài khoản KittyMember</a></li>
+                                    <li><a class="dropdown-item fw-semibold" asp-controller="Customer" asp-action="Orders"><i class="bi bi-receipt me-2"></i>Đơn hàng đã đặt</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form asp-controller="Customer" asp-action="Logout" method="post" class="px-2">
+                                            <button type="submit" class="btn btn-sm btn-light text-danger w-100 text-start fw-semibold"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="dropdown">
+                                <button class="cps-header-action dropdown-toggle border-0" type="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-shield-lock-fill"></i>
+                                    <div class="d-flex flex-column text-start">
+                                        <span class="cps-action-sub">Quản trị</span>
+                                        <span class="cps-action-main text-truncate" style="max-width: 80px;">@User.Identity.Name</span>
+                                    </div>
+                                </button>
+                                <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 py-2">
+                                    @if (User.IsInRole("Admin"))
+                                    {
+                                        <li><a class="dropdown-item fw-bold text-danger" asp-controller="Admin" asp-action="Index"><i class="bi bi-speedometer2 me-2"></i>Admin Dashboard</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Admin" asp-action="Accounts"><i class="bi bi-people me-2"></i>Quản lý Tài khoản</a></li>
+                                    }
+                                    @if (User.IsInRole("Sales") || User.IsInRole("Admin"))
+                                    {
+                                        <li><a class="dropdown-item" asp-controller="Sales" asp-action="Orders"><i class="bi bi-receipt me-2"></i>Quản lý Đơn hàng</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Sales" asp-action="Reviews"><i class="bi bi-chat-heart me-2"></i>Xem Reviews</a></li>
+                                        <li><a class="dropdown-item" asp-controller="Sales" asp-action="Products"><i class="bi bi-tag me-2"></i>Nội dung bán hàng</a></li>
+                                    }
+                                    @if (User.IsInRole("Warehouse") || User.IsInRole("Admin"))
+                                    {
+                                        <li><a class="dropdown-item" asp-controller="Warehouse" asp-action="Index"><i class="bi bi-box-seam me-2"></i>Quản lý Kho</a></li>
+                                    }
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li>
+                                        <form asp-controller="Account" asp-action="Logout" method="post" class="px-2">
+                                            <button type="submit" class="btn btn-sm btn-light text-danger w-100 text-start fw-semibold"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <a asp-controller="Customer" asp-action="Login" class="cps-header-action cps-smember-btn text-decoration-none">
+                            <i class="bi bi-person-circle"></i>
+                            <div class="d-flex flex-column text-start">
+                                <span class="cps-action-sub">Thành viên</span>
+                                <span class="cps-action-main">Đăng nhập</span>
+                            </div>
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Body -->
+    <main role="main" class="cps-main-body">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="container pt-3">
+                <div class="alert alert-success alert-dismissible fade show shadow-sm rounded-3 d-flex align-items-center" role="alert">
+                    <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+                    <div>@TempData["SuccessMessage"]</div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="container pt-3">
+                <div class="alert alert-danger alert-dismissible fade show shadow-sm rounded-3 d-flex align-items-center" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+                    <div>@TempData["ErrorMessage"]</div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            </div>
+        }
+        @RenderBody()
+    </main>
+
+    <!-- KittyPhone Authentic Light Footer -->
+    <footer class="cps-footer">
+        <div class="container py-4">
+            <div class="row g-4">
+                <!-- Col 1: Tổng đài hỗ trợ -->
+                <div class="col-lg-3 col-md-6">
+                    <h6 class="cps-footer-title">Tổng đài hỗ trợ miễn phí</h6>
+                    <ul class="list-unstyled cps-footer-list">
+                        <li>Gọi mua hàng: <a href="tel:0396166509" class="fw-bold text-dark">0396166509</a> (7h30 - 22h00)</li>
+                        <li>Khiếu nại: <a href="tel:18002063" class="fw-bold text-dark">1800.2063</a> (8h00 - 21h30)</li>
+                        <li>Bảo hành: <a href="tel:18002064" class="fw-bold text-dark">1800.2064</a> (8h00 - 21h00)</li>
+                    </ul>
+                    <h6 class="cps-footer-title mt-4">Phương thức thanh toán</h6>
+                    <div class="d-flex flex-wrap gap-2 mt-2">
+                        <span class="cps-pay-badge">VNPAY</span>
+                        <span class="cps-pay-badge">MoMo</span>
+                        <span class="cps-pay-badge">Visa</span>
+                        <span class="cps-pay-badge">MasterCard</span>
+                        <span class="cps-pay-badge">Kredivo</span>
+                    </div>
+                </div>
+
+                <!-- Col 2: Thông tin và chính sách -->
+                <div class="col-lg-3 col-md-6">
+                    <h6 class="cps-footer-title">Thông tin và chính sách</h6>
+                    <ul class="list-unstyled cps-footer-list">
+                        <li><a asp-controller="Home" asp-action="Policy" asp-route-tab="online-payment" class="cps-footer-link" onclick="return openPolicyModal('online-payment', event);"><i class="bi bi-chevron-right me-1 small text-danger"></i>Mua hàng và thanh toán Online</a></li>
+                        <li><a asp-controller="Home" asp-action="Policy" asp-route-tab="installment-0" class="cps-footer-link" onclick="return openPolicyModal('installment-0', event);"><i class="bi bi-chevron-right me-1 small text-danger"></i>Mua hàng trả góp 0% qua thẻ tín dụng</a></li>
+                        <li><a asp-controller="Home" asp-action="Policy" asp-route-tab="shipping-inspection" class="cps-footer-link" onclick="return openPolicyModal('shipping-inspection', event);"><i class="bi bi-chevron-right me-1 small text-danger"></i>Chính sách giao hàng & kiểm hàng</a></li>
+                        <li><a asp-controller="Home" asp-action="Policy" asp-route-tab="warranty-30days" class="cps-footer-link" onclick="return openPolicyModal('warranty-30days', event);"><i class="bi bi-chevron-right me-1 small text-danger"></i>Chính sách bảo hành 1 đổi 1 trong 30 ngày</a></li>
+                        <li><a asp-controller="Home" asp-action="Policy" asp-route-tab="vat-invoice" class="cps-footer-link" onclick="return openPolicyModal('vat-invoice', event);"><i class="bi bi-chevron-right me-1 small text-danger"></i>Tra cứu hóa đơn điện tử VAT</a></li>
+                        <li><a asp-controller="Home" asp-action="Policy" asp-route-tab="privacy-policy" class="cps-footer-link" onclick="return openPolicyModal('privacy-policy', event);"><i class="bi bi-chevron-right me-1 small text-danger"></i>Chính sách bảo vệ thông tin khách hàng</a></li>
+                    </ul>
+                </div>
+
+                <!-- Col 3: Dịch vụ và thông tin khác -->
+                <div class="col-lg-3 col-md-6">
+                    <h6 class="cps-footer-title">Dịch vụ và thông tin khác</h6>
+                    <ul class="list-unstyled cps-footer-list">
+                        <li><a asp-controller="Home" asp-action="Policy" asp-route-tab="b2b-corporate" class="cps-footer-link" onclick="return openPolicyModal('b2b-corporate', event);"><i class="bi bi-chevron-right me-1 small text-danger"></i>Khách hàng doanh nghiệp (B2B)</a></li>
+                        <li><a asp-controller="Home" asp-action="Policy" asp-route-tab="bank-partners" class="cps-footer-link" onclick="return openPolicyModal('bank-partners', event);"><i class="bi bi-chevron-right me-1 small text-danger"></i>Ưu đãi thanh toán ngân hàng & đối tác</a></li>
+                        <li><a asp-controller="Home" asp-action="Policy" asp-route-tab="ecommerce-regulation" class="cps-footer-link" onclick="return openPolicyModal('ecommerce-regulation', event);"><i class="bi bi-chevron-right me-1 small text-danger"></i>Quy chế hoạt động sàn TMĐT</a></li>
+                        <li><a asp-controller="Home" asp-action="Policy" asp-route-tab="trade-in-subsidy" class="cps-footer-link" onclick="return openPolicyModal('trade-in-subsidy', event);"><i class="bi bi-chevron-right me-1 small text-danger"></i>Thu cũ đổi mới trợ giá đến 2.5 triệu</a></li>
+                        <li><a asp-controller="Home" asp-action="Policy" asp-route-tab="recruitment" class="cps-footer-link" onclick="return openPolicyModal('recruitment', event);"><i class="bi bi-chevron-right me-1 small text-danger"></i>Tuyển dụng nhân viên mới nhất</a></li>
+                    </ul>
+                </div>
+
+                <!-- Col 4: Kết nối & Hệ thống cửa hàng -->
+                <div class="col-lg-3 col-md-6">
+                    <h6 class="cps-footer-title">Kết nối với KittyPhone</h6>
+                    <div class="d-flex gap-3 mb-3 fs-5">
+                        <a href="https://youtube.com" class="text-danger"><i class="bi bi-youtube"></i></a>
+                        <a href="https://facebook.com" class="text-primary"><i class="bi bi-facebook"></i></a>
+                        <a href="https://tiktok.com" class="text-dark"><i class="bi bi-tiktok"></i></a>
+                        <a href="https://zalo.me" class="text-info"><i class="bi bi-chat-dots-fill"></i></a>
+                    </div>
+                    <h6 class="cps-footer-title mt-3">Hệ thống cửa hàng KittyPhone</h6>
+                    <p class="small text-muted mb-0" style="line-height: 1.6;">
+                        Quận 1, Quận 10, Quận 7, Gò Vấp, TP. Thủ Đức.<br />
+                        Mở cửa từ 8h00 - 22h00 các ngày trong tuần.
+                    </p>
+                </div>
+            </div>
+
+            <div class="cps-footer-bottom border-top pt-3 mt-4 text-center small text-muted">
+                <p class="mb-1">&copy; 2026 KittyPhone - Hệ thống bán lẻ điện thoại, máy tính bảng, smartwatch và phụ kiện công nghệ chính hãng.</p>
+                <p class="mb-0 text-muted" style="font-size: 0.75rem;">Địa chỉ: 249-251 Trần Quang Khải, Phường Tân Định, Quận 1, TP. Hồ Chí Minh - Hotline hỗ trợ: 0396166509</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Policy Details Interactive Modal -->
+    <div class="modal fade" id="modalPolicyInfo" tabindex="-1" aria-labelledby="modalPolicyInfoLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content border-0 rounded-4 shadow-lg overflow-hidden">
+                <div class="modal-header text-white border-0 py-3 px-4" style="background: linear-gradient(135deg, #0e2254 0%, #1d4ed8 100%);">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-shield-check fs-4 text-warning"></i>
+                        <div>
+                            <h5 class="modal-title fw-bold mb-0 text-white" id="modalPolicyInfoLabel">Trung tâm Thông tin & Chính sách KittyPhone</h5>
+                            <span class="small text-white-50">Quy định minh bạch, quyền lợi bảo hành & mua sắm chuẩn chính hãng</span>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0">
+                    <div class="row g-0">
+                        <!-- Left nav pills -->
+                        <div class="col-lg-4 col-md-5 bg-light border-end p-3">
+                            <div class="nav flex-column nav-pills gap-1" id="modalPolicyTabs" role="tablist">
+                                <span class="px-2 pt-1 pb-1 text-muted fw-bold text-uppercase" style="font-size: 11px;">Thông tin & Chính sách</span>
+                                <button class="nav-link text-start active py-2 rounded-2 small" id="m-tab-online-payment" data-bs-toggle="pill" data-bs-target="#m-pane-online-payment" type="button" role="tab">
+                                    <i class="bi bi-credit-card-2-front me-2 text-primary"></i>Mua hàng & Thanh toán Online
+                                </button>
+                                <button class="nav-link text-start py-2 rounded-2 small" id="m-tab-installment-0" data-bs-toggle="pill" data-bs-target="#m-pane-installment-0" type="button" role="tab">
+                                    <i class="bi bi-percent me-2 text-warning"></i>Trả góp 0% qua thẻ tín dụng
+                                </button>
+                                <button class="nav-link text-start py-2 rounded-2 small" id="m-tab-shipping-inspection" data-bs-toggle="pill" data-bs-target="#m-pane-shipping-inspection" type="button" role="tab">
+                                    <i class="bi bi-truck me-2 text-info"></i>Giao hàng & Kiểm hàng
+                                </button>
+                                <button class="nav-link text-start py-2 rounded-2 small" id="m-tab-warranty-30days" data-bs-toggle="pill" data-bs-target="#m-pane-warranty-30days" type="button" role="tab">
+                                    <i class="bi bi-arrow-repeat me-2 text-success"></i>Bảo hành 1 đổi 1 trong 30 ngày
+                                </button>
+                                <button class="nav-link text-start py-2 rounded-2 small" id="m-tab-vat-invoice" data-bs-toggle="pill" data-bs-target="#m-pane-vat-invoice" type="button" role="tab">
+                                    <i class="bi bi-receipt me-2 text-secondary"></i>Tra cứu hóa đơn điện tử VAT
+                                </button>
+                                <button class="nav-link text-start py-2 rounded-2 small" id="m-tab-privacy-policy" data-bs-toggle="pill" data-bs-target="#m-pane-privacy-policy" type="button" role="tab">
+                                    <i class="bi bi-shield-lock me-2 text-danger"></i>Bảo vệ thông tin khách hàng
+                                </button>
+
+                                <span class="px-2 pt-2 pb-1 text-muted fw-bold text-uppercase" style="font-size: 11px;">Dịch vụ & Khác</span>
+                                <button class="nav-link text-start py-2 rounded-2 small" id="m-tab-b2b-corporate" data-bs-toggle="pill" data-bs-target="#m-pane-b2b-corporate" type="button" role="tab">
+                                    <i class="bi bi-building me-2 text-primary"></i>Khách hàng doanh nghiệp (B2B)
+                                </button>
+                                <button class="nav-link text-start py-2 rounded-2 small" id="m-tab-bank-partners" data-bs-toggle="pill" data-bs-target="#m-pane-bank-partners" type="button" role="tab">
+                                    <i class="bi bi-tags me-2 text-danger"></i>Ưu đãi thanh toán & Đối tác
+                                </button>
+                                <button class="nav-link text-start py-2 rounded-2 small" id="m-tab-ecommerce-regulation" data-bs-toggle="pill" data-bs-target="#m-pane-ecommerce-regulation" type="button" role="tab">
+                                    <i class="bi bi-file-earmark-ruled me-2 text-secondary"></i>Quy chế hoạt động sàn TMĐT
+                                </button>
+                                <button class="nav-link text-start py-2 rounded-2 small" id="m-tab-trade-in-subsidy" data-bs-toggle="pill" data-bs-target="#m-pane-trade-in-subsidy" type="button" role="tab">
+                                    <i class="bi bi-recycle me-2 text-danger"></i>Thu cũ đổi mới trợ giá 2.5Tr
+                                </button>
+                                <button class="nav-link text-start py-2 rounded-2 small" id="m-tab-recruitment" data-bs-toggle="pill" data-bs-target="#m-pane-recruitment" type="button" role="tab">
+                                    <i class="bi bi-briefcase me-2 text-success"></i>Tuyển dụng nhân viên mới nhất
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Right content pane -->
+                        <div class="col-lg-8 col-md-7 p-4">
+                            <div class="tab-content" id="modalPolicyTabContent">
+                                
+                                <!-- 1. Mua hàng & thanh toán online -->
+                                <div class="tab-pane fade show active" id="m-pane-online-payment" role="tabpanel">
+                                    <h5 class="fw-bold text-primary mb-3"><i class="bi bi-credit-card-2-front me-2"></i>Quy trình Mua hàng & Thanh toán Online</h5>
+                                    <p class="text-muted small">Khách hàng có thể đặt hàng trực tuyến 24/7 và chọn các hình thức thanh toán thuận tiện nhất:</p>
+                                    <div class="row g-2 mb-3">
+                                        <div class="col-sm-6">
+                                            <div class="border rounded p-2 bg-light small">
+                                                <strong>1. Quét mã VietQR / VNPAY:</strong> Hỗ trợ 40+ ứng dụng ngân hàng, xác nhận tự động tức thì.
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="border rounded p-2 bg-light small">
+                                                <strong>2. Ví điện tử:</strong> MoMo, ZaloPay, ShopeePay hoặc Ví trả sau Kredivo 0% lãi suất.
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="border rounded p-2 bg-light small">
+                                                <strong>3. Thẻ quốc tế Visa, MasterCard:</strong> Bảo mật 3D-Secure, không phát sinh phụ phí cà thẻ.
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <div class="border rounded p-2 bg-light small">
+                                                <strong>4. Thanh toán COD:</strong> Kiểm tra ngoại quan nguyên seal trước khi thanh toán tiền mặt.
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="alert alert-info py-2 small mb-0"><i class="bi bi-shield-lock-fill me-1"></i>Mọi giao dịch thanh toán online tại KittyPhone đều được bảo mật qua giao thức SSL 256-bit chuẩn quốc tế.</div>
+                                </div>
+
+                                <!-- 2. Trả góp 0% qua thẻ tín dụng -->
+                                <div class="tab-pane fade" id="m-pane-installment-0" role="tabpanel">
+                                    <h5 class="fw-bold text-warning mb-3"><i class="bi bi-percent me-2 text-dark"></i>Mua hàng Trả góp 0% qua Thẻ tín dụng</h5>
+                                    <p class="text-muted small">Sở hữu ngay Flagship không cần trả trước 100% chi phí:</p>
+                                    <ul class="small mb-3 ps-3">
+                                        <li><strong>Lãi suất 0% cố định</strong> trong suốt kỳ hạn (3, 6, 9 hoặc 12 tháng).</li>
+                                        <li><strong>Xét duyệt 100% online trong 3 phút</strong>: Không cần nộp hộ khẩu, CMND hay chứng minh thu nhập.</li>
+                                        <li>Áp dụng cho thẻ tín dụng (Credit Card) của hơn 25 ngân hàng: Techcombank, VPBank, Sacombank, Vietcombank, MB, ACB, TPBank, VIB, HSBC...</li>
+                                        <li>Đơn hàng tối thiểu từ 3.000.000đ trở lên.</li>
+                                    </ul>
+                                    <div class="alert alert-warning py-2 small mb-0"><i class="bi bi-info-circle-fill me-1"></i>Có thể cộng dồn đồng thời cùng chương trình <strong>Thu cũ đổi mới trợ giá 2.5Tr</strong>.</div>
+                                </div>
+
+                                <!-- 3. Giao hàng & kiểm hàng -->
+                                <div class="tab-pane fade" id="m-pane-shipping-inspection" role="tabpanel">
+                                    <h5 class="fw-bold text-info mb-3"><i class="bi bi-truck me-2"></i>Chính sách Giao hàng & Đồng kiểm</h5>
+                                    <div class="table-responsive mb-3">
+                                        <table class="table table-sm table-bordered small">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Khu vực</th>
+                                                    <th>Thời gian</th>
+                                                    <th>Cước phí</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>Nội thành TP.HCM</td>
+                                                    <td><strong>Giao siêu tốc 2 Giờ</strong></td>
+                                                    <td class="text-success fw-bold">Miễn phí</td>
+                                                </tr>
+                                                <tr>
+                                                    <td>Ngoại thành & Toàn quốc</td>
+                                                    <td>1 - 3 ngày làm việc (Viettel Post)</td>
+                                                    <td class="text-success fw-bold">Miễn phí đơn từ 1Tr</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div class="border rounded p-2 bg-light small mb-0">
+                                        <strong class="text-danger">Quy định đồng kiểm:</strong> Khách hàng được quyền mở hộp kiểm tra ngoại quan máy nguyên seal, đúng màu và model đã đặt trước khi ký nhận và thanh toán tiền.
+                                    </div>
+                                </div>
+
+                                <!-- 4. Bảo hành 1 đổi 1 trong 30 ngày -->
+                                <div class="tab-pane fade" id="m-pane-warranty-30days" role="tabpanel">
+                                    <h5 class="fw-bold text-success mb-3"><i class="bi bi-arrow-repeat me-2"></i>Bảo hành 1 đổi 1 trong 30 ngày đầu</h5>
+                                    <div class="alert alert-success py-2 small mb-3">
+                                        <strong>Đổi ngay máy mới 100%:</strong> Nếu sản phẩm bị lỗi phần cứng từ nhà sản xuất trong 30 ngày đầu, KittyPhone đổi ngay máy mới cùng loại nguyên seal, không bắt khách hàng chờ bảo hành sửa chữa.
+                                    </div>
+                                    <ul class="small mb-0 ps-3">
+                                        <li>Từ tháng thứ 2: Bảo hành chính hãng 12 - 24 tháng tại các trung tâm bảo hành ủy quyền của Apple, Samsung, Xiaomi,...</li>
+                                        <li>Cung cấp máy dùng tạm miễn phí trong suốt thời gian bảo hành.</li>
+                                        <li>Hỗ trợ miễn phí công sửa chữa và vệ sinh trọn đời máy cho KittyMember.</li>
+                                    </ul>
+                                </div>
+
+                                <!-- 5. Tra cứu hóa đơn điện tử VAT -->
+                                <div class="tab-pane fade" id="m-pane-vat-invoice" role="tabpanel">
+                                    <h5 class="fw-bold text-dark mb-3"><i class="bi bi-receipt me-2 text-primary"></i>Tra cứu Hóa đơn điện tử VAT</h5>
+                                    <p class="small text-muted mb-2">100% thiết bị bán ra tại KittyPhone đều được xuất hóa đơn VAT điện tử hợp pháp theo quy định của Tổng cục Thuế:</p>
+                                    <ul class="small mb-3 ps-3">
+                                        <li>Hóa đơn được phát hành và tự động gửi file PDF/XML về email đăng ký ngay sau khi hoàn tất giao hàng.</li>
+                                        <li>Xuất hóa đơn cho doanh nghiệp: Quý khách điền MST, tên công ty và địa chỉ tại bước Thanh toán, hóa đơn sẽ được gửi trong 24h.</li>
+                                        <li>Hỗ trợ tra cứu hóa đơn: Liên hệ kế toán qua hotline <strong>0396.166.509 (Phím 3)</strong> hoặc email <code>ketoan@kittyphone.vn</code>.</li>
+                                    </ul>
+                                </div>
+
+                                <!-- 6. Bảo vệ thông tin khách hàng -->
+                                <div class="tab-pane fade" id="m-pane-privacy-policy" role="tabpanel">
+                                    <h5 class="fw-bold text-dark mb-3"><i class="bi bi-shield-lock me-2 text-danger"></i>Chính sách Bảo vệ Thông tin Khách hàng</h5>
+                                    <p class="small text-muted mb-2">Tuân thủ nghiêm ngặt Nghị định 13/2023/NĐ-CP về bảo vệ dữ liệu cá nhân:</p>
+                                    <ul class="small mb-0 ps-3">
+                                        <li>Thông tin (tên, SĐT, địa chỉ) chỉ dùng để xử lý đơn hàng, bảo hành và tích lũy ưu đãi KittyMember.</li>
+                                        <li>Không bán, chia sẻ hoặc chuyển giao thông tin cá nhân cho bất kỳ bên thứ ba nào.</li>
+                                        <li>Mật khẩu tài khoản được mã hóa một chiều (PBKDF2/BCrypt), toàn bộ hệ thống được bảo vệ bởi tường lửa và Cloudflare.</li>
+                                    </ul>
+                                </div>
+
+                                <!-- 7. Khách hàng doanh nghiệp B2B -->
+                                <div class="tab-pane fade" id="m-pane-b2b-corporate" role="tabpanel">
+                                    <h5 class="fw-bold text-primary mb-3"><i class="bi bi-building me-2"></i>Khách hàng Doanh nghiệp (B2B)</h5>
+                                    <p class="small text-muted mb-2">Cung cấp giải pháp thiết bị công nghệ số lượng lớn cho công ty, dự án và trường học:</p>
+                                    <div class="row g-2 mb-3">
+                                        <div class="col-sm-6"><div class="border rounded p-2 bg-light small">✓ Chiết khấu đặc biệt đến 15% theo số lượng hợp đồng.</div></div>
+                                        <div class="col-sm-6"><div class="border rounded p-2 bg-light small">✓ Đầy đủ hợp đồng kinh tế và hóa đơn GTGT điện tử.</div></div>
+                                        <div class="col-sm-6"><div class="border rounded p-2 bg-light small">✓ Chính sách công nợ linh hoạt 15 - 30 ngày.</div></div>
+                                        <div class="col-sm-6"><div class="border rounded p-2 bg-light small">✓ Giao hàng & cấu hình MDM phần mềm tận nơi miễn phí.</div></div>
+                                    </div>
+                                    <p class="small mb-0">Hotline B2B: <strong>0396.166.509 (Nhánh 2)</strong> • Email: <code>b2b@kittyphone.vn</code></p>
+                                </div>
+
+                                <!-- 8. Ưu đãi ngân hàng & đối tác -->
+                                <div class="tab-pane fade" id="m-pane-bank-partners" role="tabpanel">
+                                    <h5 class="fw-bold text-danger mb-3"><i class="bi bi-tags me-2"></i>Ưu đãi Thanh toán Ngân hàng & Đối tác</h5>
+                                    <ul class="small mb-0 ps-3">
+                                        <li><strong>Giảm 1.000.000đ</strong> khi thanh toán qua thẻ tín dụng Techcombank, VPBank, VIB vào Thứ 6, Thứ 7 & CN.</li>
+                                        <li><strong>Giảm ngay 300.000đ</strong> với mã <code>VNPAYKITTY</code> khi quét QR qua app ngân hàng.</li>
+                                        <li><strong>Hoàn tiền 2%</strong> qua Ví trả sau MoMo / Kredivo.</li>
+                                        <li>Áp dụng đồng thời cùng Voucher Giờ Vàng và chiết khấu thành viên KittyMember.</li>
+                                    </ul>
+                                </div>
+
+                                <!-- 9. Quy chế sàn TMĐT -->
+                                <div class="tab-pane fade" id="m-pane-ecommerce-regulation" role="tabpanel">
+                                    <h5 class="fw-bold text-dark mb-3"><i class="bi bi-file-earmark-ruled me-2 text-secondary"></i>Quy chế Hoạt động Sàn TMĐT</h5>
+                                    <p class="small text-muted mb-2">Website KittyPhone đã đăng ký và thông báo với Bộ Công Thương theo quy định:</p>
+                                    <ul class="small mb-0 ps-3">
+                                        <li>Minh bạch về giá niêm yết, tình trạng máy, xuất xứ và điều kiện bảo hành.</li>
+                                        <li>Bảo vệ quyền lợi tối đa của người tiêu dùng, cơ chế tiếp nhận phản ánh khiếu nại trong vòng 24h qua tổng đài tiếp nhận <strong>1800.2063</strong>.</li>
+                                    </ul>
+                                </div>
+
+                                <!-- 10. Thu cũ đổi mới trợ giá 2.5Tr -->
+                                <div class="tab-pane fade" id="m-pane-trade-in-subsidy" role="tabpanel">
+                                    <h5 class="fw-bold text-danger mb-3"><i class="bi bi-recycle me-2"></i>Thu cũ Đổi mới Trợ giá đến 2.500.000đ</h5>
+                                    <p class="small text-muted mb-2">Chương trình "Lên đời Flagship 2026 - Không lo bù tiền":</p>
+                                    <ul class="small mb-3 ps-3">
+                                        <li><strong>Thu mua mọi dòng máy:</strong> Thu nhận smartphone cũ của Apple, Samsung, Xiaomi,... kể cả máy trầy xước, chai pin hoặc máy xách tay.</li>
+                                        <li><strong>Trợ giá độc quyền 2.500.000đ</strong> cộng trực tiếp vào giá trị thu máy khi lên đời iPhone 18, iPhone Duo, S25 Ultra.</li>
+                                        <li>Khoản tiền chênh lệch còn lại được chuyển đổi sang <strong>Trả góp 0%</strong> không cần trả trước.</li>
+                                    </ul>
+                                    <a href="tel:0396166509" class="btn btn-sm btn-danger rounded-pill px-3 fw-bold"><i class="bi bi-telephone-fill me-1"></i>Gọi 0396.166.509 để định giá máy cũ</a>
+                                </div>
+
+                                <!-- 11. Tuyển dụng mới nhất -->
+                                <div class="tab-pane fade" id="m-pane-recruitment" role="tabpanel">
+                                    <h5 class="fw-bold text-success mb-3"><i class="bi bi-briefcase me-2"></i>Tuyển dụng Nhân viên Mới nhất (Tháng 10/2026)</h5>
+                                    <div class="row g-2 mb-3">
+                                        <div class="col-sm-6"><div class="border rounded p-2 small"><strong>05 Nhân viên Tư vấn bán hàng:</strong> Thu nhập 10 - 22Tr/tháng.</div></div>
+                                        <div class="col-sm-6"><div class="border rounded p-2 small"><strong>03 Kỹ thuật viên ép kính, sửa chữa:</strong> Thu nhập 12 - 25Tr/tháng.</div></div>
+                                        <div class="col-sm-6"><div class="border rounded p-2 small"><strong>02 Chăm sóc khách hàng trực page:</strong> Thu nhập 9 - 15Tr/tháng.</div></div>
+                                        <div class="col-sm-6"><div class="border rounded p-2 small"><strong>01 Nhân viên Kho & Đóng gói:</strong> Thu nhập 8.5 - 13Tr/tháng.</div></div>
+                                    </div>
+                                    <p class="small text-muted mb-0">Ứng tuyển gửi CV về email: <strong>tuyendung@kittyphone.vn</strong> hoặc liên hệ hotline nhân sự <strong>0396.166.509</strong>.</p>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-top p-3 d-flex justify-content-between align-items-center">
+                    <a asp-controller="Home" asp-action="Policy" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-semibold">
+                        <i class="bi bi-box-arrow-up-right me-1"></i>Xem trang chính sách đầy đủ
+                    </a>
+                    <button type="button" class="btn btn-secondary btn-sm rounded-pill px-4" data-bs-dismiss="modal">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Bottom Navigation Bar -->
+    <div class="mobile-bottom-nav">
+        <a asp-controller="Home" asp-action="Index" class="d-flex flex-column align-items-center text-decoration-none text-danger">
+            <i class="bi bi-house-door-fill fs-5"></i>
+            <span style="font-size: 0.7rem; font-weight: 600;">Trang chủ</span>
+        </a>
+        <a asp-controller="Home" asp-action="Index" asp-fragment="productCatalog" class="d-flex flex-column align-items-center text-decoration-none text-secondary">
+            <i class="bi bi-grid fs-5"></i>
+            <span style="font-size: 0.7rem; font-weight: 600;">Danh mục</span>
+        </a>
+        <a asp-controller="Cart" asp-action="Index" class="d-flex flex-column align-items-center text-decoration-none text-secondary position-relative">
+            <i class="bi bi-bag fs-5"></i>
+            <span id="mobileCartBadgeCount" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem; @(cartCount > 0 ? "" : "display: none;")">@cartCount</span>
+            <span style="font-size: 0.7rem; font-weight: 600;">Giỏ hàng</span>
+        </a>
+        <a href="tel:0396166509" class="d-flex flex-column align-items-center text-decoration-none text-secondary">
+            <i class="bi bi-telephone fs-5"></i>
+            <span style="font-size: 0.7rem; font-weight: 600;">Hotline</span>
+        </a>
+        <a asp-controller="Customer" asp-action="Login" class="d-flex flex-column align-items-center text-decoration-none text-secondary">
+            <i class="bi bi-person fs-5"></i>
+            <span style="font-size: 0.7rem; font-weight: 600;">KittyMember</span>
+        </a>
+    </div>
+
+    <!-- Scripts -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <!-- KittyBot AI Floating Widget JS -->
+    <script src="~/js/kittybot.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

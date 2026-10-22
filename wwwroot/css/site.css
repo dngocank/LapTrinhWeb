@@ -1,0 +1,1914 @@
+/* =====================================================================
+   KITTYPHONE E-COMMERCE DESIGN SYSTEM
+   Standardized UI with semantic tokens, Inter typography, WCAG 2.2 AA
+   Brand Identity: KittyPhone (Blue Theme: Deep Navy #0e2254 & Ocean Blue #0284c7)
+   ===================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+:root {
+    /* --- KittyPhone Brand Tokens (Signature Blue Palette) --- */
+    --brand-navy: #0e2254;
+    --brand-blue: #0284c7;
+    --brand-cyan: #38bdf8;
+    --brand-blue-hover: #0369a1;
+    --brand-blue-light: #f0f9ff;
+    --brand-blue-subtle: #e0f2fe;
+
+    /* Theme Primary Color (Redirected to Brand Blue) */
+    --cps-red: #0284c7;
+    --cps-red-dark: #0e2254;
+    --cps-red-light: #e0f2fe;
+    --cps-red-hover: #0369a1;
+
+    /* --- Typography Tokens --- */
+    --font-family-primary: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    --font-size-xs: 11px;
+    --font-size-sm: 13px;
+    --font-size-base: 14px;
+    --font-size-md: 15px;
+    --font-size-lg: 18px;
+    --font-size-xl: 22px;
+    --font-size-2xl: 28px;
+    --font-line-height-base: 21px;
+
+    /* --- Color Palette Tokens --- */
+    --color-text-primary: #18181b;
+    --color-text-secondary: #71717a;
+    --color-text-tertiary: #1d1d20;
+    --color-text-inverse: #ffffff;
+    --color-surface-base: #000000;
+    --color-surface-muted: #ffffff;
+
+    /* Semantic Aliases */
+    --text-primary: #18181b;
+    --text-secondary: #71717a;
+    --text-muted: #a1a1aa;
+    --bg-page: #f4f6f8;
+    --bg-surface: #ffffff;
+    --bg-card: #ffffff;
+    --border-color: #e5e7eb;
+    --border-subtle: #f4f4f5;
+
+    /* Functional Accents */
+    --primary: #0284c7;
+    --primary-hover: #0369a1;
+    --accent-blue: #0284c7;
+    --accent-yellow: #f59e0b;
+    --accent-green: #10b981;
+
+    /* Spacing Scale */
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 20px;
+    --space-6: 24px;
+
+    /* Shadows & Radii */
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-card: 0 1px 3px 0 rgba(60, 64, 67, 0.08), 0 2px 6px 2px rgba(60, 64, 67, 0.06);
+    --shadow-card-hover: 0 8px 20px rgba(0, 0, 0, 0.08);
+    --radius-xs: 4px;
+    --radius-sm: 8px;
+    --radius-md: 12px;
+    --radius-lg: 16px;
+    --radius-pill: 9999px;
+    --transition: all 0.2s ease-in-out;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body, button, input, select, textarea, .btn, h1, h2, h3, h4, h5, h6, .navbar, .card {
+    font-family: var(--font-family-primary) !important;
+}
+
+body {
+    background-color: var(--bg-page);
+    color: var(--text-primary);
+    font-size: var(--font-size-base);
+    line-height: var(--font-line-height-base);
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+}
+
+a {
+    color: var(--primary);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+a:hover {
+    color: var(--primary-hover);
+}
+
+/* ========================================================
+   1. TOP CAMPAIGN RIBBON (KittyPhone Announcement Ribbon)
+   ======================================================== */
+.cps-top-ribbon {
+    background: #071538;
+    color: #ffffff;
+    font-size: 12px;
+    padding: 6px 0;
+    font-weight: 500;
+}
+
+.cps-ribbon-badge {
+    background: #38bdf8;
+    color: #071538;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 700;
+    font-size: 11px;
+}
+
+/* ========================================================
+   2. MAIN HEADER (KittyPhone Ocean Blue Bar)
+   ======================================================== */
+.cps-main-header {
+    background: linear-gradient(135deg, #071538 0%, #0e2254 60%, #0284c7 100%);
+    color: #ffffff;
+    position: sticky;
+    top: 0;
+    z-index: 1050;
+    box-shadow: 0 4px 14px rgba(14, 34, 84, 0.25);
+}
+
+.cps-header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 0;
+    gap: 12px;
+}
+
+/* Logo */
+.cps-logo {
+    display: inline-flex;
+    align-items: center;
+    font-size: 22px;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -0.5px;
+    text-decoration: none;
+}
+
+.cps-logo-text {
+    display: inline-flex;
+    align-items: center;
+    color: #ffffff;
+}
+
+.cps-logo-s {
+    background: #38bdf8;
+    color: #071538;
+    border-radius: 6px;
+    padding: 1px 7px;
+    margin-left: 2px;
+    font-weight: 900;
+    display: inline-block;
+    line-height: 1.1;
+}
+
+/* Header Pill Buttons */
+.cps-btn-pill {
+    background: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    transition: var(--transition);
+    white-space: nowrap;
+}
+
+.cps-btn-pill:hover {
+    background: rgba(255, 255, 255, 0.3);
+    color: #ffffff;
+}
+
+.cps-btn-sub {
+    font-size: 10px;
+    opacity: 0.85;
+    line-height: 1;
+}
+
+.cps-btn-main {
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+/* Search Bar */
+.cps-search-wrap {
+    flex: 1;
+    max-width: 440px;
+    margin: 0 8px;
+}
+
+.cps-search-form {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 0 12px;
+    height: 38px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.cps-search-icon {
+    color: #71717a;
+    font-size: 15px;
+    margin-right: 8px;
+}
+
+.cps-search-input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    font-size: 13px;
+    color: var(--text-primary);
+    outline: none;
+}
+
+.cps-search-input::placeholder {
+    color: #a1a1aa;
+}
+
+/* Header Actions */
+.cps-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.cps-header-action {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #ffffff;
+    padding: 5px 8px;
+    border-radius: 8px;
+    transition: var(--transition);
+    background: transparent;
+    cursor: pointer;
+}
+
+.cps-header-action:hover {
+    background: rgba(255, 255, 255, 0.18);
+    color: #ffffff;
+}
+
+.cps-action-sub {
+    font-size: 10px;
+    opacity: 0.85;
+    line-height: 1.1;
+}
+
+.cps-action-main {
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+.cps-cart-action {
+    background: rgba(255, 255, 255, 0.18);
+    border-radius: 8px;
+}
+
+.cps-cart-badge {
+    position: absolute;
+    top: -6px;
+    right: -8px;
+    background: #ffffff;
+    color: var(--cps-red);
+    font-size: 10px;
+    font-weight: 800;
+    width: 17px;
+    height: 17px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+    transition: transform 0.2s ease;
+}
+
+@keyframes cartBadgeBump {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.4); }
+    100% { transform: scale(1); }
+}
+
+.cps-cart-badge.badge-bump,
+#mobileCartBadgeCount.badge-bump {
+    animation: cartBadgeBump 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.cps-user-avatar {
+    width: 26px;
+    height: 26px;
+    background: #ffffff;
+    color: var(--cps-red);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 12px;
+}
+
+/* Category Dropdown */
+.cps-category-dropdown {
+    width: 240px;
+}
+
+.cps-category-dropdown .dropdown-item {
+    font-size: 13px;
+    transition: var(--transition);
+}
+
+.cps-category-dropdown .dropdown-item:hover {
+    background: var(--cps-red-light);
+    color: var(--cps-red);
+}
+
+/* ========================================================
+   3. HERO SECTION: SIDEBAR MENU + CAROUSEL + SIDE BANNERS
+   ======================================================== */
+.cps-hero-grid {
+    display: grid;
+    grid-template-columns: 210px 1fr 270px;
+    gap: 12px;
+    align-items: stretch;
+}
+
+@media (max-width: 1199.98px) {
+    .cps-hero-grid {
+        grid-template-columns: 210px 1fr;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .cps-hero-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Left Sidebar Menu */
+.cps-sidebar-menu {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 6px 0;
+    box-shadow: var(--shadow-sm);
+    height: 100%;
+}
+
+.cps-sidebar-list li {
+    margin-bottom: 1px;
+}
+
+.cps-sidebar-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 14px;
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    transition: var(--transition);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+}
+
+.cps-sidebar-link:hover, .cps-sidebar-link.active {
+    background: #fdf2f2;
+    color: var(--cps-red);
+    font-weight: 600;
+}
+
+.cps-sidebar-link i.ms-auto {
+    font-size: 11px;
+    color: #a1a1aa;
+}
+
+/* Hero Carousel */
+.cps-hero-slider {
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    min-height: 380px;
+    height: 100%;
+    box-shadow: var(--shadow-sm);
+    position: relative;
+}
+
+.cps-slider-banner {
+    min-height: 380px;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+}
+
+.cps-banner-slide-1 {
+    background: linear-gradient(135deg, #071538 0%, #0e2254 50%, #0284c7 100%);
+}
+
+.cps-banner-slide-2 {
+    background: linear-gradient(135deg, #090e1c 0%, #172554 50%, #0369a1 100%);
+}
+
+.cps-banner-content {
+    position: relative;
+    z-index: 3;
+    max-width: 58%;
+    padding: 10px 0;
+}
+
+.banner-heading {
+    font-size: clamp(22px, 3.2vw, 32px);
+    line-height: 1.2;
+    letter-spacing: -0.5px;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+}
+
+.banner-desc {
+    font-size: 13.5px;
+    line-height: 1.5;
+    max-width: 440px;
+}
+
+/* Phone Mockup Showcase */
+.cps-banner-mockup-wrap {
+    position: absolute;
+    right: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 42%;
+    height: 94%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+}
+
+.cps-mockup-glow {
+    position: absolute;
+    width: 240px;
+    height: 240px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(102, 204, 255, 0.35) 0%, rgba(2, 132, 199, 0.15) 50%, transparent 70%);
+    filter: blur(25px);
+    z-index: 1;
+    pointer-events: none;
+}
+
+.cps-mockup-glow.glow-gold {
+    background: radial-gradient(circle, rgba(245, 158, 11, 0.35) 0%, rgba(14, 165, 233, 0.2) 50%, transparent 70%);
+}
+
+.cps-banner-mockup-img {
+    position: relative;
+    z-index: 2;
+    max-height: 330px;
+    max-width: 100%;
+    object-fit: contain;
+    border-radius: 18px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 20px rgba(102, 204, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    animation: bannerFloat 4.5s ease-in-out infinite alternate;
+}
+
+@keyframes bannerFloat {
+    0% {
+        transform: translateY(0px) rotate(0deg);
+    }
+    100% {
+        transform: translateY(-10px) rotate(0.8deg);
+    }
+}
+
+.cps-mockup-floating-badge {
+    position: absolute;
+    z-index: 3;
+    background: rgba(14, 34, 84, 0.75);
+    backdrop-filter: blur(8px);
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1px solid rgba(102, 204, 255, 0.5);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+    white-space: nowrap;
+    animation: badgeFloat 4s ease-in-out infinite alternate;
+}
+
+.cps-mockup-floating-badge.badge-top {
+    top: 15%;
+    right: 8%;
+    animation-delay: 0.5s;
+}
+
+.cps-mockup-floating-badge.badge-bottom {
+    bottom: 12%;
+    left: 2%;
+    animation-delay: 1.2s;
+}
+
+@keyframes badgeFloat {
+    0% { transform: translateY(0px); }
+    100% { transform: translateY(-6px); }
+}
+
+@media (max-width: 991.98px) {
+    .cps-banner-content {
+        max-width: 65%;
+    }
+    .cps-banner-mockup-wrap {
+        width: 38%;
+        right: 10px;
+    }
+    .cps-banner-mockup-img {
+        max-height: 270px;
+    }
+    .cps-mockup-floating-badge {
+        display: none;
+    }
+}
+
+@media (max-width: 767.98px) {
+    .cps-banner-content {
+        max-width: 100%;
+        padding-right: 0;
+    }
+    .cps-banner-mockup-wrap {
+        opacity: 0.28;
+        right: -30px;
+        width: 65%;
+    }
+}
+
+/* Side Banners */
+.cps-hero-side-banners {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    gap: 8px;
+}
+
+.cps-side-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    box-shadow: var(--shadow-xs);
+    transition: var(--transition);
+    display: block;
+    flex: 1;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
+}
+
+.cps-side-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+    border-color: var(--primary);
+}
+
+.cps-side-card-img {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 10px;
+    flex-shrink: 0;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+    border: 1px solid rgba(0, 0, 0, 0.06);
+    transition: transform 0.2s ease;
+}
+
+.cps-side-card:hover .cps-side-card-img {
+    transform: scale(1.08);
+}
+
+.cps-side-tag {
+    font-size: 11px;
+    font-weight: 700;
+    display: block;
+    margin-bottom: 2px;
+}
+
+/* ========================================================
+   4. HOT SALE SECTION WITH COUNTDOWN
+   ======================================================== */
+.cps-hotsale-section {
+    box-shadow: var(--shadow-sm);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.cps-hotsale-header {
+    background: linear-gradient(90deg, #0e2254 0%, #0284c7 100%);
+    color: #ffffff;
+    padding: 12px 18px;
+}
+
+.cps-hotsale-title {
+    font-size: 17px;
+    font-weight: 800;
+    letter-spacing: -0.3px;
+    text-transform: uppercase;
+}
+
+.cps-countdown-box {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.cps-countdown-num {
+    background: #000000;
+    color: #ffffff;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 800;
+    font-size: 13px;
+    min-width: 26px;
+    text-align: center;
+}
+
+.cps-countdown-colon {
+    font-weight: 800;
+    color: #ffffff;
+}
+
+/* ========================================================
+   5. KITTYPHONE PRODUCT CARD (THE EXACT REAL-LIFE DESIGN)
+   ======================================================== */
+.product-card-cps {
+    background: #ffffff;
+    border: 1px solid #f1f1f1;
+    border-radius: var(--radius-md);
+    padding: 10px 10px 12px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    position: relative;
+    box-shadow: var(--shadow-card);
+    transition: var(--transition);
+}
+
+.product-card-cps:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-card-hover);
+    border-color: #fca5a5;
+}
+
+/* Top Badges Row */
+.cps-badge-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    min-height: 20px;
+}
+
+.cps-badge-discount {
+    background: var(--cps-red);
+    color: #ffffff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 1px 6px;
+    border-radius: 4px;
+    line-height: 1.3;
+}
+
+.cps-badge-installment {
+    background: #f4f4f5;
+    color: #52525b;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 1px 5px;
+    border-radius: 4px;
+    line-height: 1.3;
+}
+
+/* Product Image */
+.cps-card-img-wrap {
+    padding: 6px;
+    margin-bottom: 6px;
+}
+
+.cps-card-img {
+    max-width: 100%;
+    height: 155px;
+    object-fit: contain;
+    transition: transform 0.25s ease;
+}
+
+.product-card-cps:hover .cps-card-img {
+    transform: scale(1.04);
+}
+
+/* Product Title */
+.cps-card-title {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 20px;
+    color: var(--text-primary);
+    margin: 6px 0 4px;
+    height: 40px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.cps-card-title a {
+    color: var(--text-primary);
+    text-decoration: none;
+}
+
+.cps-card-title a:hover {
+    color: var(--cps-red);
+}
+
+/* Price Section */
+.cps-card-price-row {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+
+.cps-card-price-current {
+    color: var(--cps-red);
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.cps-card-price-old {
+    color: var(--text-secondary);
+    font-size: 12px;
+    text-decoration: line-through;
+}
+
+/* Smember & Promo Note Box */
+.cps-card-promo-box {
+    background: #f4f4f5;
+    border: 1px solid #e4e4e7;
+    border-radius: 4px;
+    padding: 4px 6px;
+    font-size: 11px;
+    color: #3f3f46;
+    line-height: 1.35;
+    margin-bottom: 8px;
+    height: 32px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Card Footer */
+.cps-card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 6px;
+    border-top: 1px solid #f4f4f5;
+    margin-top: auto;
+}
+
+.cps-badge-speed {
+    background: #e0f2fe;
+    color: #0284c7;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 1px 5px;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.cps-rating-star {
+    color: var(--accent-yellow);
+    font-size: 11px;
+    font-weight: 600;
+    margin-left: 6px;
+}
+
+.cps-cart-add-btn {
+    background: #fee2e2;
+    color: var(--cps-red);
+    border: none;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.cps-cart-add-btn:hover {
+    background: var(--cps-red);
+    color: #ffffff;
+}
+
+.cps-wishlist-btn {
+    background: none;
+    border: none;
+    color: #a1a1aa;
+    font-size: 15px;
+    cursor: pointer;
+    transition: var(--transition);
+    padding: 0;
+}
+
+.cps-wishlist-btn:hover, .cps-wishlist-btn.active {
+    color: var(--cps-red);
+}
+
+/* ========================================================
+   6. CATEGORY FILTER TABS, CHIPS & SORT
+   ======================================================== */
+.cps-category-tabs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+}
+
+.cps-category-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.cps-tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-pill);
+    color: #3f3f46;
+    font-weight: 600;
+    font-size: 13px;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: var(--transition);
+}
+
+.cps-tab-btn:hover {
+    border-color: var(--cps-red);
+    color: var(--cps-red);
+    background: #fdf2f2;
+}
+
+.cps-tab-btn.active {
+    background: var(--cps-red);
+    color: #ffffff;
+    border-color: var(--cps-red);
+}
+
+/* Quick Series Pills */
+.cps-series-filter-scroll {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+}
+
+.cps-series-filter-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.cps-series-pill {
+    padding: 5px 12px;
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 12px;
+    color: #4b5563;
+    font-weight: 500;
+    text-decoration: none;
+    white-space: nowrap;
+    transition: var(--transition);
+}
+
+.cps-series-pill:hover, .cps-series-pill.active {
+    background: #fef2f2;
+    color: var(--cps-red);
+    border-color: var(--cps-red);
+    font-weight: 600;
+}
+
+/* Filter & Sort Bar */
+.cps-filter-sort-bar {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 10px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+}
+
+.cps-price-filters, .cps-sort-group {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.cps-filter-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #27272a;
+    margin-right: 4px;
+}
+
+.cps-filter-chip, .cps-sort-chip {
+    padding: 4px 10px;
+    background: #f4f4f5;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    font-size: 12px;
+    color: #52525b;
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.cps-filter-chip:hover, .cps-sort-chip:hover,
+.cps-filter-chip.active, .cps-sort-chip.active {
+    background: #fee2e2;
+    color: var(--cps-red);
+    border-color: #fca5a5;
+    font-weight: 600;
+}
+
+/* ========================================================
+   7. PRODUCT DETAIL PAGE STYLING
+   ======================================================== */
+.detail-promo-box {
+    background: #fff5f5;
+    border: 1px solid #fed7d7;
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    margin-bottom: 16px;
+}
+
+.detail-promo-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--cps-red);
+    font-weight: 700;
+    font-size: 13px;
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 1px dashed #fca5a5;
+}
+
+.detail-gallery-main {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 24px;
+    text-align: center;
+}
+
+.detail-gallery-main img {
+    max-width: 100%;
+    max-height: 380px;
+    object-fit: contain;
+}
+
+/* ========================================================
+   8. FOOTER STYLING (KittyPhone High-Trust Light Footer)
+   ======================================================== */
+.cps-footer {
+    background: #ffffff;
+    border-top: 1px solid var(--border-color);
+    color: #4b5563;
+    font-size: 13px;
+    margin-top: 40px;
+}
+
+.cps-footer-title {
+    color: #18181b;
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.cps-footer-list li {
+    margin-bottom: 6px;
+}
+
+.cps-footer-list a {
+    color: #6b7280;
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.cps-footer-list a:hover {
+    color: var(--cps-red);
+}
+
+.cps-footer-link {
+    color: #4b5563 !important;
+    font-size: 13px;
+    display: inline-flex;
+    align-items: center;
+    line-height: 1.5;
+    text-decoration: none !important;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.cps-footer-link:hover {
+    color: var(--cps-red) !important;
+    transform: translateX(4px);
+}
+
+.cps-footer-list span {
+    color: #4b5563;
+    font-size: 13px;
+    display: inline-block;
+    line-height: 1.5;
+}
+
+.cps-pay-badge {
+    background: #f4f4f5;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #374151;
+}
+
+.cps-footer-bottom {
+    border-color: #f3f4f6 !important;
+}
+
+/* ========================================================
+   9. MOBILE BOTTOM NAVIGATION
+   ======================================================== */
+.mobile-bottom-nav {
+    display: none;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 56px;
+    background: #ffffff;
+    border-top: 1px solid var(--border-color);
+    z-index: 1030;
+    justify-content: space-around;
+    align-items: center;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+}
+
+@media (max-width: 767.98px) {
+    .mobile-bottom-nav {
+        display: flex;
+    }
+    body {
+        padding-bottom: 56px;
+    }
+}
+
+/* ========================================================
+   10. ADMIN & PORTAL LAYOUT PRESERVATION
+   ======================================================== */
+.admin-wrapper {
+    display: flex;
+    min-height: 100vh;
+}
+
+.admin-sidebar {
+    width: 250px;
+    background: #0f172a;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    display: flex;
+    flex-direction: column;
+    flex-shrink: 0;
+}
+
+.admin-sidebar-header {
+    padding: 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-sidebar-menu {
+    list-style: none;
+    margin: 0;
+    padding: 12px 8px;
+    flex: 1;
+}
+
+.admin-menu-link {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    color: #94a3b8;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 4px;
+    transition: var(--transition);
+    text-decoration: none;
+}
+
+.admin-menu-link:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+}
+
+.admin-menu-link.active {
+    background: var(--cps-red);
+    color: #ffffff;
+}
+
+.admin-content-area, .admin-main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+    background-color: var(--bg-page);
+}
+
+.admin-topbar {
+    background: #ffffff;
+    border-bottom: 1px solid var(--border-color);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.admin-main-body, .admin-content {
+    padding: 24px;
+    flex: 1;
+}
+
+.stat-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    box-shadow: var(--shadow-xs);
+    transition: var(--transition);
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+}
+
+.stat-icon-wrap {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+}
+
+/* Table styling */
+.table {
+    font-size: 13px;
+}
+
+.table-light, thead.table-light th {
+    background-color: #f8fafc !important;
+    color: var(--text-primary) !important;
+    font-weight: 700;
+    font-size: 12px;
+}
+
+/* Review system */
+.review-section-wrap {
+    margin-top: 32px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border-color);
+}
+
+.review-section-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+.review-section-subtitle {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.review-gate-card {
+    background: #ffffff;
+    border: 1.5px dashed var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 16px 20px;
+    margin-bottom: 20px;
+}
+
+/* ========================================================
+   11. KITTYPHONE CART & CHECKOUT STEPS COMPONENT
+   ======================================================== */
+.cps-checkout-steps {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding: 12px 16px;
+    background: #ffffff;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+}
+
+.cps-step-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.cps-step-item.active {
+    color: var(--cps-red);
+}
+
+.cps-step-num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #f4f4f5;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.cps-step-item.active .cps-step-num {
+    background: var(--cps-red);
+    color: #ffffff;
+}
+
+.cps-step-divider {
+    width: 32px;
+    height: 2px;
+    background: var(--border-color);
+}
+
+/* ========================================================
+   12. KITTYPHONE CART STYLING
+   ======================================================== */
+.cps-cart-container {
+    max-width: 960px;
+    margin: 0 auto;
+}
+
+.cps-checkout-container {
+    max-width: 1140px;
+    margin: 0 auto;
+}
+
+.cps-checkout-sticky-card {
+    position: sticky;
+    top: 96px;
+    z-index: 20;
+    transition: all 0.2s ease;
+}
+
+@media (max-width: 991.98px) {
+    .cps-checkout-sticky-card {
+        position: static;
+        top: auto;
+    }
+}
+
+.cps-cart-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.cps-cart-item {
+    padding: 16px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    transition: var(--transition);
+}
+
+.cps-cart-item:last-child {
+    border-bottom: none;
+}
+
+.cps-cart-item:hover {
+    background-color: #fafafa;
+}
+
+.cps-cart-img {
+    width: 76px;
+    height: 76px;
+    object-fit: contain;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    padding: 4px;
+    background: #ffffff;
+    flex-shrink: 0;
+}
+
+.cps-cart-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.4;
+    margin-bottom: 4px;
+}
+
+.cps-cart-title:hover {
+    color: var(--cps-red);
+}
+
+.cps-cart-stepper {
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+    background: #ffffff;
+}
+
+.cps-cart-stepper button {
+    background: #f4f4f5;
+    border: none;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.cps-cart-stepper button:hover {
+    background: #e4e4e7;
+    color: var(--cps-red);
+}
+
+.cps-cart-stepper span {
+    min-width: 36px;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.deposit-notice-badge {
+    background-color: #fff7ed;
+    border: 1px solid #ffedd5;
+    border-left: 3px solid #f97316;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 12.5px;
+    color: #9a3412;
+    line-height: 1.5;
+}
+
+/* ========================================================
+   13. PAYMENT OPTIONS & INSTALLMENT CHOICES
+   ======================================================== */
+.payment-option-card {
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
+    transition: var(--transition);
+    cursor: pointer;
+    background: #ffffff;
+}
+
+.payment-option-card:hover {
+    border-color: #d4d4d8;
+    background: #fafafa;
+}
+
+.payment-option-card.selected {
+    border-color: var(--cps-red);
+    background: #fffafa;
+    box-shadow: 0 0 0 1px var(--cps-red);
+}
+
+.btn-prepay, .btn-term {
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 13px;
+    padding: 8px 12px;
+    transition: var(--transition);
+}
+
+.btn-prepay.active, .btn-term.active {
+    background-color: var(--cps-red) !important;
+    border-color: var(--cps-red) !important;
+    color: #ffffff !important;
+}
+
+/* ========================================================
+   14. AUTHENTICATION & SMEMBER BRANDING
+   ======================================================== */
+.auth-wrapper {
+    background: var(--bg-page);
+    min-height: calc(100vh - 120px);
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 460px;
+    background: #ffffff;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-card);
+    overflow: hidden;
+}
+
+.auth-card-header {
+    background: linear-gradient(135deg, #071538 0%, #0e2254 60%, #0284c7 100%);
+    padding: 24px;
+    text-align: center;
+    color: #ffffff;
+}
+
+.auth-card-body {
+    padding: 24px;
+}
+
+/* ========================================================
+   15. DIGITAL KITTYMEMBER CARD
+   ======================================================== */
+.membership-card-wrap {
+    background: linear-gradient(135deg, #071538 0%, #0e2254 50%, #0284c7 100%);
+    border-radius: var(--radius-lg);
+    padding: 22px;
+    color: #ffffff;
+    box-shadow: 0 10px 25px -5px rgba(2, 132, 199, 0.4);
+    position: relative;
+    overflow: hidden;
+}
+
+.membership-card-wrap::after {
+    content: "KittyMember";
+    position: absolute;
+    right: -15px;
+    bottom: -15px;
+    font-size: 55px;
+    font-weight: 900;
+    color: rgba(255, 255, 255, 0.08);
+    pointer-events: none;
+    letter-spacing: -1px;
+}
+
+/* ========================================================
+   16. FESTIVAL HOT SALE STAGE (HIGHLIGHT 1 - BLUE EDITION)
+   ======================================================== */
+.cps-festival-stage {
+    background: linear-gradient(135deg, #0b2559 0%, #0284c7 35%, #38bdf8 70%, #66ccff 100%);
+    border-radius: 20px;
+    padding: 18px 16px 20px;
+    box-shadow: 0 10px 30px rgba(2, 132, 199, 0.35), 0 0 25px rgba(102, 204, 255, 0.25);
+    position: relative;
+    border: 2px solid rgba(102, 204, 255, 0.6);
+    margin-bottom: 28px;
+    overflow: hidden;
+}
+
+.cps-festival-stage::before {
+    content: "";
+    position: absolute;
+    top: -6px;
+    left: 20px;
+    right: 20px;
+    height: 8px;
+    background: linear-gradient(90deg, transparent, #66ccff, #87cefa, #ffffff, #66ccff, transparent);
+    border-radius: 50%;
+    opacity: 0.9;
+}
+
+/* Stage Header: Pill tabs & Countdown */
+.cps-stage-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding: 0 6px;
+}
+
+.cps-stage-tabs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.cps-stage-pill {
+    background: rgba(255, 255, 255, 0.15);
+    border: 1.5px solid rgba(255, 255, 255, 0.65);
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 700;
+    padding: 7px 16px;
+    border-radius: 24px;
+    cursor: pointer;
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    text-transform: uppercase;
+    letter-spacing: 0.2px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    user-select: none;
+    backdrop-filter: blur(4px);
+}
+
+.cps-stage-pill:hover {
+    background: rgba(255, 255, 255, 0.28);
+    color: #ffffff;
+    border-color: #ffffff;
+    transform: translateY(-1px);
+}
+
+.cps-stage-pill.active {
+    background: #ffffff;
+    color: #0284c7;
+    border-color: #ffffff;
+    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.35);
+    font-weight: 800;
+}
+
+/* Countdown 4 Digits Box */
+.cps-stage-countdown-wrap {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(11, 37, 89, 0.5);
+    padding: 6px 14px;
+    border-radius: 30px;
+    border: 1px solid rgba(102, 204, 255, 0.45);
+    backdrop-filter: blur(6px);
+}
+
+.cps-countdown-label {
+    color: #ffffff;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.cps-digit-box {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.cps-digit-item {
+    background: #ffffff;
+    color: #0c4a6e;
+    font-size: 14px;
+    font-weight: 900;
+    padding: 3px 6px;
+    border-radius: 6px;
+    min-width: 28px;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+    line-height: 1.2;
+}
+
+.cps-digit-sep {
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 14px;
+}
+
+/* Stage Carousel Slider Container */
+.cps-stage-slider-wrap {
+    position: relative;
+    padding: 0 6px;
+}
+
+.cps-stage-slider-track {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-bottom: 6px;
+}
+
+.cps-stage-slider-track::-webkit-scrollbar {
+    display: none;
+}
+
+.cps-stage-card-col {
+    flex: 0 0 calc(20% - 10px);
+    min-width: 195px;
+    transition: opacity 0.3s ease;
+}
+
+@media (max-width: 1199.98px) {
+    .cps-stage-card-col {
+        flex: 0 0 calc(25% - 9px);
+    }
+}
+
+@media (max-width: 991.98px) {
+    .cps-stage-card-col {
+        flex: 0 0 calc(33.333% - 8px);
+    }
+}
+
+@media (max-width: 575.98px) {
+    .cps-stage-card-col {
+        flex: 0 0 calc(50% - 6px);
+        min-width: 160px;
+    }
+}
+
+/* Stage Navigation Arrows */
+.cps-stage-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 38px;
+    height: 38px;
+    background: #ffffff;
+    color: #0284c7;
+    border: 1px solid rgba(102, 204, 255, 0.4);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.25);
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.2s ease;
+}
+
+.cps-stage-nav-btn:hover {
+    background: #f0f9ff;
+    color: #0369a1;
+    border-color: #66ccff;
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 6px 16px rgba(102, 204, 255, 0.45);
+}
+
+.cps-stage-nav-prev {
+    left: -14px;
+}
+
+.cps-stage-nav-next {
+    right: -14px;
+}
+
+/* Ribbon Banner "Deal Siêu Hot" inside Stage Card */
+.cps-deal-2010-ribbon {
+    background: linear-gradient(90deg, #f0f9ff 0%, #e0f2fe 100%);
+    border: 1px dashed #38bdf8;
+    border-radius: 6px;
+    padding: 3px 8px;
+    margin: 6px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.cps-ribbon-text {
+    font-size: 11px;
+    font-weight: 800;
+    color: #0284c7;
+    letter-spacing: -0.2px;
+}
+
+.cps-ribbon-sub {
+    font-size: 9px;
+    font-weight: 700;
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    color: #ffffff;
+    padding: 1px 5px;
+    border-radius: 3px;
+}
+
+/* ========================================================
+   17. CELLPHONES-STYLE "GỢI Ý CHO BẠN" (HIGHLIGHT 2)
+   ======================================================== */
+.cps-foryou-container {
+    background: linear-gradient(180deg, #e0f2fe 0%, #f0fdf4 50%, #fdf2f8 100%);
+    border: 2px solid #bae6fd;
+    border-radius: 20px;
+    padding: 28px 16px 20px;
+    position: relative;
+    margin-bottom: 30px;
+    box-shadow: 0 8px 24px rgba(2, 132, 199, 0.12);
+}
+
+/* Central Badge: ✨ GỢI Ý CHO BẠN */
+.cps-foryou-badge-center {
+    position: absolute;
+    top: -16px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+    color: #ffffff;
+    font-size: 14px;
+    font-weight: 800;
+    padding: 6px 24px;
+    border-radius: 30px;
+    box-shadow: 0 4px 15px rgba(2, 132, 199, 0.35);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 2px solid #ffffff;
+    white-space: nowrap;
+}
+
+/* ForYou Carousel */
+.cps-foryou-slider-wrap {
+    position: relative;
+    margin-bottom: 22px;
+}
+
+/* Bottom 3 Big Tabs: DEAL SỐC | SẢN PHẨM HOT TREND | HÀNG MỚI VỀ */
+.cps-trend-tabs-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+}
+
+.cps-trend-tab-btn {
+    background: #ffffff;
+    border: 1.5px solid #cbd5e1;
+    color: #334155;
+    padding: 8px 20px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.cps-trend-tab-btn:hover {
+    border-color: var(--brand-blue);
+    color: var(--brand-blue);
+    transform: translateY(-1px);
+}
+
+.cps-trend-tab-btn.active {
+    background: #ffffff;
+    border-color: #0284c7;
+    color: #0284c7;
+    box-shadow: 0 4px 12px rgba(2, 132, 199, 0.18);
+    position: relative;
+}
+
+.cps-trend-tab-btn.active::after {
+    content: "";
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid #0284c7;
+}
+
+/* Sub-Pills Filters under Trend Tabs */
+.cps-subpills-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.cps-subpill-btn {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #475569;
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+
+.cps-subpill-btn:hover {
+    background: #f8fafc;
+    border-color: #0284c7;
+    color: #0284c7;
+}
+
+.cps-subpill-btn.active {
+    background: #0284c7;
+    border-color: #0284c7;
+    color: #ffffff;
+    font-weight: 700;
+}
+
+#productCatalog {
+    scroll-margin-top: 80px;
+}
+
+/* Admin DataTable Footer & Pagination Styling */
+.admin-table-footer {
+    border-top: 1px solid #f1f5f9;
+}
+
+.admin-table-footer .pagination .page-item .page-link {
+    border-radius: 6px;
+    margin: 0 2px;
+    color: #475569;
+    font-weight: 500;
+    border: 1px solid #e2e8f0;
+    padding: 4px 10px;
+    font-size: 13px;
+}
+
+.admin-table-footer .pagination .page-item.active .page-link {
+    background: #0284c7;
+    border-color: #0284c7;
+    color: #ffffff;
+    font-weight: 700;
+}
+
+.admin-table-footer .pagination .page-item.disabled .page-link {
+    color: #94a3b8;
+    background: #f8fafc;
+    border-color: #e2e8f0;
+}

@@ -1,0 +1,381 @@
+@model BTL_PTTKYC.Models.InvoiceModel
+@{
+    ViewData["Title"] = $"Chi Tiết Đơn Hàng #{Model.InvoiceId}";
+    Layout = "_AdminLayout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <a asp-action="Orders" class="btn btn-sm btn-outline-secondary mb-2">
+            <i class="bi bi-arrow-left me-1"></i>Quay lại danh sách đơn hàng
+        </a>
+        <h4 class="fw-bold mb-0">Chi Tiết Hóa Đơn #@Model.InvoiceId</h4>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+            @if (Model.Status == "Pending")
+            {
+                <form asp-action="AdminConfirmFullPayment" method="post" class="d-inline">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="invoiceId" value="@Model.InvoiceId" />
+                    <button type="submit" class="btn btn-primary fw-bold">
+                        <i class="bi bi-check-circle-fill me-1"></i>Phê Duyệt Đơn & Hoàn Tất Thanh Toán (@Model.TotalAmount.ToString("N0")đ)
+                    </button>
+                </form>
+            }
+            @if (Model.Status != "Cancelled")
+            {
+                <button type="button" class="btn btn-outline-success fw-bold" data-bs-toggle="modal" data-bs-target="#confirmPaymentModal">
+                    <i class="bi bi-cash-stack me-1"></i>Ghi Nhận Thu Tiền / Xác Nhận Thanh Toán
+                </button>
+
+                @if (Model.Status != "CancelRequested")
+                {
+                    <button type="button" class="btn btn-outline-danger fw-bold" data-bs-toggle="modal" data-bs-target="#cancelOrderModal">
+                        <i class="bi bi-x-circle me-1"></i>@(User.IsInRole("Admin") ? "Hủy Đơn Hàng" : "Yêu Cầu Hủy Đơn")
+                    </button>
+                }
+            }
+        </div>
+</div>
+
+@if (Model.Status == "CancelRequested")
+{
+    <div class="alert alert-warning border border-warning shadow-sm mb-4">
+        <div class="d-flex align-items-start gap-3">
+            <i class="bi bi-exclamation-triangle-fill fs-3 text-danger"></i>
+            <div class="flex-grow-1">
+                <h6 class="fw-bold text-dark mb-1">CẢNH BÁO: ĐƠN HÀNG ĐANG CÓ YÊU CẦU HỦY CẦN PHÊ DUYỆT</h6>
+                <div class="small text-muted mb-1">
+                    <strong>Người yêu cầu:</strong> <span class="text-dark fw-semibold">@(Model.CancelRequestedBy ?? "Nhân viên bán hàng")</span> 
+                    @(Model.CancelRequestedAt.HasValue ? $"lúc {Model.CancelRequestedAt.Value:dd/MM/yyyy HH:mm}" : "")
+                </div>
+                <div class="p-2 bg-white rounded border small text-danger fw-semibold">
+                    <i class="bi bi-chat-left-quote me-1"></i>Lý do hủy đơn chi tiết: "@(Model.CancelReason ?? "Không có lý do")"
+                </div>
+                <div class="small text-muted mt-2">
+                    <i class="bi bi-shield-lock me-1"></i>Quy chế kiểm soát: Nhân viên không được tự ý hủy đơn nhằm chống gian lận tồn kho và dòng tiền. Chỉ Quản trị viên (Admin) mới có quyền duyệt hủy chính thức.
+                </div>
+                @if (User.IsInRole("Admin"))
+                {
+                    <div class="mt-3 d-flex gap-2">
+                        <form asp-controller="Admin" asp-action="ApproveCancelOrder" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="invoiceId" value="@Model.InvoiceId" />
+                            <button type="submit" class="btn btn-danger btn-sm fw-bold" onclick="return confirm('Bạn có chắc chắn muốn phê duyệt hủy đơn hàng #@Model.InvoiceId? Toàn bộ tồn kho sẽ được tự động hoàn lại.');">
+                                <i class="bi bi-check2-circle me-1"></i>Phê Duyệt Hủy Đơn Ngay
+                            </button>
+                        </form>
+                        <button type="button" class="btn btn-outline-secondary btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#rejectCancelModal">
+                            <i class="bi bi-arrow-counterclockwise me-1"></i>Từ Chối Yêu Cầu Hủy
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+}
+else if (Model.Status == "Cancelled")
+{
+    <div class="alert alert-danger border shadow-sm mb-4">
+        <div class="d-flex align-items-start gap-3">
+            <i class="bi bi-x-circle-fill fs-3 text-danger"></i>
+            <div>
+                <h6 class="fw-bold text-danger mb-1">ĐƠN HÀNG ĐÃ BỊ HỦY - TỒN KHO ĐÃ ĐƯỢC TỰ ĐỘNG HOÀN LẠI</h6>
+                <div class="small mb-1">
+                    <strong>Lý do hủy chi tiết:</strong> <span class="text-dark fw-bold">@(Model.CancelReason ?? "Không có lý do")</span>
+                </div>
+                <div class="small text-muted">
+                    @if (!string.IsNullOrEmpty(Model.CancelApprovedBy))
+                    {
+                        <span><strong>Người duyệt hủy:</strong> @Model.CancelApprovedBy @(Model.CancelApprovedAt.HasValue ? $"lúc {Model.CancelApprovedAt.Value:dd/MM/yyyy HH:mm}" : "")</span>
+                    }
+                    @if (!string.IsNullOrEmpty(Model.CancelRequestedBy))
+                    {
+                        <span class="ms-3"><strong>Người yêu cầu:</strong> @Model.CancelRequestedBy @(Model.CancelRequestedAt.HasValue ? $"lúc {Model.CancelRequestedAt.Value:dd/MM/yyyy HH:mm}" : "")</span>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="row g-4">
+    <!-- Left: Order items and totals -->
+    <div class="col-lg-8">
+        <div class="bg-white p-4 rounded-3 border shadow-sm mb-4">
+            <h5 class="fw-bold border-bottom pb-2 mb-3">Danh Sách Mặt Hàng</h5>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Sản phẩm</th>
+                            <th class="text-center">Số lượng</th>
+                            <th class="text-end">Đơn giá bán</th>
+                            <th class="text-end">Thành tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Details)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img src="@(string.IsNullOrEmpty(item.ImageUrl) ? "/images/placeholder-phone.svg" : item.ImageUrl)" 
+                                             style="width: 42px; height: 42px; object-fit: contain;" 
+                                             class="border rounded p-1 bg-white" 
+                                             onerror="this.onerror=null;this.src='/images/placeholder-phone.svg';" />
+                                        <div class="fw-bold text-dark">@item.ProductName</div>
+                                    </div>
+                                </td>
+                                <td class="text-center fw-bold">@item.Quantity</td>
+                                <td class="text-end">@item.UnitPrice.ToString("N0")đ</td>
+                                <td class="text-end fw-bold text-danger">@item.LineTotal.ToString("N0")đ</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="3" class="text-end text-muted">Tạm tính:</td>
+                            <td class="text-end fw-bold">@Model.SubTotal.ToString("N0")đ</td>
+                        </tr>
+                        @if (Model.DiscountAmount > 0)
+                        {
+                            <tr>
+                                <td colspan="3" class="text-end text-muted">Giảm giá (@(Model.PromotionName ?? "Khuyến mãi")):</td>
+                                <td class="text-end text-success fw-bold">-@Model.DiscountAmount.ToString("N0")đ</td>
+                            </tr>
+                        }
+                        <tr class="border-top border-2">
+                            <td colspan="3" class="text-end fw-bold fs-5">Tổng tiền hóa đơn:</td>
+                            <td class="text-end fw-bold text-danger fs-4">@Model.TotalAmount.ToString("N0")đ</td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+
+        <!-- Payment progress bar -->
+        <div class="bg-white p-4 rounded-3 border shadow-sm">
+            <h5 class="fw-bold border-bottom pb-2 mb-3">Tiến Độ Thanh Toán</h5>
+            @{
+                decimal percentPaid = Model.TotalAmount > 0 ? Math.Min(100, Math.Round(Model.PaidAmount / Model.TotalAmount * 100)) : 0;
+            }
+            <div class="d-flex justify-content-between mb-2">
+                <span>Đã ghi nhận thanh toán: <strong class="text-success">@Model.PaidAmount.ToString("N0")đ</strong> (@percentPaid%)</span>
+                <span>Còn lại: <strong class="text-danger">@Model.RemainingAmount.ToString("N0")đ</strong></span>
+            </div>
+            <div class="progress mb-3" style="height: 18px;">
+                <div class="progress-bar @(percentPaid >= 100 ? "bg-success" : (percentPaid >= 50 ? "bg-info" : "bg-warning text-dark")) fw-bold" role="progressbar" style="width: @percentPaid%;" aria-valuenow="@percentPaid" aria-valuemin="0" aria-valuemax="100">
+                    @percentPaid%
+                </div>
+            </div>
+
+            <div class="p-3 bg-light rounded-3 small">
+                <i class="bi bi-info-circle-fill text-primary me-1"></i>
+                <strong>Cơ chế tự động:</strong> Khi nhân viên bấm "Xác nhận nhận tiền" đạt đủ 100% giá trị hóa đơn (@Model.TotalAmount.ToString("N0")đ), trigger trong SQL Server sẽ tự động chuyển hóa đơn sang trạng thái <strong>Paid</strong> và cập nhật tích điểm / hạng thành viên cho khách hàng.
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: Customer and Status summary -->
+    <div class="col-lg-4">
+        <!-- Status Card -->
+        <div class="bg-white p-4 rounded-3 border shadow-sm mb-4">
+            <h6 class="fw-bold border-bottom pb-2 mb-3">Trạng Thái Đơn Hàng</h6>
+            <div class="mb-3">
+                <span class="text-muted small d-block">Trạng thái hiện tại:</span>
+                @if (Model.Status == "Paid")
+                {
+                    <span class="badge bg-success fs-6"><i class="bi bi-check-all me-1"></i>Đã thanh toán đủ 100% (Paid)</span>
+                }
+                else if (Model.Status == "Pending")
+                {
+                    <span class="badge bg-warning text-dark fs-6"><i class="bi bi-clock-history me-1"></i>Chờ Sale phê duyệt</span>
+                }
+                else if (Model.Status == "Cancelled")
+                {
+                    <span class="badge bg-danger fs-6"><i class="bi bi-x-circle me-1"></i>Đã hủy đơn (Cancelled)</span>
+                }
+                else if (Model.Status == "CancelRequested")
+                {
+                    <span class="badge bg-warning text-dark fs-6"><i class="bi bi-clock-history me-1"></i>Chờ Admin duyệt yêu cầu hủy</span>
+                }
+            </div>
+
+            <div class="mb-2">
+                <span class="text-muted small d-block">Hình thức thanh toán đã chọn:</span>
+                <strong>@(Model.PaymentMethodSelected == "COD" ? "COD (Giao hàng thu tiền - Cọc tối thiểu 50%)" : "Chuyển khoản 100%")</strong>
+            </div>
+
+            <div class="mb-2">
+                <span class="text-muted small d-block">Mức cọc tối thiểu theo quy định (50%):</span>
+                <span class="fw-bold text-danger">@Model.RequiredDeposit.ToString("N0")đ</span>
+            </div>
+
+            <div>
+                <span class="text-muted small d-block">Nhân viên phụ trách:</span>
+                <span>@Model.EmployeeName</span>
+            </div>
+        </div>
+
+        <!-- Customer Card -->
+        <div class="bg-white p-4 rounded-3 border shadow-sm">
+            <h6 class="fw-bold border-bottom pb-2 mb-3">Thông Tin Khách Hàng</h6>
+            
+            <div class="mb-2">
+                <span class="text-muted small d-block">Tên khách hàng:</span>
+                <span class="fw-bold text-dark fs-6">@Model.CustomerName</span>
+            </div>
+
+            <div class="mb-2">
+                <span class="text-muted small d-block">Số điện thoại:</span>
+                <a href="tel:@Model.CustomerPhone" class="fw-bold text-danger fs-6"><i class="bi bi-telephone me-1"></i>@Model.CustomerPhone</a>
+            </div>
+
+            <div class="mb-2">
+                <span class="text-muted small d-block">Địa chỉ nhận hàng:</span>
+                <span class="text-secondary small">@(Model.ShippingAddress ?? "Chưa cung cấp")</span>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.OrderNotes))
+            {
+                <div class="p-2 bg-light rounded mt-3 border">
+                    <span class="text-muted small d-block fw-bold">Ghi chú của khách hàng:</span>
+                    <span class="small text-secondary">@Model.OrderNotes</span>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Confirm Manual Payment -->
+<div class="modal fade" id="confirmPaymentModal" tabindex="-1" aria-labelledby="confirmPaymentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form asp-action="ConfirmPayment" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="invoiceId" value="@Model.InvoiceId" />
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="confirmPaymentModalLabel">
+                        <i class="bi bi-cash-stack text-success me-2"></i>Xác Nhận Thanh Toán / Nhận Cọc
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small">
+                        Nhân viên đối soát biến động số dư tài khoản ngân hàng và xác nhận số tiền khách đã chuyển khoản cho đơn hàng #@Model.InvoiceId.
+                    </p>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Hình thức thanh toán</label>
+                        <select name="paymentMethod" class="form-select">
+                            <option value="Bank Transfer">Chuyển khoản ngân hàng (Bank Transfer)</option>
+                            <option value="Cash">Tiền mặt tại cửa hàng (Cash)</option>
+                            <option value="Momo">Ví điện tử Momo</option>
+                            <option value="Credit Card">Thẻ tín dụng (Credit Card)</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Số tiền xác nhận đã nhận (VNĐ) <span class="text-danger">*</span></label>
+                        <input type="number" name="amount" id="confirmAmountInput" class="form-control" value="@(Model.PaidAmount == 0 ? Model.RequiredDeposit : Model.RemainingAmount)" min="1000" step="1000" required />
+                    </div>
+
+                    <div class="d-flex gap-2 mb-3">
+                        <button type="button" class="btn btn-outline-info btn-sm" onclick="$('#confirmAmountInput').val(@Model.RequiredDeposit)">
+                            Điền mức cọc 50% (@Model.RequiredDeposit.ToString("N0")đ)
+                        </button>
+                        <button type="button" class="btn btn-outline-success btn-sm" onclick="$('#confirmAmountInput').val(@Model.RemainingAmount)">
+                            Điền toàn bộ phần còn lại (@Model.RemainingAmount.ToString("N0")đ)
+                        </button>
+                    </div>
+
+                    <div class="alert alert-warning small mb-0">
+                        <i class="bi bi-exclamation-triangle me-1"></i>Hành động này sẽ ghi nhận trực tiếp vào bảng thanh toán (Payment) của hệ thống.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold">Xác Nhận Ngay</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Cancel Order with Detailed Reason -->
+<div class="modal fade" id="cancelOrderModal" tabindex="-1" aria-labelledby="cancelOrderModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form asp-controller="@(User.IsInRole("Admin") ? "Admin" : "Sales")" asp-action="CancelOrder" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="invoiceId" value="@Model.InvoiceId" />
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold text-danger" id="cancelOrderModalLabel">
+                        <i class="bi bi-x-circle me-2"></i>@(User.IsInRole("Admin") ? "Xác Nhận Hủy Đơn Hàng" : "Gửi Yêu Cầu Hủy Đơn Hàng")
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="small text-muted mb-3">
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <span>Quản trị viên vui lòng ghi rõ lý do hủy đơn. Tồn kho của các thiết bị sẽ được tự động hoàn lại cho hệ thống.</span>
+                        }
+                        else
+                        {
+                            <span>Nhân viên bắt buộc phải cung cấp <strong>lý do hủy đơn chi tiết</strong> để gửi Quản trị viên (Admin) xét duyệt. Điều này đảm bảo tính minh bạch và ngăn ngừa gian lận tồn kho.</span>
+                        }
+                    </p>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Lý do hủy đơn chi tiết <span class="text-danger">*</span></label>
+                        <textarea name="cancelReason" class="form-control" rows="4" placeholder="Ví dụ: Khách gọi điện báo đổi ý không lấy máy nữa, Khách đặt trùng đơn hàng #..., Số điện thoại không liên lạc được sau 3 ngày..." required minlength="5"></textarea>
+                    </div>
+
+                    <div class="alert alert-secondary small mb-0">
+                        <i class="bi bi-info-circle me-1"></i>Hóa đơn: <strong>#@Model.InvoiceId</strong> - Khách hàng: <strong>@Model.CustomerName</strong> (@Model.CustomerPhone)
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold">
+                        <i class="bi bi-check2-circle me-1"></i>@(User.IsInRole("Admin") ? "Duyệt Hủy Ngay" : "Gửi Yêu Cầu Cho Admin")
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Reject Cancel Order (Admin only) -->
+<div class="modal fade" id="rejectCancelModal" tabindex="-1" aria-labelledby="rejectCancelModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form asp-controller="Admin" asp-action="RejectCancelOrder" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="invoiceId" value="@Model.InvoiceId" />
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold text-dark" id="rejectCancelModalLabel">
+                        <i class="bi bi-arrow-counterclockwise me-2"></i>Từ Chối Yêu Cầu Hủy Đơn
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="small text-muted mb-3">
+                        Đơn hàng sẽ được chuyển lại trạng thái <strong>Đang chờ xử lý (Pending)</strong> để nhân viên tiếp tục phục vụ khách hàng.
+                    </p>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Lý do từ chối yêu cầu hủy (Tùy chọn)</label>
+                        <textarea name="rejectReason" class="form-control" rows="3" placeholder="Nhập ghi chú cho nhân viên bán hàng (ví dụ: Đã liên hệ lại khách vẫn muốn nhận máy...)..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">Xác Nhận Từ Chối Hủy</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

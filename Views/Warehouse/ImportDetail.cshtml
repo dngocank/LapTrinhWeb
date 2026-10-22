@@ -1,0 +1,110 @@
+@model BTL_PTTKYC.Models.ImportReceiptModel
+@{
+    ViewData["Title"] = $"Chi Tiết Phiếu Nhập #NK-{Model.ImportId}";
+    Layout = "_AdminLayout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <a asp-action="Index" class="btn btn-sm btn-outline-secondary mb-2">
+            <i class="bi bi-arrow-left me-1"></i>Quay lại danh sách phiếu nhập
+        </a>
+        <h4 class="fw-bold mb-0">Phiếu Nhập Hàng #NK-@Model.ImportId</h4>
+    </div>
+    <a asp-action="CreateImport" class="btn btn-danger btn-sm rounded-pill">
+        <i class="bi bi-plus-circle me-1"></i>Tạo phiếu nhập mới
+    </a>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Header info card -->
+    <div class="col-md-6 col-lg-4">
+        <div class="bg-white p-4 rounded-3 border shadow-sm h-100">
+            <h6 class="fw-bold border-bottom pb-2 mb-3 text-muted">THÔNG TIN PHIẾU NHẬP</h6>
+            <div class="mb-2">
+                <span class="text-muted small d-block">Mã phiếu:</span>
+                <strong class="text-danger fs-5">#NK-@Model.ImportId</strong>
+            </div>
+            <div class="mb-2">
+                <span class="text-muted small d-block">Ngày nhập kho:</span>
+                <strong class="text-dark">@Model.ImportDate.ToString("dd/MM/yyyy")</strong>
+            </div>
+            <div>
+                <span class="text-muted small d-block">Tổng giá trị phiếu nhập:</span>
+                <span class="fw-bold text-danger fs-4">@Model.TotalAmount.ToString("N0")đ</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 col-lg-4">
+        <div class="bg-white p-4 rounded-3 border shadow-sm h-100">
+            <h6 class="fw-bold border-bottom pb-2 mb-3 text-muted">NHÀ CUNG CẤP</h6>
+            <div class="mb-2">
+                <span class="text-muted small d-block">Tên nhà cung cấp:</span>
+                <strong class="text-dark fs-6">@Model.SupplierName</strong>
+            </div>
+            <div>
+                <span class="text-muted small d-block">Số điện thoại:</span>
+                <span class="text-secondary">@(Model.SupplierPhone ?? "Chưa cập nhật")</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-12 col-lg-4">
+        <div class="bg-white p-4 rounded-3 border shadow-sm h-100">
+            <h6 class="fw-bold border-bottom pb-2 mb-3 text-muted">NHÂN VIÊN THỰC HIỆN</h6>
+            <div class="mb-2">
+                <span class="text-muted small d-block">Nhân viên kho tiếp nhận:</span>
+                <strong class="text-dark fs-6">@Model.EmployeeName</strong>
+            </div>
+            <div class="p-2 bg-light rounded small text-muted border">
+                <i class="bi bi-check-circle-fill text-success me-1"></i>Hàng đã được trigger tự động cộng vào tồn kho và ghi nhận lịch sử biến động kho.
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Details Table -->
+<div class="bg-white p-4 rounded-3 border shadow-sm">
+    <h5 class="fw-bold border-bottom pb-2 mb-3">Danh Sách Thiết Bị Nhập Kho</h5>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>STT</th>
+                    <th>Tên Sản Phẩm</th>
+                    <th class="text-center">Số Lượng Nhập</th>
+                    <th class="text-end">Đơn Giá Nhập</th>
+                    <th class="text-end">Thành Tiền (Line Total)</th>
+                </tr>
+            </thead>
+            <tbody>
+                @{ int stt = 1; }
+                @foreach (var d in Model.Details)
+                {
+                    <tr>
+                        <td>@(stt++)</td>
+                        <td>
+                            <strong class="text-dark">@d.ProductName</strong>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-success fs-6">+@d.Quantity chiếc</span>
+                        </td>
+                        <td class="text-end text-muted">
+                            @d.ImportPrice.ToString("N0")đ
+                        </td>
+                        <td class="text-end fw-bold text-danger">
+                            @d.LineTotal.ToString("N0")đ
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr class="border-top border-2">
+                    <td colspan="4" class="text-end fw-bold fs-5">Tổng cộng phiếu nhập:</td>
+                    <td class="text-end fw-bold text-danger fs-4">@Model.TotalAmount.ToString("N0")đ</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,438 @@
+@model BTL_PTTKYC.Models.CheckoutViewModel
+@{
+    ViewData["Title"] = "Thông tin đặt hàng & thanh toán | KittyPhone";
+}
+
+<div class="container py-4">
+    <!-- Step Indicator -->
+    <div class="cps-checkout-container mb-4">
+        <div class="cps-checkout-steps">
+            <div class="cps-step-item">
+                <span class="cps-step-num"><i class="bi bi-check"></i></span>
+                <span>Chọn sản phẩm</span>
+            </div>
+            <div class="cps-step-divider"></div>
+            <div class="cps-step-item active">
+                <span class="cps-step-num">2</span>
+                <span>Thông tin đặt hàng</span>
+            </div>
+            <div class="cps-step-divider"></div>
+            <div class="cps-step-item">
+                <span class="cps-step-num">3</span>
+                <span>Hoàn tất đặt hàng</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="cps-checkout-container">
+        <!-- Authenticated Member Banner -->
+        <div class="alert alert-primary border-0 d-flex align-items-center justify-content-between mb-4 rounded-3 shadow-sm py-3" style="background-color: #f0f9ff; border-left: 4px solid var(--brand-blue) !important;">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle d-flex align-items-center justify-content-center text-white" style="width: 44px; height: 44px; background: linear-gradient(135deg, #0e2254, #0284c7);">
+                    <i class="bi bi-person-check-fill fs-5"></i>
+                </div>
+                <div>
+                    <div class="d-flex align-items-center gap-2">
+                        <strong class="text-dark">Tài khoản đặt hàng: <span class="text-primary">@User.Identity?.Name</span></strong>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill" style="font-size: 11px;"><i class="bi bi-patch-check-fill me-1"></i>KittyMember</span>
+                    </div>
+                    <span class="text-muted d-block small">Đơn hàng sẽ được tự động liên kết vào lịch sử mua sắm để tích điểm và kích hoạt bảo hành điện tử chính hãng.</span>
+                </div>
+            </div>
+        </div>
+
+        @if (!ViewData.ModelState.IsValid)
+        {
+            <div class="alert alert-danger shadow-sm mb-4">
+                <div asp-validation-summary="All" class="text-danger mb-0 small"></div>
+            </div>
+        }
+
+        <form asp-action="Checkout" method="post" id="checkoutForm">
+            @if (Model.SingleProductId.HasValue)
+            {
+                <input type="hidden" asp-for="SingleProductId" />
+                <input type="hidden" asp-for="SingleQuantity" />
+            }
+
+            <div class="row g-4">
+                <!-- Left: Customer Information & Payment -->
+                <div class="col-lg-7">
+                    <!-- Delivery / Recipient Details Card -->
+                    <div class="bg-white p-4 rounded-3 border shadow-sm mb-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                            <h6 class="fw-bold mb-0 text-dark">
+                                <i class="bi bi-person-lines-fill text-primary me-2"></i>1. THÔNG TIN KHÁCH HÀNG & NHẬN HÀNG
+                            </h6>
+                            <span class="badge bg-primary-subtle text-primary" style="font-size: 11px;">Giao tận nơi siêu tốc</span>
+                        </div>
+
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label asp-for="CustomerName" class="form-label fw-bold small text-dark">Họ và tên người nhận <span class="text-danger">*</span></label>
+                                <input asp-for="CustomerName" class="form-control" placeholder="Ví dụ: Nguyễn Văn An" required />
+                                <span asp-validation-for="CustomerName" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label asp-for="Phone" class="form-label fw-bold small text-dark">Số điện thoại liên hệ <span class="text-danger">*</span></label>
+                                <input asp-for="Phone" class="form-control" placeholder="Ví dụ: 0912345678" required />
+                                <span asp-validation-for="Phone" class="text-danger small"></span>
+                            </div>
+
+                            <div class="col-12">
+                                <label asp-for="Address" class="form-label fw-bold small text-dark">Địa chỉ nhận hàng chi tiết <span class="text-danger">*</span></label>
+                                <input asp-for="Address" class="form-control" placeholder="Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành..." required />
+                                <span asp-validation-for="Address" class="text-danger small"></span>
+                                <div class="form-text" style="font-size: 11px;">KittyPhone hỗ trợ giao hàng miễn phí toàn quốc.</div>
+                            </div>
+
+                            <div class="col-12">
+                                <label asp-for="OrderNotes" class="form-label fw-bold small text-dark">Ghi chú đơn hàng (Tuỳ chọn)</label>
+                                <textarea asp-for="OrderNotes" class="form-control" rows="2" placeholder="Ví dụ: Giao giờ hành chính, gọi trước khi đến..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Method Choice Card -->
+                    <div class="bg-white p-4 rounded-3 border shadow-sm">
+                        <h6 class="fw-bold mb-3 border-bottom pb-2 text-dark">
+                            <i class="bi bi-credit-card-2-back-fill text-primary me-2"></i>2. CHỌN PHƯƠNG THỨC THANH TOÁN
+                        </h6>
+
+                        <!-- Option 1: COD with 50% deposit -->
+                        <div class="payment-option-card selected mb-3" id="cardCod">
+                            <div class="form-check d-flex align-items-center gap-2">
+                                <input class="form-check-input mt-0" type="radio" asp-for="PaymentMethod" value="COD" id="payCod" checked>
+                                <label class="form-check-label fw-bold text-dark cursor-pointer" for="payCod">
+                                    <i class="bi bi-cash-stack text-success me-1"></i>Thanh toán khi nhận hàng (COD) - Cọc trước 50%
+                                </label>
+                            </div>
+                            <div class="mt-2 ps-4 text-muted small">
+                                <div class="deposit-notice-badge my-2">
+                                    <i class="bi bi-info-circle-fill me-1"></i>
+                                    Do thiết bị công nghệ là mặt hàng giá trị cao, quý khách vui lòng <strong>chuyển khoản cọc trước 50% (<span id="txtDeposit50">@Model.MinimumDeposit.ToString("N0")</span>đ)</strong>. Số tiền còn lại (<span id="txtRemaining50">@Model.CodRemaining.ToString("N0")</span>đ) sẽ thanh toán khi nhận máy.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Option 2: Full Bank Transfer -->
+                        <div class="payment-option-card mb-3" id="cardBank">
+                            <div class="form-check d-flex align-items-center gap-2">
+                                <input class="form-check-input mt-0" type="radio" asp-for="PaymentMethod" value="BankTransfer" id="payBank">
+                                <label class="form-check-label fw-bold text-dark cursor-pointer" for="payBank">
+                                    <i class="bi bi-qr-code-scan text-primary me-1"></i>Chuyển khoản thanh toán 100% (VietQR / ZaloPay)
+                                </label>
+                            </div>
+                            <div class="mt-2 ps-4 text-muted small">
+                                Thanh toán toàn bộ 100% (@Model.TotalAmount.ToString("N0")đ) qua mã QR ngân hàng hoặc ZaloPay. Đơn hàng sẽ được duyệt và xuất kho giao siêu tốc ngay sau khi nhận tiền.
+                            </div>
+                        </div>
+
+                        <!-- Option 3: Installment 0% -->
+                        <div class="payment-option-card mb-2" id="cardInstallment">
+                            <div class="form-check d-flex align-items-center gap-2">
+                                <input class="form-check-input mt-0" type="radio" asp-for="PaymentMethod" value="Installment" id="payInstallment">
+                                <label class="form-check-label fw-bold text-dark cursor-pointer" for="payInstallment">
+                                    <i class="bi bi-percent text-primary me-1"></i>Trả góp 0% Lãi Suất (Duyệt hồ sơ online tiện lợi)
+                                </label>
+                            </div>
+                            <div class="mt-2 ps-4 small" id="boxInstallmentDetails" style="display: none;">
+                                <p class="text-muted mb-2">Hỗ trợ trả góp 0% qua công ty tài chính hoặc thẻ tín dụng. Vui lòng chọn tỷ lệ trả trước và kỳ hạn:</p>
+
+                                <!-- Prepay percent buttons -->
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-dark small mb-1">Mức trả trước:</label>
+                                    <div class="d-flex gap-2">
+                                        <input type="hidden" asp-for="InstallmentPrepayPercent" id="inputPrepayPercent" value="30" />
+                                        <button type="button" class="btn btn-outline-primary btn-sm flex-fill btn-prepay active" data-percent="30">Trả trước 30%</button>
+                                        <button type="button" class="btn btn-outline-primary btn-sm flex-fill btn-prepay" data-percent="50">Trả trước 50%</button>
+                                        <button type="button" class="btn btn-outline-primary btn-sm flex-fill btn-prepay" data-percent="70">Trả trước 70%</button>
+                                    </div>
+                                </div>
+
+                                <!-- Months term buttons -->
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-dark small mb-1">Kỳ hạn trả góp:</label>
+                                    <div class="d-flex gap-2 flex-wrap">
+                                        <input type="hidden" asp-for="InstallmentMonths" id="inputInstallmentMonths" value="6" />
+                                        <button type="button" class="btn btn-outline-secondary btn-sm flex-fill btn-term" data-months="3">3 Tháng</button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm flex-fill btn-term active" data-months="6">6 Tháng</button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm flex-fill btn-term" data-months="9">9 Tháng</button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm flex-fill btn-term" data-months="12">12 Tháng</button>
+                                    </div>
+                                </div>
+
+                                <!-- Calculation result box -->
+                                <div class="p-3 rounded-3 border" style="background: #f8fafc;">
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span class="text-muted">Tiền trả trước khi nhận máy:</span>
+                                        <strong class="text-primary fs-6" id="txtPrepayAmount">0đ</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-1">
+                                        <span class="text-muted">Khoản vay còn lại trả góp:</span>
+                                        <strong class="text-dark" id="txtLoanAmount">0đ</strong>
+                                    </div>
+                                    <div class="d-flex justify-content-between border-top pt-2 mt-2">
+                                        <span class="fw-bold text-dark">Góp mỗi tháng (0% lãi suất):</span>
+                                        <strong class="text-primary fs-5" id="txtMonthlyAmount">0đ / tháng</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Order items summary & Submit -->
+                <div class="col-lg-5">
+                    <div class="bg-white p-4 rounded-3 border shadow-sm cps-checkout-sticky-card">
+                        <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+                            <h6 class="fw-bold mb-0 text-dark d-flex align-items-center">
+                                <i class="bi bi-cart-check-fill text-primary me-2"></i>ĐƠN HÀNG (@Model.CartItems.Sum(c => c.Quantity) MÓN)
+                            </h6>
+                            <a asp-action="Index" class="small text-primary fw-semibold text-decoration-none">
+                                <i class="bi bi-pencil-square me-1"></i>Sửa
+                            </a>
+                        </div>
+
+                        <div class="mb-3 max-height-cart overflow-auto pe-1" style="max-height: 230px;">
+                            @foreach (var item in Model.CartItems)
+                            {
+                                <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <img src="@(string.IsNullOrEmpty(item.ImageUrl) ? "/images/placeholder-phone.svg" : item.ImageUrl)" 
+                                             style="width: 46px; height: 46px; object-fit: contain;" 
+                                             class="border rounded p-1 bg-white" 
+                                             onerror="this.onerror=null;this.src='/images/placeholder-phone.svg';" />
+                                        <div>
+                                            <div class="fw-bold text-dark small" style="line-height: 1.3;">@item.ProductName</div>
+                                            <span class="text-muted small" style="font-size: 11px;">Số lượng: @item.Quantity</span>
+                                        </div>
+                                    </div>
+                                    <div class="fw-bold text-primary text-end small">@item.LineTotal.ToString("N0")đ</div>
+                                </div>
+                            }
+                        </div>
+
+                        <input type="hidden" asp-for="SubTotal" id="hdnSubTotal" />
+                        <input type="hidden" asp-for="DiscountAmount" id="hdnDiscountAmount" value="0" />
+                        <input type="hidden" asp-for="DiscountPercent" id="hdnDiscountPercent" value="0" />
+
+                        <!-- Khuyến mãi & Voucher KittyPhone -->
+                        <div class="mb-3 p-3 rounded-3 border" style="background: #f8fafc; border-color: #e2e8f0 !important;">
+                            <label class="form-label fw-bold small text-dark d-flex align-items-center justify-content-between mb-2">
+                                <span><i class="bi bi-tag-fill text-danger me-1"></i>Mã khuyến mãi / Voucher</span>
+                                <span class="badge bg-danger-subtle text-danger" style="font-size: 11px;">Ưu đãi hôm nay</span>
+                            </label>
+                            
+                            @if (Model.AvailablePromotions != null && Model.AvailablePromotions.Count > 0)
+                            {
+                                <select asp-for="PromotionId" class="form-select form-select-sm" id="cboPromotion">
+                                    <option value="" data-percent="0">-- Chọn chương trình khuyến mãi --</option>
+                                    @foreach (var promo in Model.AvailablePromotions)
+                                    {
+                                        string tag = "";
+                                        if (promo.StartHour.HasValue && promo.EndHour.HasValue) tag = $"[Giờ vàng {promo.StartHour:00}:00 - {promo.EndHour:00}:00] ";
+                                        else if (promo.MinRankId.HasValue && promo.MinRankId > 1) tag = "[Hội viên Bạc/Vàng+] ";
+                                        else if (promo.StartDate.Date == promo.EndDate.Date) tag = "[Duy nhất 20/10] ";
+                                        else tag = "[18/10 - 20/10] ";
+
+                                        <option value="@promo.PromotionId" data-percent="@promo.DiscountPercent" data-desc="@promo.Description">
+                                            🎁 @tag@promo.PromotionName (-@promo.DiscountPercent.ToString("0.#")%)
+                                        </option>
+                                    }
+                                </select>
+                                <div id="promoErrorBox" class="alert alert-danger py-2 px-3 small mt-2 mb-0 rounded-3 shadow-sm" style="display: none; font-size: 12px;">
+                                    <i class="bi bi-exclamation-octagon-fill me-1"></i><span id="promoErrorText"></span>
+                                </div>
+                                <div id="promoDescriptionBox" class="mt-2 small text-muted fst-italic" style="display: none; font-size: 11px;">
+                                    <i class="bi bi-info-circle text-primary me-1"></i><span id="promoDescriptionText"></span>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="text-muted small">Hiện chưa có mã khuyến mãi khả dụng.</div>
+                            }
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-2 small">
+                            <span class="text-muted">Tổng tiền hàng:</span>
+                            <span class="fw-bold text-dark" id="txtSubTotal">@Model.SubTotal.ToString("N0")đ</span>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-2 small text-danger" id="rowDiscount" style="display: none !important;">
+                            <span><i class="bi bi-gift-fill me-1"></i>Chiết khấu khuyến mãi (<span id="txtDiscountPercent">0</span>%):</span>
+                            <span class="fw-bold" id="txtDiscountAmount">-0đ</span>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-2 small">
+                            <span class="text-muted">Phí vận chuyển:</span>
+                            <span class="text-success fw-bold">Miễn phí giao hàng</span>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-baseline border-top pt-3 mb-3">
+                            <span class="fw-bold fs-6 text-dark">Tổng thanh toán:</span>
+                            <span class="fw-bold fs-4 text-primary" id="txtFinalTotal">@Model.TotalAmount.ToString("N0")đ</span>
+                        </div>
+
+                        <!-- Dynamic payment note -->
+                        <div class="p-3 rounded-3 mb-3 border" id="summaryNoticeBox" style="background: #f0f9ff; border-color: #bae6fd !important;">
+                            <div class="d-flex justify-content-between small mb-1">
+                                <span class="text-muted" id="summaryDepositLabel">Mức cọc cần thanh toán (50%):</span>
+                                <strong class="text-primary" id="summaryDepositValue">@Model.MinimumDeposit.ToString("N0")đ</strong>
+                            </div>
+                            <div class="d-flex justify-content-between small">
+                                <span class="text-muted" id="summaryRemainingLabel">Còn lại khi nhận hàng:</span>
+                                <strong class="text-dark" id="summaryRemainingValue">@Model.CodRemaining.ToString("N0")đ</strong>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn text-white btn-lg w-100 fw-bold py-3 shadow-sm rounded-3 text-uppercase" style="background: linear-gradient(135deg, #0e2254, #0284c7); border: none; font-size: 15px; letter-spacing: 0.5px;">
+                            ĐẶT HÀNG NGAY
+                        </button>
+
+                        <div class="text-center mt-3 small text-muted">
+                            <i class="bi bi-shield-check me-1 text-success"></i>Bảo vệ quyền lợi khách hàng 100% tại KittyPhone
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    let subTotalAmount = @Model.SubTotal;
+    let currentTotal = @Model.TotalAmount;
+
+    function formatVND(num) {
+        return Math.round(num).toLocaleString('vi-VN') + 'đ';
+    }
+
+    function updatePaymentSummary() {
+        const val = $('input[name="PaymentMethod"]:checked').val();
+        if (val === 'COD') {
+            $('#summaryDepositLabel').text('Mức cọc cần thanh toán (50%):');
+            const dep = Math.round(currentTotal * 0.5 / 10000) * 10000;
+            $('#summaryDepositValue').text(formatVND(dep));
+            $('#summaryRemainingLabel').text('Còn lại khi nhận hàng:');
+            $('#summaryRemainingValue').text(formatVND(currentTotal - dep));
+            $('#txtDeposit50').text(formatVND(dep).replace('đ', ''));
+            $('#txtRemaining50').text(formatVND(currentTotal - dep).replace('đ', ''));
+        } else if (val === 'BankTransfer') {
+            $('#summaryDepositLabel').text('Thanh toán toàn bộ (100%):');
+            $('#summaryDepositValue').text(formatVND(currentTotal));
+            $('#summaryRemainingLabel').text('Còn lại khi nhận hàng:');
+            $('#summaryRemainingValue').text('0đ (Đã thanh toán đủ)');
+        } else if (val === 'Installment') {
+            calculateInstallment();
+        }
+    }
+
+    function calculateInstallment() {
+        const prepayPercent = parseInt($('#inputPrepayPercent').val()) || 30;
+        const months = parseInt($('#inputInstallmentMonths').val()) || 6;
+
+        const prepayAmount = Math.round(currentTotal * (prepayPercent / 100) / 10000) * 10000;
+        const loanAmount = Math.max(0, currentTotal - prepayAmount);
+        const monthlyAmount = months > 0 ? Math.round(loanAmount / months / 1000) * 1000 : 0;
+
+        $('#txtPrepayAmount').text(formatVND(prepayAmount));
+        $('#txtLoanAmount').text(formatVND(loanAmount));
+        $('#txtMonthlyAmount').text(formatVND(monthlyAmount) + ' / tháng');
+
+        if ($('input[name="PaymentMethod"]:checked').val() === 'Installment') {
+            $('#summaryDepositLabel').text('Tiền trả trước (' + prepayPercent + '%):');
+            $('#summaryDepositValue').text(formatVND(prepayAmount));
+            $('#summaryRemainingLabel').text('Góp mỗi tháng (' + months + ' tháng):');
+            $('#summaryRemainingValue').text(formatVND(monthlyAmount) + ' / tháng');
+        }
+    }
+
+    $('#cboPromotion').change(function() {
+        const promoId = $(this).val();
+        $('#promoErrorBox').hide();
+
+        if (!promoId) {
+            currentTotal = subTotalAmount;
+            $('#hdnDiscountAmount').val(0);
+            $('#hdnDiscountPercent').val(0);
+            $('#rowDiscount').hide();
+            $('#txtFinalTotal').text(formatVND(currentTotal));
+            $('#promoDescriptionBox').slideUp();
+            updatePaymentSummary();
+            return;
+        }
+
+        // Gọi API backend kiểm tra ràng buộc khung giờ & hạng thành viên
+        $.get('/Cart/CalculateDiscount', { promotionId: promoId, subTotal: subTotalAmount }, function(res) {
+            if (res.success) {
+                currentTotal = res.totalAmount;
+                $('#hdnDiscountAmount').val(res.discountAmount);
+                $('#hdnDiscountPercent').val(res.discountPercent);
+                $('#txtDiscountPercent').text(res.discountPercent);
+                $('#txtDiscountAmount').text('-' + formatVND(res.discountAmount));
+                $('#rowDiscount').show();
+                $('#txtFinalTotal').text(formatVND(currentTotal));
+
+                const desc = $('#cboPromotion option:selected').data('desc');
+                if (desc) {
+                    $('#promoDescriptionText').text(desc);
+                    $('#promoDescriptionBox').slideDown();
+                } else {
+                    $('#promoDescriptionBox').slideUp();
+                }
+            } else {
+                // Không thỏa mãn điều kiện ràng buộc
+                $('#promoErrorText').text(res.message);
+                $('#promoErrorBox').slideDown();
+                $('#promoDescriptionBox').slideUp();
+
+                // Đặt lại chiết khấu = 0
+                currentTotal = subTotalAmount;
+                $('#hdnDiscountAmount').val(0);
+                $('#hdnDiscountPercent').val(0);
+                $('#rowDiscount').hide();
+                $('#txtFinalTotal').text(formatVND(currentTotal));
+            }
+            updatePaymentSummary();
+        }).fail(function() {
+            $('#promoErrorText').text('Lỗi kiểm tra mã khuyến mãi. Vui lòng thử lại.');
+            $('#promoErrorBox').slideDown();
+        });
+    });
+
+    $('input[name="PaymentMethod"]').change(function() {
+        const val = $(this).val();
+        $('.payment-option-card').removeClass('selected');
+        if (val === 'COD') {
+            $('#cardCod').addClass('selected');
+            $('#boxInstallmentDetails').slideUp();
+        } else if (val === 'BankTransfer') {
+            $('#cardBank').addClass('selected');
+            $('#boxInstallmentDetails').slideUp();
+        } else if (val === 'Installment') {
+            $('#cardInstallment').addClass('selected');
+            $('#boxInstallmentDetails').slideDown();
+        }
+        updatePaymentSummary();
+    });
+
+    $('.btn-prepay').click(function() {
+        $('.btn-prepay').removeClass('active');
+        $(this).addClass('active');
+        $('#inputPrepayPercent').val($(this).data('percent'));
+        calculateInstallment();
+    });
+
+    $('.btn-term').click(function() {
+        $('.btn-term').removeClass('active btn-primary').addClass('btn-outline-secondary');
+        $(this).removeClass('btn-outline-secondary').addClass('active btn-primary');
+        $('#inputInstallmentMonths').val($(this).data('months'));
+        calculateInstallment();
+    });
+
+    updatePaymentSummary();
+</script>
+}

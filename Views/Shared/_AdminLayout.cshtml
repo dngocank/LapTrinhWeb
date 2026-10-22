@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - KittyPhone Quản Trị Hệ Thống</title>
+    
+    <!-- Google Fonts Inter Typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5 CSS -->
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="admin-wrapper">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <div class="admin-sidebar-header d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="brand-logo-icon bg-primary text-white rounded-3 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; font-size: 1.1rem; background: linear-gradient(135deg, #0284c7, #38bdf8) !important;">
+                        <i class="bi bi-phone"></i>
+                    </div>
+                    <div>
+                        <h5 class="fw-bold text-white mb-0">Kitty<span style="color: #38bdf8;">Phone</span></h5>
+                        <span class="text-white-50 small" style="font-size: 0.72rem;">Quản Trị Hệ Thống</span>
+                    </div>
+                </div>
+                <a asp-controller="Home" asp-action="Index" class="btn btn-sm btn-outline-light" title="Về trang bán hàng">
+                    <i class="bi bi-box-arrow-up-right"></i>
+                </a>
+            </div>
+
+            <!-- User Info Badge -->
+            <div class="p-3 mx-2 my-2 rounded bg-dark border border-secondary border-opacity-25 d-flex align-items-center gap-3">
+                <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 40px; height: 40px; background: linear-gradient(135deg, #0e2254, #0284c7) !important;">
+                    @(User.Identity?.Name?.Substring(0, 1).ToUpper() ?? "U")
+                </div>
+                <div class="overflow-hidden">
+                    <div class="fw-bold text-white small text-truncate">@User.Identity?.Name</div>
+                    <div class="d-flex align-items-center gap-1">
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <span class="badge bg-danger">Admin</span>
+                        }
+                        else if (User.IsInRole("Sales"))
+                        {
+                            <span class="badge bg-primary">Sales</span>
+                        }
+                        else if (User.IsInRole("Warehouse"))
+                        {
+                            <span class="badge bg-warning text-dark">Kho</span>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Links -->
+            <ul class="admin-sidebar-menu">
+                @if (User.IsInRole("Admin"))
+                {
+                    <li>
+                        <a asp-controller="Admin" asp-action="Index" class="admin-menu-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Admin" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")">
+                            <i class="bi bi-speedometer2"></i>
+                            <span>Bảng Điều Khiển</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Admin" asp-action="Accounts" class="admin-menu-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Admin" && ViewContext.RouteData.Values["action"]?.ToString() == "Accounts" ? "active" : "")">
+                            <i class="bi bi-person-gear"></i>
+                            <span>Quản Lý Tài Khoản</span>
+                        </a>
+                    </li>
+                }
+
+                @if (User.IsInRole("Sales") || User.IsInRole("Admin"))
+                {
+                    <li class="px-3 pt-3 pb-1 text-uppercase text-white-50" style="font-size: 0.7rem; font-weight: 700;">Nghiệp vụ Bán hàng</li>
+                    <li>
+                        <a asp-controller="Sales" asp-action="Orders" class="admin-menu-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Orders" || ViewContext.RouteData.Values["action"]?.ToString() == "OrderDetail" ? "active" : "")">
+                            <i class="bi bi-receipt"></i>
+                            <span>Quản Lý Đơn Hàng</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Sales" asp-action="Reviews" class="admin-menu-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Reviews" ? "active" : "")">
+                            <i class="bi bi-chat-heart"></i>
+                            <span>Đánh Giá & Nhận Xét</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Sales" asp-action="Products" class="admin-menu-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Products" || ViewContext.RouteData.Values["action"]?.ToString() == "EditProduct" || ViewContext.RouteData.Values["action"]?.ToString() == "CreateProduct" ? "active" : "")">
+                            <i class="bi bi-tags"></i>
+                            <span>Nội Dung Bán Hàng</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Sales" asp-action="Promotions" class="admin-menu-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Promotions" ? "active" : "")">
+                            <i class="bi bi-gift"></i>
+                            <span>Chương Trình Khuyến Mãi</span>
+                        </a>
+                    </li>
+                }
+
+                @if (User.IsInRole("Warehouse") || User.IsInRole("Admin"))
+                {
+                    <li class="px-3 pt-3 pb-1 text-uppercase text-white-50" style="font-size: 0.7rem; font-weight: 700;">Nghiệp vụ Kho</li>
+                    <li>
+                        <a asp-controller="Warehouse" asp-action="Index" class="admin-menu-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Warehouse" && (ViewContext.RouteData.Values["action"]?.ToString() == "Index" || ViewContext.RouteData.Values["action"]?.ToString() == "ImportDetail") ? "active" : "")">
+                            <i class="bi bi-box-arrow-in-down"></i>
+                            <span>Danh Sách Phiếu Nhập</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Warehouse" asp-action="CreateImport" class="admin-menu-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Warehouse" && ViewContext.RouteData.Values["action"]?.ToString() == "CreateImport" ? "active" : "")">
+                            <i class="bi bi-plus-circle"></i>
+                            <span>Tạo Phiếu Nhập Kho</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Warehouse" asp-action="Inventory" class="admin-menu-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Warehouse" && ViewContext.RouteData.Values["action"]?.ToString() == "Inventory" ? "active" : "")">
+                            <i class="bi bi-boxes"></i>
+                            <span>Tồn Kho & Cảnh Báo</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Warehouse" asp-action="Serials" class="admin-menu-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Warehouse" && ViewContext.RouteData.Values["action"]?.ToString() == "Serials" ? "active" : "")">
+                            <i class="bi bi-upc-scan"></i>
+                            <span>Mã Máy / IMEI</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Warehouse" asp-action="Movements" class="admin-menu-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Warehouse" && ViewContext.RouteData.Values["action"]?.ToString() == "Movements" ? "active" : "")">
+                            <i class="bi bi-clock-history"></i>
+                            <span>Biến Động Kho</span>
+                        </a>
+                    </li>
+                }
+            </ul>
+
+            <div class="p-3 border-top border-secondary border-opacity-25 mt-auto">
+                <form asp-controller="Account" asp-action="Logout" method="post">
+                    <button type="submit" class="btn btn-outline-danger w-100 btn-sm d-flex align-items-center justify-content-center gap-2">
+                        <i class="bi bi-box-arrow-right"></i>
+                        <span>Đăng Xuất</span>
+                    </button>
+                </form>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="admin-content-area">
+            <header class="admin-topbar">
+                <div class="d-flex align-items-center gap-3">
+                    <h5 class="fw-bold mb-0 text-dark">@ViewData["Title"]</h5>
+                </div>
+                <div class="d-flex align-items-center gap-3">
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary btn-sm rounded-pill">
+                        <i class="bi bi-shop me-1"></i>Xem Cửa Hàng
+                    </a>
+                    <span class="text-secondary">|</span>
+                    <span class="small text-muted">Xin chào, <strong class="text-dark">@User.Identity?.Name</strong></span>
+                </div>
+            </header>
+
+            <main class="admin-main-body">
+                <!-- Flash Alerts -->
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show shadow-sm mb-4" role="alert">
+                        <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show shadow-sm mb-4" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/admin-table.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

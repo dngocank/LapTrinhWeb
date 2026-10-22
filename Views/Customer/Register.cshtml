@@ -1,0 +1,120 @@
+@model BTL_PTTKYC.Models.CustomerRegisterViewModel
+@{
+    ViewData["Title"] = "Đăng Ký Tài Khoản KittyMember | KittyPhone";
+}
+
+<div class="auth-wrapper py-5">
+    <div class="container d-flex justify-content-center">
+        <div class="auth-card">
+            <!-- Header -->
+            <div class="auth-card-header">
+                <div class="d-inline-flex p-3 rounded-circle bg-white text-primary mb-3 shadow-sm" style="width: 58px; height: 58px; align-items: center; justify-content: center;">
+                    <i class="bi bi-person-plus-fill fs-2 text-primary"></i>
+                </div>
+                <h4 class="fw-bold mb-1 text-white">Tạo Tài Khoản KittyMember</h4>
+                <p class="small text-white-50 mb-0">Xác thực an toàn, tích điểm đổi quà & nhận ưu đãi độc quyền</p>
+            </div>
+
+            <!-- Body -->
+            <div class="auth-card-body">
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show rounded-3 small py-2 mb-3" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger d-inline mb-0" })
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                <div class="p-3 mb-4 rounded-3 border" style="background: #f0f9ff; border-color: #bae6fd !important;">
+                    <div class="d-flex align-items-center gap-2 text-primary fw-bold small mb-1">
+                        <i class="bi bi-shield-check fs-5"></i>
+                        <span>Bảo Mật Xác Thực Chống Gian Lận</span>
+                    </div>
+                    <p class="small text-muted mb-0" style="font-size: 0.8rem; line-height: 1.4;">
+                        Sau khi bấm "Tiếp Tục", hệ thống sẽ gửi <strong>mã OTP xác thực (6 số)</strong> đến cả Số điện thoại và Email của bạn để hoàn tất mở tài khoản KittyMember.
+                    </p>
+                </div>
+
+                <form asp-action="Register" method="post">
+                    <input type="hidden" asp-for="ReturnUrl" />
+
+                    <!-- Họ và tên -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark small">Họ và tên của bạn <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted"><i class="bi bi-person"></i></span>
+                            <input asp-for="CustomerName" class="form-control" placeholder="Ví dụ: Nguyễn Văn An" autofocus />
+                        </div>
+                        <span asp-validation-for="CustomerName" class="text-danger small"></span>
+                    </div>
+
+                    <!-- Số điện thoại -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark small">Số điện thoại (Nhận OTP) <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted"><i class="bi bi-telephone"></i></span>
+                            <input asp-for="Phone" class="form-control" placeholder="10 chữ số (03x, 05x, 07x, 08x, 09x)" />
+                        </div>
+                        <span asp-validation-for="Phone" class="text-danger small"></span>
+                    </div>
+
+                    <!-- Gmail / Email -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark small">Địa chỉ Email (Nhận OTP) <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted"><i class="bi bi-envelope"></i></span>
+                            <input asp-for="Email" class="form-control" placeholder="name@gmail.com" />
+                        </div>
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+
+                    <!-- Mật khẩu -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark small">Mật khẩu bảo mật <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted"><i class="bi bi-lock"></i></span>
+                            <input asp-for="Password" type="password" class="form-control" placeholder="Tối thiểu 6 ký tự" />
+                        </div>
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+
+                    <!-- Xác nhận mật khẩu -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark small">Xác nhận lại mật khẩu <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted"><i class="bi bi-lock-fill"></i></span>
+                            <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Nhập lại mật khẩu ở trên" />
+                        </div>
+                        <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                    </div>
+
+                    <!-- Địa chỉ giao hàng mặc định -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark small">Địa chỉ giao hàng (Tùy chọn)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted"><i class="bi bi-geo-alt"></i></span>
+                            <input asp-for="Address" class="form-control" placeholder="Số nhà, tên đường, phường/xã, quận/huyện..." />
+                        </div>
+                        <span asp-validation-for="Address" class="text-danger small"></span>
+                    </div>
+
+                    <button type="submit" class="btn text-white w-100 py-2 rounded-pill fw-bold shadow-sm mb-3" style="background: linear-gradient(135deg, #0e2254, #0284c7); border: none;">
+                        <i class="bi bi-arrow-right-circle me-1"></i>TIẾP TỤC NHẬN MÃ OTP
+                    </button>
+                </form>
+
+                <div class="text-center pt-3 border-top">
+                    <span class="text-muted small">Đã có tài khoản tại KittyPhone?</span>
+                    <a asp-controller="Customer" asp-action="Login" asp-route-returnUrl="@Model.ReturnUrl" class="fw-bold text-primary ms-1 small text-decoration-none">
+                        Đăng nhập ngay
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

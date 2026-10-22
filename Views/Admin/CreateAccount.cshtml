@@ -1,0 +1,79 @@
+@model BTL_PTTKYC.Models.CreateAccountViewModel
+@{
+    ViewData["Title"] = "Tạo Tài Khoản Nhân Sự Mới";
+    Layout = "_AdminLayout";
+    var employees = ViewBag.Employees as List<BTL_PTTKYC.Models.EmployeeOptionModel> ?? new();
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <a asp-action="Accounts" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Quay lại danh sách
+            </a>
+            <h4 class="fw-bold mb-0">Tạo Tài Khoản Nhân Sự Mới</h4>
+        </div>
+
+        <div class="bg-white p-4 rounded-3 border shadow-sm">
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger shadow-sm mb-4">
+                    <div asp-validation-summary="All" class="text-danger small mb-0"></div>
+                </div>
+            }
+
+            <form asp-action="CreateAccount" method="post">
+                @Html.AntiForgeryToken()
+
+                <div class="mb-3">
+                    <label asp-for="EmployeeId" class="form-label fw-semibold">Chọn Nhân Viên Cửa Hàng <span class="text-danger">*</span></label>
+                    <select asp-for="EmployeeId" class="form-select form-select-lg fs-6" required>
+                        <option value="">-- Chọn nhân viên để cấp tài khoản --</option>
+                        @foreach (var emp in employees)
+                        {
+                            <option value="@emp.EmployeeId">@emp.EmployeeName - Chức vụ: @(emp.Position ?? "Nhân viên") (@emp.Phone)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="EmployeeId" class="text-danger small"></span>
+                    @if (employees.Count == 0)
+                    {
+                        <div class="form-text text-danger">Hiện tại tất cả nhân viên trong bảng Employee đều đã có tài khoản.</div>
+                    }
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Username" class="form-label fw-semibold">Tên đăng nhập (Username) <span class="text-danger">*</span></label>
+                    <input asp-for="Username" class="form-control" placeholder="Ví dụ: sales_hcm, kho_quan1..." required />
+                    <span asp-validation-for="Username" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Password" class="form-label fw-semibold">Mật khẩu ban đầu <span class="text-danger">*</span></label>
+                    <input asp-for="Password" type="password" class="form-control" placeholder="Tối thiểu 6 ký tự" required />
+                    <span asp-validation-for="Password" class="text-danger small"></span>
+                    <div class="form-text">Mật khẩu sẽ được mã hóa an toàn bằng thuật toán BCrypt trong CSDL.</div>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="Role" class="form-label fw-semibold">Phân quyền vai trò (Role) <span class="text-danger">*</span></label>
+                    <select asp-for="Role" class="form-select form-select-lg fs-6" required>
+                        <option value="Sales">Sales - Nhân viên bán hàng (Xem đơn, xác nhận cọc, xem review, sửa nội dung)</option>
+                        <option value="Warehouse">Warehouse - Nhân viên kho (Lập phiếu nhập, kiểm kê tồn kho, IMEI)</option>
+                        <option value="Admin">Admin - Quản trị viên cao cấp (Toàn quyền hệ thống, quản lý tài khoản)</option>
+                    </select>
+                    <span asp-validation-for="Role" class="text-danger small"></span>
+                </div>
+
+                <div class="form-check form-switch mb-4">
+                    <input class="form-check-input" type="checkbox" asp-for="IsActive" id="activeAccount" checked>
+                    <label class="form-check-label fw-semibold" for="activeAccount">Kích hoạt tài khoản ngay lập tức</label>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a asp-action="Accounts" class="btn btn-secondary rounded-pill px-4">Hủy bỏ</a>
+                    <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold">Tạo Tài Khoản</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

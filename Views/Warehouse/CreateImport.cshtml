@@ -1,0 +1,378 @@
+@model BTL_PTTKYC.Models.CreateImportViewModel
+@{
+    ViewData["Title"] = "Lập Phiếu Nhập Kho Mới";
+    Layout = "_AdminLayout";
+    var brands = ViewBag.Brands as List<(int id, string name)> ?? new();
+    var categories = ViewBag.Categories as List<(int id, string name)> ?? new();
+    int? selectedProductId = ViewBag.SelectedProductId as int?;
+    int? selectedSupplierId = ViewBag.SelectedSupplierId as int?;
+    int defaultQty = ViewBag.DefaultQuantity as int? ?? 10;
+    decimal defaultPrice = ViewBag.DefaultPrice as decimal? ?? 1000000m;
+    var selectedProduct = ViewBag.SelectedProduct as BTL_PTTKYC.Models.ProductViewModel;
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-11">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <a asp-action="Index" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Quay lại danh sách phiếu nhập
+            </a>
+            <h4 class="fw-bold mb-0">Lập Phiếu Nhập Kho Mới</h4>
+        </div>
+
+        @if (selectedProduct != null)
+        {
+            <div class="alert alert-info border-info-subtle shadow-sm mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-3">
+                    <img src="@(string.IsNullOrEmpty(selectedProduct.ImageUrl) ? "/images/placeholder-phone.svg" : selectedProduct.ImageUrl)" 
+                         style="width: 48px; height: 48px; object-fit: contain;" 
+                         class="bg-white rounded border p-1" 
+                         onerror="this.onerror=null;this.src='/images/placeholder-phone.svg';" />
+                    <div>
+                        <h6 class="fw-bold mb-0 text-dark">Đang lập phiếu nhập hàng cho: @selectedProduct.ProductName</h6>
+                        <span class="small text-muted">
+                            Hãng: <strong class="text-dark">@selectedProduct.BrandName</strong> | 
+                            Tồn kho hiện tại: <strong class="text-danger">@selectedProduct.Quantity chiếc</strong> | 
+                            Đơn giá nhập chuẩn: <strong class="text-primary">@selectedProduct.ImportPrice.ToString("N0")đ</strong>
+                        </span>
+                    </div>
+                </div>
+                <span class="badge bg-primary px-3 py-2 fs-6"><i class="bi bi-check2-circle me-1"></i>Đã tự động điền máy</span>
+            </div>
+        }
+
+        <div class="bg-white p-4 rounded-3 border shadow-sm">
+            <form asp-action="CreateImport" method="post" id="createImportForm">
+                @Html.AntiForgeryToken()
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Nhà Cung Cấp <span class="text-danger">*</span></label>
+                        <select name="supplierId" class="form-select form-select-lg fs-6" required>
+                            <option value="">-- Chọn nhà cung cấp --</option>
+                            @foreach (var s in Model.Suppliers)
+                            {
+                                var isSelSupplier = selectedSupplierId.HasValue && s.SupplierId == selectedSupplierId.Value;
+                                <option value="@s.SupplierId" selected="@(isSelSupplier ? "selected" : null)">@s.SupplierName (@s.Phone - @s.Address)</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Nhân Viên Nhập Kho <span class="text-danger">*</span></label>
+                        <select name="employeeId" class="form-select form-select-lg fs-6" required>
+                            @foreach (var e in Model.WarehouseEmployees)
+                            {
+                                <option value="@e.EmployeeId">@e.EmployeeName - @(e.Position ?? "Kho")</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-3 border-top pt-3 flex-wrap gap-2">
+                    <h5 class="fw-bold mb-0">Danh Sách Thiết Bị Nhập Kho</h5>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-primary btn-sm rounded-pill fw-semibold" data-bs-toggle="modal" data-bs-target="#newProductModal">
+                            <i class="bi bi-plus-circle-fill me-1"></i>Thêm Sản Phẩm Mới Hoàn Toàn
+                        </button>
+                        <button type="button" class="btn btn-outline-danger btn-sm rounded-pill" onclick="addRow()">
+                            <i class="bi bi-plus-lg me-1"></i>Thêm dòng nhập
+                        </button>
+                    </div>
+                </div>
+
+                <div class="table-responsive mb-4">
+                    <table class="table table-bordered align-middle" id="itemsTable">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 38%;">Sản phẩm</th>
+                                <th style="width: 14%;" class="text-center">Số lượng</th>
+                                <th style="width: 22%;" class="text-end">Đơn giá nhập (VNĐ)</th>
+                                <th style="width: 20%;" class="text-end">Thành tiền</th>
+                                <th style="width: 6%;" class="text-center">Xóa</th>
+                            </tr>
+                        </thead>
+                        <tbody id="itemsBody">
+                            <tr class="item-row">
+                                <td>
+                                    <select name="productIds" class="form-select product-select" required onchange="onProductChange(this)">
+                                        <option value="">-- Chọn sản phẩm có sẵn --</option>
+                                        @foreach (var p in Model.AvailableProducts)
+                                        {
+                                            var isSelProd = selectedProductId.HasValue && p.ProductId == selectedProductId.Value;
+                                            <option value="@p.ProductId" data-price="@p.ImportPrice" selected="@(isSelProd ? "selected" : null)">
+                                                @p.ProductName (@p.BrandName - Tồn: @p.Quantity)
+                                            </option>
+                                        }
+                                    </select>
+                                </td>
+                                <td>
+                                    <input type="number" name="quantities" class="form-control text-center qty-input" value="@defaultQty" min="1" required oninput="calculateTotals()" />
+                                </td>
+                                <td>
+                                    <input type="number" name="prices" class="form-control text-end price-input" value="@((long)defaultPrice)" min="1000" step="10000" required oninput="calculateTotals()" />
+                                </td>
+                                <td class="text-end fw-bold text-danger line-total">
+                                    @((defaultQty * defaultPrice).ToString("N0"))đ
+                                </td>
+                                <td class="text-center">
+                                    <button type="button" class="btn btn-sm btn-link text-danger p-0" onclick="removeRow(this)">
+                                        <i class="bi bi-trash fs-5"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                        <tfoot class="table-light">
+                            <tr>
+                                <td colspan="3" class="text-end fw-bold fs-6">Tổng giá trị đơn nhập hàng:</td>
+                                <td class="text-end fw-bold text-danger fs-5" id="grandTotalText">@((defaultQty * defaultPrice).ToString("N0"))đ</td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+
+                <div id="priceZeroAlert" class="alert alert-danger d-none mb-3">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <strong>Lỗi nghiệp vụ:</strong> Đơn giá nhập và tổng giá trị phiếu nhập bắt buộc phải lớn hơn 0đ. Hệ thống không cho phép duyệt phiếu nhập 0đ!
+                </div>
+
+                <div class="p-3 bg-light rounded-3 mb-4 small text-muted">
+                    <i class="bi bi-info-circle-fill text-primary me-1"></i>
+                    <strong>Cơ chế tự động:</strong> Khi bấm lưu phiếu nhập, trigger <code>trg_ImportDetail_AfterInsert</code> trong CSDL PhoneStoreDB sẽ tự động cộng tồn kho cho từng sản phẩm và ghi nhận nhật ký vào bảng <code>Stock_Movement</code>.
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a asp-action="Index" class="btn btn-secondary rounded-pill px-4">Hủy bỏ</a>
+                    <button type="submit" class="btn btn-danger rounded-pill px-5 fw-bold" id="btnSubmitImport">
+                        <i class="bi bi-check2-circle me-1"></i>Lưu Phiếu Nhập & Tăng Kho
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Thêm Sản Phẩm Mới Hoàn Toàn (Chưa có trong hệ thống) -->
+<div class="modal fade" id="newProductModal" tabindex="-1" aria-labelledby="newProductModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold text-primary" id="newProductModalLabel">
+                    <i class="bi bi-plus-circle-fill me-2"></i>Thêm Mới Sản Phẩm Hoàn Toàn (Vào Kho & Hệ Thống)
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted small mb-3">
+                    Nếu lô hàng nhập về có sản phẩm mới chưa từng có trên web hay trong CSDL, bạn có thể tạo ngay tại đây để tiếp tục nhập kho mà không cần thoát trang.
+                </p>
+
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Tên sản phẩm mới <span class="text-danger">*</span></label>
+                        <input type="text" id="np_name" class="form-control" placeholder="Ví dụ: iPhone 16 Pro Max 256GB Titan Sa Mạc" required />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Hãng sản xuất <span class="text-danger">*</span></label>
+                        <select id="np_brand" class="form-select" required>
+                            @foreach (var b in brands)
+                            {
+                                <option value="@b.id">@b.name</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Danh mục <span class="text-danger">*</span></label>
+                        <select id="np_category" class="form-select" required>
+                            @foreach (var c in categories)
+                            {
+                                <option value="@c.id">@c.name</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Đơn giá nhập từ NCC (VNĐ) <span class="text-danger">*</span></label>
+                        <input type="number" id="np_importPrice" class="form-control" min="1000" step="100000" placeholder="Ví dụ: 30000000" required />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Giá bán lẻ niêm yết (VNĐ) <span class="text-danger">*</span></label>
+                        <input type="number" id="np_sellingPrice" class="form-control" min="1000" step="100000" placeholder="Ví dụ: 34990000" required />
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Link ảnh đại diện sản phẩm</label>
+                        <input type="url" id="np_image" class="form-control" placeholder="https://..." />
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Mô tả tóm tắt thông số</label>
+                        <textarea id="np_desc" class="form-control" rows="2" placeholder="Chip, màn hình, camera, bảo hành chính hãng..."></textarea>
+                    </div>
+                </div>
+
+                <div id="np_error" class="alert alert-danger small mt-3 d-none"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Đóng</button>
+                <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold" id="btnSaveNewProduct" onclick="saveNewProductAjax()">
+                    <i class="bi bi-check2-circle me-1"></i>Lưu & Chọn Vào Phiếu Nhập
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    function calculateTotals() {
+        var grandTotal = 0;
+        var hasZero = false;
+
+        $('#itemsBody tr.item-row').each(function() {
+            var qty = parseFloat($(this).find('.qty-input').val()) || 0;
+            var price = parseFloat($(this).find('.price-input').val()) || 0;
+            
+            if (qty <= 0 || price <= 0) {
+                hasZero = true;
+            }
+
+            var lineTotal = qty * price;
+            grandTotal += lineTotal;
+            $(this).find('.line-total').text(lineTotal.toLocaleString('vi-VN') + 'đ');
+        });
+
+        $('#grandTotalText').text(grandTotal.toLocaleString('vi-VN') + 'đ');
+
+        if (grandTotal <= 0 || hasZero) {
+            $('#priceZeroAlert').removeClass('d-none');
+            $('#btnSubmitImport').prop('disabled', true);
+        } else {
+            $('#priceZeroAlert').addClass('d-none');
+            $('#btnSubmitImport').prop('disabled', false);
+        }
+    }
+
+    function addRow() {
+        var firstRow = $('#itemsBody tr.item-row:first').clone();
+        firstRow.find('input.qty-input').val(1);
+        firstRow.find('input.price-input').val(1000000);
+        firstRow.find('select').val('');
+        firstRow.find('.line-total').text('0đ');
+        $('#itemsBody').append(firstRow);
+        calculateTotals();
+    }
+
+    function removeRow(btn) {
+        if ($('#itemsBody tr.item-row').length > 1) {
+            $(btn).closest('tr').remove();
+            calculateTotals();
+        } else {
+            alert('Phiếu nhập cần có ít nhất 1 dòng sản phẩm.');
+        }
+    }
+
+    function onProductChange(select) {
+        var selectedOpt = $(select).find('option:selected');
+        var price = selectedOpt.data('price');
+        if (price && parseFloat(price) > 0) {
+            $(select).closest('tr').find('.price-input').val(price);
+        }
+        calculateTotals();
+    }
+
+    function saveNewProductAjax() {
+        var name = $('#np_name').val().trim();
+        var brandId = parseInt($('#np_brand').val()) || 1;
+        var catId = parseInt($('#np_category').val()) || 1;
+        var importPrice = parseFloat($('#np_importPrice').val()) || 0;
+        var sellingPrice = parseFloat($('#np_sellingPrice').val()) || 0;
+        var img = $('#np_image').val().trim();
+        var desc = $('#np_desc').val().trim();
+
+        if (!name) {
+            $('#np_error').text('Vui lòng nhập tên sản phẩm mới.').removeClass('d-none');
+            return;
+        }
+        if (importPrice <= 0) {
+            $('#np_error').text('Đơn giá nhập phải lớn hơn 0đ (không được nhập 0đ).').removeClass('d-none');
+            return;
+        }
+        if (sellingPrice <= 0) {
+            $('#np_error').text('Giá bán niêm yết phải lớn hơn 0đ.').removeClass('d-none');
+            return;
+        }
+
+        $('#np_error').addClass('d-none');
+        $('#btnSaveNewProduct').prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>Đang lưu...');
+
+        var token = $('input[name="__RequestVerificationToken"]').val();
+
+        $.ajax({
+            url: '/Warehouse/CreateProductAjax',
+            type: 'POST',
+            contentType: 'application/json',
+            headers: {
+                'RequestVerificationToken': token
+            },
+            data: JSON.stringify({
+                ProductName: name,
+                BrandId: brandId,
+                CategoryId: catId,
+                ImportPrice: importPrice,
+                SellingPrice: sellingPrice,
+                ImageUrl: img,
+                Description: desc,
+                IsActive: true
+            }),
+            success: function(res) {
+                $('#btnSaveNewProduct').prop('disabled', false).html('<i class="bi bi-check2-circle me-1"></i>Lưu & Chọn Vào Phiếu Nhập');
+                if (res.success) {
+                    var newOption = `<option value="${res.productId}" data-price="${res.importPrice}">${res.productName} (${res.brandName} - Mới)</option>`;
+                    $('.product-select').append(newOption);
+
+                    // Select this option in the first empty or active row
+                    var targetRow = $('#itemsBody tr.item-row').filter(function() {
+                        return !$(this).find('.product-select').val();
+                    }).first();
+
+                    if (targetRow.length === 0) {
+                        targetRow = $('#itemsBody tr.item-row:last');
+                    }
+
+                    targetRow.find('.product-select').val(res.productId);
+                    targetRow.find('.price-input').val(res.importPrice);
+
+                    calculateTotals();
+
+                    var modal = bootstrap.Modal.getInstance(document.getElementById('newProductModal'));
+                    if (modal) modal.hide();
+
+                    alert(`Đã thêm sản phẩm "${res.productName}" thành công và tự động chọn vào phiếu nhập!`);
+
+                    // Reset form
+                    $('#np_name').val('');
+                    $('#np_importPrice').val('');
+                    $('#np_sellingPrice').val('');
+                    $('#np_image').val('');
+                    $('#np_desc').val('');
+                } else {
+                    $('#np_error').text(res.message || 'Lỗi khi tạo sản phẩm mới.').removeClass('d-none');
+                }
+            },
+            error: function(xhr) {
+                $('#btnSaveNewProduct').prop('disabled', false).html('<i class="bi bi-check2-circle me-1"></i>Lưu & Chọn Vào Phiếu Nhập');
+                $('#np_error').text('Lỗi kết nối máy chủ khi thêm sản phẩm.').removeClass('d-none');
+            }
+        });
+    }
+
+    $(document).ready(function() {
+        calculateTotals();
+    });
+</script>
+}

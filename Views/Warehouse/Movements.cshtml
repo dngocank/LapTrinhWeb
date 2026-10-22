@@ -1,0 +1,96 @@
+@model List<BTL_PTTKYC.Models.StockMovementModel>
+@{
+    ViewData["Title"] = "Lịch Sử Biến Động Kho (Stock Movement)";
+    Layout = "_AdminLayout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h4 class="fw-bold mb-1"><i class="bi bi-clock-history text-danger me-2"></i>Lịch Sử Biến Động Kho Hàng</h4>
+        <span class="text-muted small">Nhật ký đối soát xuất/nhập/tồn được sinh ra tự động bởi trigger SQL Server</span>
+    </div>
+</div>
+
+<div class="bg-white rounded-3 border shadow-sm overflow-hidden">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th style="width: 80px;">Mã Log</th>
+                    <th>Thời Gian</th>
+                    <th>Sản Phẩm</th>
+                    <th>Loại Biến Động</th>
+                    <th class="text-center">Số Lượng</th>
+                    <th>Mã Tham Chiếu</th>
+                    <th>Ghi Chú</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Count == 0)
+                {
+                    <tr>
+                        <td colspan="7" class="text-center py-5 text-muted">
+                            Chưa có nhật ký biến động kho nào.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var m in Model)
+                    {
+                        <tr>
+                            <td class="text-muted fw-bold">#@m.MovementId</td>
+                            <td>
+                                <div class="small fw-semibold text-dark">@m.MovementDate.ToString("dd/MM/yyyy HH:mm")</div>
+                            </td>
+                            <td>
+                                <strong class="text-dark">@m.ProductName</strong>
+                            </td>
+                            <td>
+                                @if (m.MovementType == "IMPORT")
+                                {
+                                    <span class="badge bg-success-subtle text-success"><i class="bi bi-arrow-down-left me-1"></i>Nhập kho (IMPORT)</span>
+                                }
+                                else if (m.MovementType == "SALE")
+                                {
+                                    <span class="badge bg-primary-subtle text-primary"><i class="bi bi-arrow-up-right me-1"></i>Xuất bán (SALE)</span>
+                                }
+                                else if (m.MovementType == "CANCEL_SALE")
+                                {
+                                    <span class="badge bg-warning-subtle text-warning-emphasis"><i class="bi bi-arrow-counterclockwise me-1"></i>Hoàn kho (CANCEL_SALE)</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">@m.MovementType</span>
+                                }
+                            </td>
+                            <td class="text-center">
+                                @if (m.QuantityChange > 0)
+                                {
+                                    <span class="fw-bold text-success fs-6">+@m.QuantityChange</span>
+                                }
+                                else
+                                {
+                                    <span class="fw-bold text-danger fs-6">@m.QuantityChange</span>
+                                }
+                            </td>
+                            <td>
+                                @if (m.ReferenceId.HasValue)
+                                {
+                                    <span class="badge bg-light text-dark border">Ref #@m.ReferenceId</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
+                            <td>
+                                <span class="small text-muted">@m.Note</span>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

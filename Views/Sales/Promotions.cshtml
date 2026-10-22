@@ -1,0 +1,149 @@
+@model List<BTL_PTTKYC.Models.PromotionModel>
+@{
+    ViewData["Title"] = "Quản Lý Khuyến Mãi (Promotions)";
+    Layout = "_AdminLayout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h4 class="fw-bold mb-1"><i class="bi bi-gift text-primary me-2"></i>Quản Lý Chương Trình Khuyến Mãi</h4>
+        <span class="text-muted small">Cấu hình các voucher và mức chiết khấu tự động áp dụng khi khách hàng đặt mua online</span>
+    </div>
+    <button type="button" class="btn btn-primary fw-bold px-3 shadow-sm" data-bs-toggle="modal" data-bs-target="#modalCreatePromotion">
+        <i class="bi bi-plus-circle me-1"></i>Thêm Khuyến Mãi Mới
+    </button>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show shadow-sm mb-4" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm mb-4" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<!-- Promotions Table -->
+<div class="bg-white rounded-3 border shadow-sm overflow-hidden mb-4">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th style="width: 70px;">ID</th>
+                    <th>Tên Chương Trình Khuyến Mãi</th>
+                    <th class="text-center" style="width: 140px;">Mức Giảm (%)</th>
+                    <th style="width: 220px;">Thời Gian Hiệu Lực</th>
+                    <th class="text-center" style="width: 150px;">Trạng Thái</th>
+                    <th>Mô Tả Điều Kiện</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model == null || Model.Count == 0)
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-4 text-muted">
+                            <i class="bi bi-inbox fs-2 d-block mb-2"></i>Chưa có chương trình khuyến mãi nào trong hệ thống.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    foreach (var promo in Model)
+                    {
+                        <tr>
+                            <td class="fw-bold text-muted">#@promo.PromotionId</td>
+                            <td>
+                                <strong class="text-dark">@promo.PromotionName</strong>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge bg-danger fs-6 px-2 py-1 rounded-pill">
+                                    -@promo.DiscountPercent%
+                                </span>
+                            </td>
+                            <td class="small">
+                                <div><i class="bi bi-calendar-check text-success me-1"></i>Từ: <strong>@promo.StartDate.ToString("dd/MM/yyyy")</strong></div>
+                                <div><i class="bi bi-calendar-x text-danger me-1"></i>Đến: <strong>@promo.EndDate.ToString("dd/MM/yyyy")</strong></div>
+                            </td>
+                            <td class="text-center">
+                                @if (promo.IsActive)
+                                {
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1">
+                                        <i class="bi bi-check-circle-fill me-1"></i>Đang áp dụng
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-3 py-1">
+                                        <i class="bi bi-slash-circle me-1"></i>Hết hạn
+                                    </span>
+                                }
+                            </td>
+                            <td class="text-secondary small">
+                                @(string.IsNullOrEmpty(promo.Description) ? "Không có mô tả thêm" : promo.Description)
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Create Promotion -->
+<div class="modal fade" id="modalCreatePromotion" tabindex="-1" aria-labelledby="modalCreatePromotionLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold text-dark" id="modalCreatePromotionLabel">
+                    <i class="bi bi-gift text-primary me-2"></i>Thêm Khuyến Mãi Mới
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="CreatePromotion" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-body p-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-dark">Tên chương trình khuyến mãi <span class="text-danger">*</span></label>
+                        <input type="text" name="PromotionName" class="form-control" placeholder="Ví dụ: Giảm giá hè 2026" required />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold small text-dark">Phần trăm chiết khấu (%) <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="number" name="DiscountPercent" class="form-control" min="1" max="100" step="0.5" placeholder="Ví dụ: 10" required />
+                            <span class="input-group-text">%</span>
+                        </div>
+                        <div class="form-text" style="font-size: 11px;">Mức giảm tự động tính theo Trigger trong CSDL khi khách chốt đơn.</div>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label fw-bold small text-dark">Ngày bắt đầu <span class="text-danger">*</span></label>
+                            <input type="date" name="StartDate" class="form-control" value="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label fw-bold small text-dark">Ngày kết thúc <span class="text-danger">*</span></label>
+                            <input type="date" name="EndDate" class="form-control" value="@DateTime.Today.AddMonths(1).ToString("yyyy-MM-dd")" required />
+                        </div>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label fw-bold small text-dark">Mô tả chương trình / Quyền lợi</label>
+                        <textarea name="Description" class="form-control" rows="3" placeholder="Nhập tóm tắt quyền lợi ưu đãi cho khách hàng..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary fw-bold px-3">Lưu Khuyến Mãi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,156 @@
+@model List<BTL_PTTKYC.Models.InvoiceModel>
+@{
+    ViewData["Title"] = "Quản Lý Đơn Hàng (Orders)";
+    Layout = "_AdminLayout";
+    string? currentStatus = ViewBag.CurrentStatus as string;
+    string? currentKeyword = ViewBag.CurrentKeyword as string;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h4 class="fw-bold mb-1"><i class="bi bi-receipt text-danger me-2"></i>Danh Sách Đơn Hàng</h4>
+        <span class="text-muted small">Xem danh sách hóa đơn, đối soát cọc 50% và xác nhận thanh toán thủ công</span>
+    </div>
+</div>
+
+<!-- Filters bar -->
+<div class="bg-white p-3 rounded-3 border mb-4 shadow-sm">
+    <div class="row g-3 align-items-center">
+        <div class="col-lg-7">
+            <div class="d-flex flex-wrap gap-2">
+                <a asp-action="Orders" class="btn btn-sm rounded-pill px-3 @(string.IsNullOrEmpty(currentStatus) ? "btn-dark shadow-sm" : "btn-light border text-secondary")">
+                    Tất cả (@Model.Count)
+                </a>
+                <a asp-action="Orders" asp-route-status="Pending" class="btn btn-sm rounded-pill px-3 @(currentStatus == "Pending" ? "btn-warning text-dark fw-bold shadow-sm" : "btn-light border text-dark")">
+                    <i class="bi bi-clock-history me-1 text-warning"></i>Chờ Sale phê duyệt
+                </a>
+                <a asp-action="Orders" asp-route-status="Paid" class="btn btn-sm rounded-pill px-3 @(currentStatus == "Paid" ? "btn-success shadow-sm" : "btn-light border text-dark")">
+                    <i class="bi bi-check-circle me-1 text-success"></i>Đã thanh toán
+                </a>
+                <a asp-action="Orders" asp-route-status="CancelRequested" class="btn btn-sm rounded-pill px-3 @(currentStatus == "CancelRequested" ? "btn-warning text-dark fw-bold shadow-sm" : "btn-light border text-dark")">
+                    <i class="bi bi-exclamation-diamond me-1 text-warning"></i>Yêu cầu hủy
+                </a>
+                <a asp-action="Orders" asp-route-status="Cancelled" class="btn btn-sm rounded-pill px-3 @(currentStatus == "Cancelled" ? "btn-danger shadow-sm" : "btn-light border text-dark")">
+                    <i class="bi bi-x-circle me-1 text-danger"></i>Đã hủy
+                </a>
+            </div>
+        </div>
+
+        <div class="col-lg-5">
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" id="orderSearchBox" class="form-control border-start-0" placeholder="Lọc nhanh theo Mã đơn, Khách hàng, SĐT..." />
+                @if (!string.IsNullOrEmpty(currentKeyword))
+                {
+                    <a asp-action="Orders" asp-route-status="@currentStatus" class="btn btn-outline-secondary">Xóa lọc</a>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Orders Table -->
+<div class="bg-white rounded-3 border shadow-sm overflow-hidden admin-table-wrapper">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 admin-datatable" data-page-size="10" data-search-input="#orderSearchBox">
+            <thead class="table-light">
+                <tr>
+                    <th>Mã Đơn</th>
+                    <th>Ngày Đặt</th>
+                    <th>Khách Hàng (SĐT)</th>
+                    <th>Địa Chỉ Nhận</th>
+                    <th class="text-end">Tổng Tiền</th>
+                    <th class="text-end">Đã Thanh Toán</th>
+                    <th>Trạng Thái & Thanh Toán</th>
+                    <th class="text-center">Thao Tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Count == 0)
+                {
+                    <tr>
+                        <td colspan="8" class="text-center py-5 text-muted">
+                            <i class="bi bi-inbox display-6 d-block mb-2"></i>
+                            Không có đơn hàng nào phù hợp với bộ lọc.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var order in Model)
+                    {
+                        <tr>
+                            <td>
+                                <strong class="text-danger">#@order.InvoiceId</strong>
+                                @if (order.PaymentMethodSelected == "COD")
+                                {
+                                    <span class="badge bg-secondary-subtle text-secondary d-block mt-1" style="font-size: 0.65rem;">COD (Cọc 50%)</span>
+                                }
+                                else if (order.PaymentMethodSelected == "BankTransfer")
+                                {
+                                    <span class="badge bg-primary-subtle text-primary d-block mt-1" style="font-size: 0.65rem;">Chuyển khoản 100%</span>
+                                }
+                            </td>
+                            <td>
+                                <div class="small">@order.InvoiceDate.ToString("dd/MM/yyyy")</div>
+                                <span class="text-muted" style="font-size: 0.75rem;">NV: @order.EmployeeName</span>
+                            </td>
+                            <td>
+                                <div class="fw-bold text-dark">@order.CustomerName</div>
+                                <a href="tel:@order.CustomerPhone" class="small text-danger"><i class="bi bi-telephone me-1"></i>@order.CustomerPhone</a>
+                            </td>
+                            <td>
+                                <span class="small text-secondary" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; max-width: 220px;" title="@order.ShippingAddress">
+                                    @(order.ShippingAddress ?? "Nhận tại cửa hàng")
+                                </span>
+                            </td>
+                            <td class="text-end fw-bold text-danger">
+                                @order.TotalAmount.ToString("N0")đ
+                            </td>
+                            <td class="text-end">
+                                <span class="fw-bold @(order.PaidAmount >= order.TotalAmount && order.TotalAmount > 0 ? "text-success" : (order.PaidAmount > 0 ? "text-primary" : "text-muted"))">
+                                    @order.PaidAmount.ToString("N0")đ
+                                </span>
+                                @if (order.RemainingAmount > 0 && order.Status != "Cancelled")
+                                {
+                                    <div class="small text-muted" style="font-size: 0.72rem;">Còn thiếu: @order.RemainingAmount.ToString("N0")đ</div>
+                                }
+                            </td>
+                            <td>
+                                @if (order.Status == "Paid")
+                                {
+                                    <span class="badge bg-success"><i class="bi bi-check-all me-1"></i>Đã thanh toán đủ</span>
+                                }
+                                else if (order.Status == "Cancelled")
+                                {
+                                    <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Đã hủy</span>
+                                    @if (!string.IsNullOrEmpty(order.CancelReason))
+                                    {
+                                        <div class="small text-danger text-truncate" style="max-width: 150px; font-size: 0.7rem;" title="@order.CancelReason">Lý do: @order.CancelReason</div>
+                                    }
+                                }
+                                else if (order.Status == "CancelRequested")
+                                {
+                                    <span class="badge bg-warning text-dark"><i class="bi bi-clock-history me-1"></i>Chờ duyệt hủy</span>
+                                }
+                                else if (order.Status == "Pending")
+                                {
+                                    <span class="badge bg-warning text-dark"><i class="bi bi-clock-history me-1"></i>Chờ Sale phê duyệt</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-secondary">@order.Status</span>
+                                }
+                            </td>
+                            <td class="text-center">
+                                <a asp-action="OrderDetail" asp-route-id="@order.InvoiceId" class="btn btn-sm btn-outline-danger px-3">
+                                    <i class="bi bi-eye me-1"></i>Chi tiết
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

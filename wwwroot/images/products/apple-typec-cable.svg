@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#f1f5f9"/>
+    </linearGradient>
+    <filter id="drop" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg)" rx="24"/>
+  <!-- Coiled Braided Cable -->
+  <g filter="url(#drop)">
+    <!-- Coils -->
+    <circle cx="200" cy="180" r="95" stroke="#e2e8f0" stroke-width="16" fill="none"/>
+    <circle cx="200" cy="180" r="95" stroke="#cbd5e1" stroke-width="12" stroke-dasharray="3 3" fill="none"/>
+    <circle cx="200" cy="180" r="75" stroke="#f1f5f9" stroke-width="14" fill="none"/>
+    <circle cx="200" cy="180" r="75" stroke="#e2e8f0" stroke-width="10" stroke-dasharray="3 3" fill="none"/>
+  </g>
+  <!-- Connector Left (USB-C) -->
+  <g filter="url(#drop)" transform="translate(100, 160) rotate(-25)">
+    <rect x="-14" y="0" width="28" height="60" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+    <rect x="-8" y="-22" width="16" height="24" rx="4" fill="#cbd5e1" stroke="#94a3b8" stroke-width="1.5"/>
+    <rect x="-5" y="-18" width="10" height="14" rx="2" fill="#334155"/>
+  </g>
+  <!-- Connector Right (USB-C) -->
+  <g filter="url(#drop)" transform="translate(290, 175) rotate(35)">
+    <rect x="-14" y="0" width="28" height="60" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="2"/>
+    <rect x="-8" y="-22" width="16" height="24" rx="4" fill="#cbd5e1" stroke="#94a3b8" stroke-width="1.5"/>
+    <rect x="-5" y="-18" width="10" height="14" rx="2" fill="#334155"/>
+  </g>
+  <text x="200" y="325" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif" font-size="14" font-weight="700" fill="#334155" text-anchor="middle">Apple Type-C to Type-C 60W</text>
+  <text x="200" y="345" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="500" fill="#94a3b8" text-anchor="middle">Dây Bện Dù Siêu Bền (1m) Chính Hãng</text>
+  <!-- Spec Badge -->
+  <rect x="160" y="358" width="80" height="20" rx="10" fill="#ecfdf5"/>
+  <text x="200" y="372" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10" font-weight="600" fill="#059669" text-anchor="middle">⚡ 60W Fast PD</text>
+</svg>

@@ -1,0 +1,130 @@
+@model List<BTL_PTTKYC.Models.ProductViewModel>
+@{
+    ViewData["Title"] = "Kiểm Kê Tồn Kho & Cảnh Báo";
+    Layout = "_AdminLayout";
+    var lowStock = ViewBag.LowStock as List<BTL_PTTKYC.Models.ProductViewModel> ?? new();
+    var uniqueBrands = Model.Select(p => p.BrandName).Where(b => !string.IsNullOrEmpty(b)).Distinct().OrderBy(b => b).ToList();
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h4 class="fw-bold mb-1"><i class="bi bi-boxes text-warning me-2"></i>Tình Trạng Tồn Kho & Cảnh Báo Nhập Hàng</h4>
+        <span class="text-muted small">Kiểm soát số lượng thiết bị vật lý trong kho, cảnh báo các máy sắp hết hàng</span>
+    </div>
+    <a asp-action="CreateImport" class="btn btn-danger rounded-pill px-4 fw-bold">
+        <i class="bi bi-plus-circle me-1"></i>Lập Phiếu Nhập Thêm Hàng
+    </a>
+</div>
+
+<!-- Low Stock Warning Banner -->
+@if (lowStock.Count > 0)
+{
+    <div class="alert alert-warning border-warning-subtle shadow-sm mb-4">
+        <div class="d-flex align-items-center gap-2 mb-2">
+            <i class="bi bi-exclamation-triangle-fill fs-5 text-warning"></i>
+            <h6 class="fw-bold mb-0 text-dark">Có @lowStock.Count sản phẩm tồn kho thấp (dưới 5 chiếc):</h6>
+        </div>
+        <div class="d-flex flex-wrap gap-2">
+            @foreach (var ls in lowStock)
+            {
+                <a asp-action="CreateImport" asp-route-productId="@ls.ProductId" class="badge bg-danger p-2 fs-6 text-decoration-none shadow-sm" title="Bấm để lập phiếu nhập nhanh cho thiết bị này">
+                    @ls.ProductName: còn @ls.Quantity máy <i class="bi bi-box-arrow-in-down ms-1"></i>
+                </a>
+            }
+        </div>
+    </div>
+}
+
+<!-- Filters bar -->
+<div class="bg-white p-3 rounded-3 border mb-4 shadow-sm">
+    <div class="row g-2 align-items-center">
+        <div class="col-md-5">
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" id="inventorySearchBox" class="form-control border-start-0" placeholder="Tìm theo tên thiết bị, ID máy..." />
+            </div>
+        </div>
+        <div class="col-md-4">
+            <select id="filterInvBrand" class="form-select form-select-sm" data-filter-col="2">
+                <option value="all">-- Tất cả Thương hiệu --</option>
+                @foreach (var b in uniqueBrands)
+                {
+                    <option value="@b">@b</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-3">
+            <select id="filterInvStock" class="form-select form-select-sm" data-filter-col="6">
+                <option value="all">-- Tình trạng kho --</option>
+                <option value="Đủ hàng">Đủ hàng</option>
+                <option value="Sắp hết">Sắp hết hàng</option>
+                <option value="Hết hàng">Hết hàng</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white rounded-3 border shadow-sm overflow-hidden admin-table-wrapper">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 admin-datatable" data-page-size="10" data-search-input="#inventorySearchBox" data-filter-selects="#filterInvBrand, #filterInvStock">
+            <thead class="table-light">
+                <tr>
+                    <th style="width: 80px;">Hình Ảnh</th>
+                    <th>Tên Thiết Bị</th>
+                    <th>Thương Hiệu</th>
+                    <th class="text-end">Giá Nhập</th>
+                    <th class="text-end">Giá Bán</th>
+                    <th class="text-center">Số Lượng Tồn Kho</th>
+                    <th>Tình Trạng Kho</th>
+                    <th class="text-center">Thao Tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in Model)
+                {
+                    <tr>
+                        <td>
+                            <img src="@(string.IsNullOrEmpty(p.ImageUrl) ? "/images/placeholder-phone.svg" : p.ImageUrl)" 
+                                 style="width: 48px; height: 48px; object-fit: contain;" 
+                                 class="border rounded p-1 bg-white" 
+                                 onerror="this.onerror=null;this.src='/images/placeholder-phone.svg';" />
+                        </td>
+                        <td>
+                            <div class="fw-bold text-dark">@p.ProductName</div>
+                            <span class="small text-muted">ID: #@p.ProductId</span>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary">@p.BrandName</span>
+                        </td>
+                        <td class="text-end text-muted">@p.ImportPrice.ToString("N0")đ</td>
+                        <td class="text-end fw-bold text-danger">@p.SellingPrice.ToString("N0")đ</td>
+                        <td class="text-center">
+                            <span class="fw-bold fs-6 @(p.Quantity > 5 ? "text-success" : (p.Quantity > 0 ? "text-warning" : "text-danger"))">
+                                @p.Quantity chiếc
+                            </span>
+                        </td>
+                        <td>
+                            @if (p.Quantity > 5)
+                            {
+                                <span class="badge bg-success-subtle text-success"><i class="bi bi-check-circle me-1"></i>Đủ hàng</span>
+                            }
+                            else if (p.Quantity > 0)
+                            {
+                                <span class="badge bg-warning-subtle text-warning"><i class="bi bi-exclamation-circle me-1"></i>Sắp hết hàng</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger-subtle text-danger"><i class="bi bi-x-circle me-1"></i>Hết hàng</span>
+                            }
+                        </td>
+                        <td class="text-center">
+                            <a asp-action="CreateImport" asp-route-productId="@p.ProductId" class="btn btn-sm btn-outline-danger shadow-sm fw-semibold" title="Lập phiếu nhập kho nhanh cho thiết bị này">
+                                <i class="bi bi-box-arrow-in-down me-1"></i>Nhập máy
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

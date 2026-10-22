@@ -1,0 +1,121 @@
+@model List<BTL_PTTKYC.Models.ProductSerialModel>
+@{
+    ViewData["Title"] = "Quản Lý IMEI & Serial Number";
+    Layout = "_AdminLayout";
+    var products = ViewBag.Products as List<BTL_PTTKYC.Models.ProductViewModel> ?? new();
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h4 class="fw-bold mb-1"><i class="bi bi-upc-scan text-danger me-2"></i>Quản Lý Mã Máy (IMEI & Serial Number)</h4>
+        <span class="text-muted small">Định danh từng thiết bị vật lý để kích hoạt bảo hành điện tử chính hãng</span>
+    </div>
+    <button type="button" class="btn btn-danger rounded-pill px-4 fw-bold" data-bs-toggle="modal" data-bs-target="#addSerialModal">
+        <i class="bi bi-plus-lg me-1"></i>Thêm Mã IMEI/Serial Mới
+    </button>
+</div>
+
+<!-- Serials Table -->
+<div class="bg-white rounded-3 border shadow-sm overflow-hidden">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th style="width: 70px;">ID</th>
+                    <th>Tên Sản Phẩm</th>
+                    <th>Số IMEI</th>
+                    <th>Số Serial</th>
+                    <th>Kho Chứa</th>
+                    <th>Tình Trạng Thiết Bị</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Count == 0)
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            Chưa có dữ liệu IMEI / Serial trong kho.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var s in Model)
+                    {
+                        <tr>
+                            <td class="text-muted fw-bold">#@s.SerialId</td>
+                            <td><strong class="text-dark">@s.ProductName</strong></td>
+                            <td><code>@(s.ImeiNumber ?? "N/A")</code></td>
+                            <td><code>@(s.SerialNumber ?? "N/A")</code></td>
+                            <td><span class="badge bg-light text-dark border">@s.WarehouseName</span></td>
+                            <td>
+                                @if (s.Status == "In Stock")
+                                {
+                                    <span class="badge bg-success-subtle text-success">Trong kho (In Stock)</span>
+                                }
+                                else if (s.Status == "Sold")
+                                {
+                                    <span class="badge bg-primary-subtle text-primary">Đã bán (Sold)</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-danger-subtle text-danger">@s.Status</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal Add Serial -->
+<div class="modal fade" id="addSerialModal" tabindex="-1" aria-labelledby="addSerialModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form asp-action="AddSerial" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="addSerialModalLabel">
+                        <i class="bi bi-upc-scan me-2 text-danger"></i>Ghi Nhận Mã Máy (IMEI / Serial)
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Sản phẩm <span class="text-danger">*</span></label>
+                        <select name="productId" class="form-select" required>
+                            @foreach (var p in products)
+                            {
+                                <option value="@p.ProductId">@p.ProductName (@p.BrandName)</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Mã IMEI (15 số)</label>
+                        <input type="text" name="imeiNumber" class="form-control" placeholder="Ví dụ: 356789123456789" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Serial Number</label>
+                        <input type="text" name="serialNumber" class="form-control" placeholder="Ví dụ: APL-IP15PM-005" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Kho lưu trữ</label>
+                        <select name="warehouseId" class="form-select">
+                            <option value="1">Kho chính TP.HCM (Main Warehouse)</option>
+                            <option value="2">Kho Hà Nội (North Warehouse)</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold">Lưu Mã Máy</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

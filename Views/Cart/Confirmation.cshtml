@@ -1,0 +1,270 @@
+@model BTL_PTTKYC.Models.OrderConfirmationViewModel
+@{
+    ViewData["Title"] = $"Đơn Hàng #{Model.Invoice.InvoiceId} | KittyPhone";
+    
+    decimal amountToPay = Model.Invoice.TotalAmount;
+    string paymentTitle = "Thanh toán 100%";
+    
+    if (Model.IsInstallment)
+    {
+        amountToPay = Model.PrepayAmount;
+        paymentTitle = $"Tiền trả trước {Model.PrepayPercent}% (Gói trả góp {Model.Months} tháng)";
+    }
+    else if (Model.Invoice.PaymentMethodSelected == "COD")
+    {
+        amountToPay = Model.DepositNeeded;
+        paymentTitle = "Tiền đặt cọc 50%";
+    }
+}
+
+<div class="container py-4">
+    <!-- Step Indicator -->
+    <div class="cps-cart-container mb-4">
+        <div class="cps-checkout-steps">
+            <div class="cps-step-item">
+                <span class="cps-step-num"><i class="bi bi-check"></i></span>
+                <span>Chọn sản phẩm</span>
+            </div>
+            <div class="cps-step-divider"></div>
+            <div class="cps-step-item">
+                <span class="cps-step-num"><i class="bi bi-check"></i></span>
+                <span>Thông tin đặt hàng</span>
+            </div>
+            <div class="cps-step-divider"></div>
+            <div class="cps-step-item active">
+                <span class="cps-step-num">3</span>
+                <span>Hoàn tất đặt hàng</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="cps-cart-container">
+        <!-- Main Confirmation Card -->
+        <div class="bg-white rounded-3 border p-4 p-md-5 text-center shadow-sm mb-4">
+            <div class="mb-3">
+                <div class="d-inline-flex p-3 rounded-circle" style="background: #dcfce7;">
+                    <i class="bi bi-check-circle-fill text-success" style="font-size: 3rem;"></i>
+                </div>
+            </div>
+
+            <h3 class="fw-bold mb-2 text-success">ĐẶT HÀNG THÀNH CÔNG!</h3>
+            <p class="text-muted mb-4">
+                Cảm ơn quý khách <strong>@Model.Invoice.CustomerName</strong> đã tin tưởng đặt mua sản phẩm tại hệ thống <strong class="text-primary">KittyPhone</strong>.<br />
+                Mã đơn hàng của bạn là: <strong class="fs-5 text-primary">#@Model.Invoice.InvoiceId</strong>
+            </p>
+
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show text-start my-3 rounded-3" role="alert">
+                    <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show text-start my-3 rounded-3" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            }
+
+            <!-- STATUS NOTICE BOXES -->
+            @if (Model.Invoice.Status == "Pending")
+            {
+                <div class="alert text-start d-flex align-items-center gap-3 my-4 p-3 rounded-3" style="background: #eff6ff; border: 1.5px solid #bfdbfe; color: #1e40af;">
+                    <i class="bi bi-clock-history fs-1 text-primary flex-shrink-0"></i>
+                    <div class="flex-grow-1">
+                        <strong class="text-dark fs-6 d-block mb-1">
+                            <i class="bi bi-hourglass-split text-primary me-1"></i>Trạng thái: Chờ Sale phê duyệt
+                        </strong>
+                        <span class="small text-secondary d-block mb-2">
+                            Đơn hàng <strong>#@Model.Invoice.InvoiceId</strong> đã được hệ thống ghi nhận thành công và chuyển tới nhân viên bán hàng (Sale) để phê duyệt và chuẩn bị hàng.
+                            Quý khách có thể chuyển khoản thanh toán hoặc cọc trước theo thông tin VietQR bên dưới để đơn hàng được xuất kho nhanh chóng.
+                        </span>
+                        @{
+                            bool hasCustomerConfirmed = !string.IsNullOrEmpty(Model.Invoice.OrderNotes) && Model.Invoice.OrderNotes.Contains("[Khách hàng đã bấm xác nhận");
+                        }
+                        @if (hasCustomerConfirmed)
+                        {
+                            <div class="mt-3 p-3 rounded-3 bg-white border border-primary-subtle shadow-sm text-start">
+                                <div class="d-flex align-items-center gap-2 text-primary fw-bold mb-1">
+                                    <i class="bi bi-hourglass-split fs-5"></i>
+                                    <span>Đã gửi thông báo chuyển khoản thành công</span>
+                                </div>
+                                <p class="small text-muted mb-0">
+                                    Hệ thống đã ghi nhận thông báo chuyển khoản của quý khách. Đơn hàng đang được nhân viên <strong>Sale / Admin</strong> đối soát với ngân hàng và chuẩn bị xuất kho. Quý khách vui lòng không cần thao tác lại.
+                                </p>
+                            </div>
+                        }
+                        else
+                        {
+                            <form asp-action="ConfirmDeposit" method="post" class="mt-2" onsubmit="const btn = this.querySelector('button'); btn.disabled = true; btn.innerHTML = '<span class=\'spinner-border spinner-border-sm me-1\'></span>Đang gửi xác nhận...';">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="invoiceId" value="@Model.Invoice.InvoiceId" />
+                                <button type="submit" class="btn btn-outline-primary btn-sm fw-bold px-3 py-1 rounded-pill shadow-sm">
+                                    <i class="bi bi-check2-circle me-1"></i>Tôi đã chuyển khoản xong
+                                </button>
+                            </form>
+                        }
+                    </div>
+                </div>
+            }
+            else if (Model.Invoice.Status == "Paid")
+            {
+                <div class="alert text-start d-flex align-items-center gap-3 my-4 p-3 rounded-3" style="background: #f0fdf4; border: 1.5px solid #bbf7d0; color: #166534;">
+                    <i class="bi bi-check-all fs-1 text-success flex-shrink-0"></i>
+                    <div>
+                        <strong class="text-dark fs-6 d-block mb-1">
+                            <i class="bi bi-check-circle-fill text-success me-1"></i>Trạng thái: Đã thanh toán hoàn tất 100% (Paid)
+                        </strong>
+                        <span class="small text-secondary">
+                            Đơn hàng đã được xác nhận thanh toán đủ. KittyPhone đang tiến hành đóng gói chống sốc và bàn giao đối tác giao vận siêu tốc.
+                        </span>
+                    </div>
+                </div>
+            }
+
+            <!-- Installment Details If Applicable -->
+            @if (Model.IsInstallment)
+            {
+                <div class="alert text-start mb-4 p-3 rounded-3" style="background: #faf5ff; border: 1px solid #e9d5ff;">
+                    <h6 class="fw-bold text-dark mb-2"><i class="bi bi-credit-card-2-front-fill text-primary me-2"></i>Chi Tiết Gói Trả Góp 0% Lãi Suất:</h6>
+                    <div class="row g-2 small">
+                        <div class="col-sm-6">
+                            <span class="text-muted">Mức trả trước:</span> <strong class="text-dark">@Model.PrepayPercent% (@Model.PrepayAmount.ToString("N0")đ)</strong>
+                        </div>
+                        <div class="col-sm-6">
+                            <span class="text-muted">Kỳ hạn trả góp:</span> <strong class="text-dark">@Model.Months Tháng</strong>
+                        </div>
+                        <div class="col-sm-6">
+                            <span class="text-muted">Góp mỗi tháng:</span> <strong class="text-primary">@Model.MonthlyAmount.ToString("N0")đ / tháng</strong>
+                        </div>
+                        <div class="col-sm-6">
+                            <span class="text-muted">Lãi suất áp dụng:</span> <strong class="text-success">0% Lãi Suất</strong>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- VietQR & Transfer Box -->
+            <div class="p-4 rounded-3 text-start mb-4" style="background: #fafafa; border: 1px solid var(--border-color);">
+                <h6 class="fw-bold pb-2 mb-3 border-bottom text-dark">
+                    <i class="bi bi-qr-code-scan me-2 text-primary"></i>THÔNG TIN THANH TOÁN CHUYỂN KHOẢN (VIETQR)
+                </h6>
+
+                <div class="row g-4 align-items-center">
+                    <div class="col-md-5 text-center">
+                        <div class="bg-white p-3 rounded-3 shadow-sm d-inline-block border">
+                            <img src="@Model.QrCodeUrl" alt="Mã QR Chuyển Khoản KittyPhone" class="img-fluid rounded" style="max-width: 210px; height: auto;" />
+                        </div>
+                        <div class="small text-muted mt-2 fw-semibold"><i class="bi bi-camera-fill text-primary me-1"></i>Quét bằng ZaloPay hoặc App Ngân Hàng</div>
+                    </div>
+
+                    <div class="col-md-7">
+                        <table class="table table-borderless table-sm mb-0">
+                            <tr>
+                                <td class="text-muted" style="width: 140px;">Ngân hàng:</td>
+                                <td class="fw-bold text-dark">ZaloPay / VietQR</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Số tài khoản:</td>
+                                <td>
+                                    <span class="fw-bold fs-5 text-primary font-monospace">0396166509</span>
+                                    <button type="button" class="btn btn-sm btn-outline-primary ms-2 py-0 px-2" onclick="copyText('0396166509')">Sao chép</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Chủ tài khoản:</td>
+                                <td class="fw-bold text-dark">DUONG NGOC ANH</td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Số tiền thanh toán:</td>
+                                <td>
+                                    <span class="fw-bold fs-4 text-primary">@amountToPay.ToString("N0")đ</span>
+                                    <span class="small text-muted ms-1">(@paymentTitle)</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="text-muted">Nội dung chuyển khoản:</td>
+                                <td>
+                                    <span class="badge fs-6 px-3 py-2 text-white font-monospace" style="background: linear-gradient(135deg, #0e2254, #0284c7);">@Model.TransferSyntax</span>
+                                    <button type="button" class="btn btn-sm btn-outline-primary ms-2 py-0 px-2" onclick="copyText('@Model.TransferSyntax')">Sao chép</button>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Items Table -->
+            <div class="text-start mb-4">
+                <h6 class="fw-bold mb-3 border-bottom pb-2 text-dark">Chi Tiết Sản Phẩm Đã Đặt</h6>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Sản phẩm</th>
+                                <th class="text-center">Số lượng</th>
+                                <th class="text-end">Đơn giá</th>
+                                <th class="text-end">Thành tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.Invoice.Details)
+                            {
+                                <tr>
+                                    <td>
+                                        <div class="fw-semibold text-dark">@item.ProductName</div>
+                                    </td>
+                                    <td class="text-center">@item.Quantity</td>
+                                    <td class="text-end">@item.UnitPrice.ToString("N0")đ</td>
+                                    <td class="text-end fw-bold text-primary">@item.LineTotal.ToString("N0")đ</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot>
+                            @if (Model.Invoice.DiscountAmount > 0)
+                            {
+                                <tr>
+                                    <td colspan="3" class="text-end text-muted">Tổng tiền hàng (Tạm tính):</td>
+                                    <td class="text-end text-dark">@Model.Invoice.SubTotal.ToString("N0")đ</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3" class="text-end text-danger">
+                                        <i class="bi bi-gift-fill me-1"></i>Khuyến mãi áp dụng @(!string.IsNullOrEmpty(Model.Invoice.PromotionName) ? $"({Model.Invoice.PromotionName})" : ""):
+                                    </td>
+                                    <td class="text-end text-danger fw-bold">-@Model.Invoice.DiscountAmount.ToString("N0")đ</td>
+                                </tr>
+                            }
+                            <tr>
+                                <td colspan="3" class="text-end fw-bold">Tổng thanh toán:</td>
+                                <td class="text-end fw-bold fs-5 text-primary">@Model.Invoice.TotalAmount.ToString("N0")đ</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary rounded-pill px-4">
+                    <i class="bi bi-house me-1"></i>Tiếp tục mua hàng
+                </a>
+                <a href="tel:0396166509" class="btn text-white rounded-pill px-4 fw-bold shadow-sm" style="background: linear-gradient(135deg, #0e2254, #0284c7);">
+                    <i class="bi bi-telephone-fill me-1"></i>Hotline hỗ trợ: 0396166509
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    function copyText(txt) {
+        navigator.clipboard.writeText(txt).then(function() {
+            alert('Đã sao chép vào bộ nhớ tạm: ' + txt);
+        });
+    }
+</script>
+}

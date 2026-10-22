@@ -1,0 +1,78 @@
+@model List<BTL_PTTKYC.Models.ImportReceiptModel>
+@{
+    ViewData["Title"] = "Quản Lý Nhập Kho (Warehouse)";
+    Layout = "_AdminLayout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h4 class="fw-bold mb-1"><i class="bi bi-box-arrow-in-down text-warning text-dark me-2"></i>Danh Sách Phiếu Nhập Kho</h4>
+        <span class="text-muted small">Nghiệp vụ nhập hàng từ nhà phân phối, tự động cập nhật số lượng tồn kho và lịch sử kho</span>
+    </div>
+    <a asp-action="CreateImport" class="btn btn-danger rounded-pill px-4 fw-bold">
+        <i class="bi bi-plus-circle me-1"></i>Lập Phiếu Nhập Kho Mới
+    </a>
+</div>
+
+<!-- Import Receipts Table -->
+<div class="bg-white rounded-3 border shadow-sm overflow-hidden">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th style="width: 100px;">Mã Phiếu</th>
+                    <th>Ngày Nhập</th>
+                    <th>Nhà Cung Cấp</th>
+                    <th>Nhân Viên Nhập Kho</th>
+                    <th class="text-end">Tổng Giá Trị Nhập</th>
+                    <th class="text-center" style="width: 140px;">Thao Tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Count == 0)
+                {
+                    <tr>
+                        <td colspan="6" class="text-center py-5 text-muted">
+                            <i class="bi bi-inbox display-6 d-block mb-2"></i>
+                            Chưa có phiếu nhập kho nào.
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var r in Model)
+                    {
+                        <tr>
+                            <td>
+                                <strong class="text-danger fs-6">#NK-@r.ImportId</strong>
+                            </td>
+                            <td>
+                                <div class="fw-semibold text-dark">@r.ImportDate.ToString("dd/MM/yyyy")</div>
+                            </td>
+                            <td>
+                                <div class="fw-bold text-dark">@r.SupplierName</div>
+                                @if (!string.IsNullOrEmpty(r.SupplierPhone))
+                                {
+                                    <div class="small text-muted"><i class="bi bi-telephone me-1"></i>@r.SupplierPhone</div>
+                                }
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary-subtle text-secondary px-2 py-1">
+                                    <i class="bi bi-person me-1"></i>@r.EmployeeName
+                                </span>
+                            </td>
+                            <td class="text-end fw-bold text-danger fs-6">
+                                @r.TotalAmount.ToString("N0")đ
+                            </td>
+                            <td class="text-center">
+                                <a asp-action="ImportDetail" asp-route-id="@r.ImportId" class="btn btn-sm btn-outline-danger px-3">
+                                    <i class="bi bi-eye me-1"></i>Xem chi tiết
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

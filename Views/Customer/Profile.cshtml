@@ -1,0 +1,259 @@
+@model BTL_PTTKYC.Models.CustomerProfileViewModel
+@{
+    ViewData["Title"] = "Tài Khoản KittyMember | KittyPhone";
+}
+
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-secondary"><i class="bi bi-house-door me-1"></i>Trang chủ</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Tài khoản KittyMember</li>
+        </ol>
+    </nav>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show rounded-3 mb-4 shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-2 fs-5"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="row g-4">
+        <!-- Cột trái: Thẻ Thành Viên & Thông Tin Cá Nhân -->
+        <div class="col-lg-4">
+            <!-- Digital Membership Card -->
+            <div class="membership-card-wrap mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <span class="badge bg-white text-primary rounded-pill px-3 py-1 fw-bold text-uppercase" style="font-size: 0.75rem;">
+                        <i class="bi bi-gem me-1 text-warning"></i>Hạng @Model.Customer.RankName
+                    </span>
+                    <span class="small text-white-50 font-monospace">ID #@Model.Customer.CustomerId</span>
+                </div>
+                <div class="mb-3">
+                    <div class="text-white-50 small">Chủ tài khoản KittyMember</div>
+                    <h5 class="fw-bold mb-0 text-white">@Model.Customer.CustomerName</h5>
+                </div>
+                <div class="d-flex justify-content-between align-items-end pt-2 border-top border-white-50">
+                    <div>
+                        <span class="text-white-50 small d-block">Tổng chi tiêu</span>
+                        <strong class="fs-5 text-warning">@Model.Customer.TotalSpent.ToString("N0") đ</strong>
+                    </div>
+                    <div class="text-end">
+                        <span class="text-white-50 small d-block">Thành viên từ</span>
+                        <span class="small text-white">@Model.Customer.CreatedAt.ToString("MM/yyyy")</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Box Thông Tin Liên Lạc Đã Xác Thực -->
+            <div class="bg-white rounded-3 border p-4 shadow-sm mb-4">
+                <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                    <i class="bi bi-shield-check text-success fs-5"></i>
+                    <span>Bảo Mật & Xác Thực</span>
+                </h6>
+                <div class="mb-3 pb-3 border-bottom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted small">Số điện thoại:</span>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">
+                            <i class="bi bi-check-circle-fill me-1"></i>Đã xác thực
+                        </span>
+                    </div>
+                    <strong class="text-dark d-block mt-1">@Model.Customer.Phone</strong>
+                </div>
+
+                <div class="mb-3 pb-3 border-bottom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-muted small">Địa chỉ Email:</span>
+                        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill">
+                            <i class="bi bi-check-circle-fill me-1"></i>Đã xác thực
+                        </span>
+                    </div>
+                    <strong class="text-dark d-block mt-1">@Model.Customer.Email</strong>
+                </div>
+
+                @if (!string.IsNullOrEmpty(Model.Customer.Address))
+                {
+                    <div class="mb-3">
+                        <span class="text-muted small d-block">Địa chỉ nhận hàng:</span>
+                        <strong class="text-dark small d-block mt-1">@Model.Customer.Address</strong>
+                    </div>
+                }
+
+                <form asp-action="Logout" method="post" class="mt-4">
+                    <button type="submit" class="btn btn-outline-danger w-100 rounded-pill btn-sm fw-bold">
+                        <i class="bi bi-box-arrow-right me-1"></i>Đăng Xuất Tài Khoản
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Cột phải: Tabs Quản Lý -->
+        <div class="col-lg-8">
+            <div class="bg-white rounded-3 border shadow-sm p-4">
+                <ul class="nav nav-pills mb-4 gap-2" id="profileTab" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active rounded-pill fw-bold" id="purchased-tab" data-bs-toggle="tab" data-bs-target="#purchased-pane" type="button" role="tab">
+                            <i class="bi bi-box-seam me-1"></i>Sản Phẩm Đã Mua (@Model.PurchasedProducts.Count)
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link rounded-pill fw-bold" id="orders-tab" data-bs-toggle="tab" data-bs-target="#orders-pane" type="button" role="tab">
+                            <i class="bi bi-receipt me-1"></i>Lịch Sử Đơn Hàng (@Model.Orders.Count)
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content" id="profileTabContent">
+                    <!-- Tab 1: Mặt Hàng Đã Mua -->
+                    <div class="tab-pane fade show active" id="purchased-pane" role="tabpanel">
+                        @if (Model.PurchasedProducts.Count == 0)
+                        {
+                            <div class="text-center py-5 text-muted">
+                                <i class="bi bi-cart-x display-5 d-block mb-3 text-secondary"></i>
+                                <h6 class="fw-bold text-dark">Bạn chưa mua sản phẩm nào</h6>
+                                <p class="small text-muted mb-3">Hãy đặt mua sản phẩm tại KittyPhone để trải nghiệm và gửi đánh giá nhé!</p>
+                                <a asp-controller="Home" asp-action="Index" class="btn btn-primary rounded-pill btn-sm px-4 fw-bold" style="background: linear-gradient(135deg, #0e2254, #0284c7); border: none;">
+                                    <i class="bi bi-phone me-1"></i>Khám phá sản phẩm
+                                </a>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="alert alert-light border py-2 px-3 rounded-3 small mb-3 d-flex align-items-center gap-2">
+                                <i class="bi bi-shield-check fs-5 text-primary"></i>
+                                <span>
+                                    <strong>Chính sách minh bạch:</strong> Bạn chỉ có thể đánh giá những sản phẩm mà bạn đã từng mua thực tế dưới đây.
+                                </span>
+                            </div>
+
+                            <div class="d-flex flex-column gap-3">
+                                @foreach (var item in Model.PurchasedProducts)
+                                {
+                                    <div class="p-3 rounded-3 border d-flex flex-wrap align-items-center justify-content-between gap-3" style="background: #fafafa;">
+                                        <div class="d-flex align-items-center gap-3">
+                                            <img src="@(string.IsNullOrEmpty(item.ImageUrl) ? "/images/placeholder-phone.svg" : item.ImageUrl)" 
+                                                 alt="@item.ProductName" 
+                                                 class="rounded bg-white border p-1 object-fit-contain" 
+                                                 style="width: 65px; height: 65px;" 
+                                                 onerror="this.onerror=null;this.src='/images/placeholder-phone.svg';" />
+                                            <div>
+                                                <h6 class="fw-bold mb-1 text-dark">@item.ProductName</h6>
+                                                <div class="small text-muted mb-1">
+                                                    Đơn hàng #@item.InvoiceId • Ngày mua: @item.OrderDate.ToString("dd/MM/yyyy")
+                                                </div>
+                                                <span class="text-primary fw-bold small">@item.Price.ToString("N0") đ</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="text-end">
+                                            @if (item.HasReviewed)
+                                            {
+                                                <div class="mb-1">
+                                                    <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-3 py-1 fw-bold">
+                                                        <i class="bi bi-check-circle-fill me-1"></i>Đã Đánh Giá (@item.Rating sao)
+                                                    </span>
+                                                </div>
+                                                @if (!string.IsNullOrEmpty(item.Comment))
+                                                {
+                                                    <div class="text-muted small fst-italic text-truncate" style="max-width: 260px;">
+                                                        "@item.Comment"
+                                                    </div>
+                                                }
+                                                <a asp-controller="Home" asp-action="Detail" asp-route-id="@item.ProductId" class="btn btn-link btn-sm text-primary text-decoration-none p-0 mt-1 small">
+                                                    Xem chi tiết sản phẩm <i class="bi bi-arrow-right"></i>
+                                                </a>
+                                            }
+                                            else
+                                            {
+                                                <a asp-controller="Home" asp-action="Detail" asp-route-id="@item.ProductId" class="btn btn-primary rounded-pill btn-sm px-4 fw-bold shadow-sm" style="background: linear-gradient(135deg, #0e2254, #0284c7); border: none;">
+                                                    <i class="bi bi-star-fill text-warning me-1"></i>Viết Đánh Giá Ngay
+                                                </a>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Tab 2: Lịch Sử Đơn Hàng -->
+                    <div class="tab-pane fade" id="orders-pane" role="tabpanel">
+                        @if (Model.Orders.Count == 0)
+                        {
+                            <div class="text-center py-5 text-muted">
+                                <i class="bi bi-receipt-cutoff display-5 d-block mb-3 text-secondary"></i>
+                                <h6 class="fw-bold text-dark">Chưa có đơn hàng nào</h6>
+                                <p class="small text-muted mb-3">Tất cả đơn hàng bạn đặt tại KittyPhone sẽ hiển thị chi tiết tại đây.</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Mã Đơn</th>
+                                            <th>Ngày Đặt</th>
+                                            <th>Tổng Tiền</th>
+                                            <th>Hình Thức</th>
+                                            <th>Trạng Thái</th>
+                                            <th class="text-center">Chi Tiết</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var order in Model.Orders)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    <strong class="text-primary font-monospace">#@order.InvoiceId</strong>
+                                                </td>
+                                                <td>@order.InvoiceDate.ToString("dd/MM/yyyy")</td>
+                                                <td>
+                                                    <strong class="text-primary">@order.TotalAmount.ToString("N0") đ</strong>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-light text-dark border">
+                                                        @(order.PaymentMethodSelected ?? "COD")
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    @if (order.Status == "Paid")
+                                                    {
+                                                        <span class="badge bg-success rounded-pill px-2 py-1"><i class="bi bi-check-all me-1"></i>Đã thanh toán đủ</span>
+                                                    }
+                                                    else if (order.Status == "Pending")
+                                                    {
+                                                        <span class="badge bg-warning text-dark rounded-pill px-2 py-1"><i class="bi bi-clock-history me-1"></i>Chờ Sale phê duyệt</span>
+                                                    }
+                                                    else if (order.Status == "CancelRequested")
+                                                    {
+                                                        <span class="badge bg-warning text-dark rounded-pill px-2 py-1"><i class="bi bi-clock me-1"></i>Chờ duyệt hủy</span>
+                                                    }
+                                                    else if (order.Status == "Cancelled")
+                                                    {
+                                                        <span class="badge bg-secondary rounded-pill px-2 py-1">Đã hủy đơn</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <span class="badge bg-info text-dark rounded-pill px-2 py-1">@order.Status</span>
+                                                    }
+                                                </td>
+                                                <td class="text-center">
+                                                    <a asp-controller="Cart" asp-action="Confirmation" asp-route-id="@order.InvoiceId" class="btn btn-outline-primary btn-sm rounded-pill px-3">
+                                                        Xem đơn
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

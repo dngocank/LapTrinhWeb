@@ -1,0 +1,118 @@
+@model List<BTL_PTTKYC.Models.ProductViewModel>
+@{
+    ViewData["Title"] = "Nội Dung Bán Hàng & Sản Phẩm";
+    Layout = "_AdminLayout";
+    var uniqueBrands = Model.Select(p => p.BrandName).Where(b => !string.IsNullOrEmpty(b)).Distinct().OrderBy(b => b).ToList();
+    var uniqueCategories = Model.Select(p => p.CategoryName).Where(c => !string.IsNullOrEmpty(c)).Distinct().OrderBy(c => c).ToList();
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h4 class="fw-bold mb-1"><i class="bi bi-tag-fill text-primary me-2"></i>Nội Dung Bán Hàng & Danh Sách Sản Phẩm</h4>
+        <span class="text-muted small">Cập nhật hình ảnh, giá bán, mô tả tiếp thị hiển thị trên trang chủ KittyPhone</span>
+    </div>
+    @if (User.IsInRole("Admin"))
+    {
+        <a asp-controller="Admin" asp-action="CreateProduct" class="btn btn-primary rounded-pill px-3">
+            <i class="bi bi-plus-lg me-1"></i>Thêm Sản Phẩm Mới
+        </a>
+    }
+</div>
+
+<!-- Filters bar -->
+<div class="bg-white p-3 rounded-3 border mb-4 shadow-sm">
+    <div class="row g-2 align-items-center">
+        <div class="col-md-5">
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" id="productSearchBox" class="form-control border-start-0" placeholder="Tìm theo tên sản phẩm, thông số..." />
+            </div>
+        </div>
+        <div class="col-md-3">
+            <select id="filterBrand" class="form-select form-select-sm" data-filter-col="2">
+                <option value="all">-- Tất cả Thương hiệu --</option>
+                @foreach (var b in uniqueBrands)
+                {
+                    <option value="@b">@b</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-4">
+            <select id="filterCategory" class="form-select form-select-sm" data-filter-col="2">
+                <option value="all">-- Tất cả Danh mục --</option>
+                @foreach (var c in uniqueCategories)
+                {
+                    <option value="@c">@c</option>
+                }
+            </select>
+        </div>
+    </div>
+</div>
+
+<div class="bg-white rounded-3 border shadow-sm overflow-hidden admin-table-wrapper">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 admin-datatable" data-page-size="10" data-search-input="#productSearchBox" data-filter-selects="#filterBrand, #filterCategory">
+            <thead class="table-light">
+                <tr>
+                    <th style="width: 80px;">Hình Ảnh</th>
+                    <th>Tên Sản Phẩm</th>
+                    <th>Hãng & Danh Mục</th>
+                    <th class="text-end">Giá Nhập</th>
+                    <th class="text-end">Giá Bán</th>
+                    <th class="text-center">Tồn Kho</th>
+                    <th>Trạng Thái</th>
+                    <th class="text-center" style="width: 140px;">Thao Tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in Model)
+                {
+                    <tr class="@(!p.IsActive ? "table-light opacity-75" : "")">
+                        <td>
+                            <img src="@(string.IsNullOrEmpty(p.ImageUrl) ? "/images/placeholder-phone.svg" : p.ImageUrl)" 
+                                 style="width: 50px; height: 50px; object-fit: contain;" 
+                                 class="border rounded p-1 bg-white" 
+                                 onerror="this.onerror=null;this.src='/images/placeholder-phone.svg';" />
+                        </td>
+                        <td>
+                            <div class="fw-bold text-dark">@p.ProductName</div>
+                            <div class="small text-muted" style="max-width: 320px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                @p.Description
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary me-1">@p.BrandName</span>
+                            <span class="badge bg-light text-dark border">@p.CategoryName</span>
+                        </td>
+                        <td class="text-end text-muted">
+                            @p.ImportPrice.ToString("N0")đ
+                        </td>
+                        <td class="text-end fw-bold text-danger fs-6">
+                            @p.SellingPrice.ToString("N0")đ
+                        </td>
+                        <td class="text-center">
+                            <span class="badge @(p.Quantity > 5 ? "bg-success" : (p.Quantity > 0 ? "bg-warning text-dark" : "bg-danger"))">
+                                @p.Quantity chiếc
+                            </span>
+                        </td>
+                        <td>
+                            @if (p.IsActive)
+                            {
+                                <span class="badge bg-success-subtle text-success">Đang kinh doanh</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger-subtle text-danger">Ngừng kinh doanh</span>
+                            }
+                        </td>
+                        <td class="text-center">
+                            <a asp-action="EditProduct" asp-route-id="@p.ProductId" class="btn btn-sm btn-outline-danger">
+                                <i class="bi bi-pencil-square me-1"></i>Sửa nội dung
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

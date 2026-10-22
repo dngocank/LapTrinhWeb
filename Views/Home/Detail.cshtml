@@ -1,0 +1,524 @@
+@model BTL_PTTKYC.Models.ProductViewModel
+@{
+    ViewData["Title"] = $"{Model.ProductName} - Chính Hãng Giá Tốt Nhất";
+    var reviews = ViewBag.Reviews as List<BTL_PTTKYC.Models.ReviewModel> ?? new();
+    var related = ViewBag.RelatedProducts as List<BTL_PTTKYC.Models.ProductViewModel> ?? new();
+}
+
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index"><i class="bi bi-house-door me-1"></i>Trang chủ</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" asp-route-brandId="@Model.BrandId">@Model.BrandName</a></li>
+            <li class="breadcrumb-item active" aria-current="page">@Model.ProductName</li>
+        </ol>
+    </nav>
+
+    <!-- Main Detail Row -->
+    <div class="row g-4">
+        <!-- Left: Image Gallery -->
+        <div class="col-lg-5">
+            <div class="detail-gallery-main mb-3">
+                <img src="@(string.IsNullOrEmpty(Model.ImageUrl) ? "/images/placeholder-phone.svg" : Model.ImageUrl)" 
+                     alt="@Model.ProductName" 
+                     id="mainProductImg" 
+                     onerror="this.onerror=null;this.src='/images/placeholder-phone.svg';" />
+            </div>
+            <div class="d-flex gap-2">
+                <div class="border rounded p-1" style="width: 70px; height: 70px; cursor: pointer;">
+                    <img src="@(string.IsNullOrEmpty(Model.ImageUrl) ? "/images/placeholder-phone.svg" : Model.ImageUrl)" 
+                         class="w-100 h-100 object-fit-contain" 
+                         onerror="this.onerror=null;this.src='/images/placeholder-phone.svg';" />
+                </div>
+            </div>
+            
+            <div class="mt-4 p-3 bg-white rounded border">
+                <div class="d-flex align-items-center gap-3 mb-2">
+                    <i class="bi bi-shield-check text-danger fs-3"></i>
+                    <div>
+                        <strong class="d-block text-dark">Chính Sách Bảo Hành Chính Hãng</strong>
+                        <span class="small text-muted">Bảo hành 12 tháng tại các trung tâm uỷ quyền toàn quốc. 1 đổi 1 trong 30 ngày nếu có lỗi phần cứng từ nhà sản xuất.</span>
+                    </div>
+                </div>
+                <hr class="my-2" />
+                <div class="d-flex align-items-center gap-3">
+                    <i class="bi bi-truck text-danger fs-3"></i>
+                    <div>
+                        <strong class="d-block text-dark">Giao Hàng Siêu Tốc 1 Giờ</strong>
+                        <span class="small text-muted">Miễn phí giao hàng nội thành cho đơn hàng từ 5.000.000đ. Đặt online hỗ trợ cọc 50% hoặc thanh toán chuyển khoản.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Information & Actions -->
+        <div class="col-lg-7">
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge bg-secondary">@Model.BrandName</span>
+                <span class="badge bg-light text-dark border">@Model.CategoryName</span>
+                <span class="badge @(Model.Quantity > 5 ? "bg-success" : (Model.Quantity > 0 ? "bg-warning text-dark" : "bg-danger"))">
+                    @(Model.Quantity > 5 ? "Còn hàng" : (Model.Quantity > 0 ? $"Sắp hết (còn {Model.Quantity} chiếc)" : "Hết hàng"))
+                </span>
+            </div>
+
+            <h1 class="fw-bold fs-3 text-dark mb-2">@Model.ProductName</h1>
+
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <div class="text-warning">
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                </div>
+                <span class="fw-bold text-dark">@Model.AverageRating.ToString("F1")</span>
+                <span class="text-muted small">|</span>
+                <a href="#reviewsSection" class="text-muted small">@reviews.Count đánh giá của khách hàng</a>
+            </div>
+
+            <!-- Price box -->
+            <div class="p-3 bg-light rounded-3 mb-3 border">
+                <div class="d-flex align-items-baseline gap-3 mb-1">
+                    <span class="fs-2 fw-bold text-danger">@Model.SellingPrice.ToString("N0")đ</span>
+                    @if (Model.OriginalPrice > Model.SellingPrice)
+                    {
+                        <span class="text-muted text-decoration-line-through fs-5">@Model.OriginalPrice.ToString("N0")đ</span>
+                        <span class="badge bg-danger">-@Model.DiscountPercent%</span>
+                    }
+                </div>
+                <div class="small text-muted">
+                    <i class="bi bi-credit-card me-1"></i>Trả góp chỉ từ: <strong>@((Model.SellingPrice / 12).ToString("N0"))đ / tháng</strong> (qua thẻ tín dụng)
+                </div>
+            </div>
+
+            <!-- Promo Perks Box -->
+            <div class="detail-promo-box">
+                <div class="detail-promo-title">
+                    <i class="bi bi-gift-fill"></i>
+                    <span>KHUYẾN MÃI & VOUCHER KHẢ DỤNG TỪ HỆ THỐNG</span>
+                </div>
+                <ul class="list-unstyled mb-0 small">
+                    @if (ViewBag.Promotions is List<BTL_PTTKYC.Models.PromotionModel> promoList && promoList.Count > 0)
+                    {
+                        foreach (var promo in promoList)
+                        {
+                            <li class="mb-2 d-flex align-items-start gap-2">
+                                <span class="badge bg-danger text-white rounded-pill mt-1" style="font-size: 10px;">-@promo.DiscountPercent.ToString("0.#")%</span>
+                                <div>
+                                    <div class="d-flex align-items-center gap-1 flex-wrap">
+                                        <strong class="text-dark">@promo.PromotionName</strong>
+                                        @if (promo.StartHour.HasValue && promo.EndHour.HasValue)
+                                        {
+                                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle" style="font-size: 10px;">
+                                                <i class="bi bi-clock me-1"></i>@(promo.StartHour):00 - @(promo.EndHour):00
+                                            </span>
+                                        }
+                                        else if (promo.MinRankId.HasValue && promo.MinRankId > 1)
+                                        {
+                                            <span class="badge bg-warning-subtle text-dark border border-warning-subtle" style="font-size: 10px;">
+                                                <i class="bi bi-award-fill text-warning me-1"></i>Hội viên Bạc/Vàng+
+                                            </span>
+                                        }
+                                        else if (promo.StartDate.Date == promo.EndDate.Date)
+                                        {
+                                            <span class="badge bg-info-subtle text-primary border border-info-subtle" style="font-size: 10px;">
+                                                <i class="bi bi-calendar-event me-1"></i>Duy nhất 20/10
+                                            </span>
+                                        }
+                                    </div>
+                                    <span class="text-secondary small d-block">@promo.Description</span>
+                                </div>
+                            </li>
+                        }
+                    }
+                    <li class="mt-2 pt-2 border-top"><i class="bi bi-check-circle-fill text-primary me-2"></i>Hỗ trợ mua hàng online: Đặt cọc tối thiểu 50%, nhận hàng thanh toán phần còn lại</li>
+                    <li><i class="bi bi-shield-check text-success me-2"></i>Bảo hành 12 tháng chính hãng VN/A - 1 đổi 1 trong 30 ngày</li>
+                </ul>
+            </div>
+
+            <!-- Action buttons -->
+            @if (Model.Quantity > 0)
+            {
+                <div class="d-grid gap-2 mb-2">
+                    <a asp-controller="Cart" asp-action="Checkout" asp-route-productId="@Model.ProductId" class="btn btn-primary btn-lg fw-bold py-3 shadow-sm rounded-3">
+                        <div class="fs-5">MUA NGAY</div>
+                        <div class="small fw-normal text-white-50" style="font-size: 0.8rem;">Giao hàng tận nơi hoặc nhận tại cửa hàng KittyPhone</div>
+                    </a>
+                </div>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-6">
+                        <a asp-controller="Cart" asp-action="Checkout" asp-route-productId="@Model.ProductId" class="btn btn-outline-danger w-100 py-2 rounded-3 text-center text-decoration-none">
+                            <div class="fw-bold" style="font-size: 0.95rem;">TRẢ GÓP 0%</div>
+                            <div class="small text-muted" style="font-size: 0.72rem;">Duyệt nhanh qua điện thoại</div>
+                        </a>
+                    </div>
+                    <div class="col-6">
+                        <a asp-controller="Cart" asp-action="Checkout" asp-route-productId="@Model.ProductId" class="btn btn-outline-danger w-100 py-2 rounded-3 text-center text-decoration-none">
+                            <div class="fw-bold" style="font-size: 0.95rem;">TRẢ QUA THẺ</div>
+                            <div class="small text-muted" style="font-size: 0.72rem;">Visa, Mastercard, JCB</div>
+                        </a>
+                    </div>
+                </div>
+
+                <div class="row g-2 mb-2">
+                    <div class="col-6">
+                        <button type="button" class="btn btn-outline-dark w-100 py-2 fw-semibold rounded-3" onclick="addToCart(@Model.ProductId)">
+                            <i class="bi bi-cart-plus me-1 text-danger"></i>Thêm vào giỏ
+                        </button>
+                    </div>
+                    <div class="col-6">
+                        <a href="tel:0396166509" class="btn btn-outline-secondary w-100 py-2 fw-semibold rounded-3">
+                            <i class="bi bi-telephone-inbound me-1"></i>Gọi 0396166509
+                        </a>
+                    </div>
+                </div>
+
+                <button type="button" 
+                        class="btn btn-outline-primary mb-4 w-100 py-2 rounded-3 fw-bold shadow-sm d-flex align-items-center justify-content-center gap-2" 
+                        onclick="window.kittyOpenChat('Tư vấn giúp mình xem chiếc @Model.ProductName này có ưu/nhược điểm gì, chơi game tốt không và cửa hàng hiện còn bao nhiêu máy trong kho?')">
+                    ⚡ Hỏi KittyBot về máy này
+                </button>
+            }
+            else
+            {
+                <div class="alert alert-warning text-center fw-bold py-3 mb-4 rounded-3">
+                    <i class="bi bi-exclamation-circle me-1"></i>Sản phẩm tạm thời hết hàng trong kho. Vui lòng quay lại sau hoặc liên hệ Hotline để đặt trước!
+                </div>
+            }
+
+            <!-- Product Overview -->
+            <div class="bg-white p-3 rounded-3 border">
+                <h5 class="fw-bold mb-3"><i class="bi bi-info-circle me-2 text-danger"></i>Đặc điểm nổi bật & Giới thiệu</h5>
+                <p class="text-secondary leading-relaxed mb-0" style="white-space: pre-line;">
+                    @Model.OverviewDescription
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Customer Reviews Section (Chống spam: Chỉ khách hàng đã mua sản phẩm mới được đánh giá) -->
+    <div class="review-section-wrap" id="reviewsSection">
+        <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
+            <div>
+                <h3 class="review-section-title">
+                    <i class="bi bi-chat-heart text-danger me-2"></i>Đánh Giá & Nhận Xét Của Khách Hàng
+                </h3>
+                <span class="review-section-subtitle">
+                    Phản hồi chân thực từ những khách hàng đã trực tiếp mua và sử dụng sản phẩm tại KittyPhone
+                </span>
+            </div>
+
+            @{
+                bool isCustomer = ViewBag.IsCustomerLoggedIn == true;
+                bool canReview = ViewBag.CanReview == true;
+                string custName = ViewBag.CustomerName as string ?? "";
+                string custPhone = ViewBag.CustomerPhone as string ?? "";
+            }
+
+            @if (canReview)
+            {
+                <button type="button" class="btn btn-primary rounded-pill px-4 py-2 fw-bold shadow-sm" data-bs-toggle="modal" data-bs-target="#writeReviewModal">
+                    <i class="bi bi-pencil-square me-1"></i>Viết đánh giá của bạn
+                </button>
+            }
+        </div>
+
+        @if (TempData["ReviewSuccess"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4" role="alert">
+                <i class="bi bi-check-circle-fill me-2 fs-5"></i>@TempData["ReviewSuccess"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+        @if (TempData["ReviewError"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>@TempData["ReviewError"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <!-- Anti-Spam Gatekeeper Banner -->
+        @if (!isCustomer)
+        {
+            <div class="review-gate-card gate-unauth d-flex flex-wrap align-items-center justify-content-between gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center p-3" style="width: 50px; height: 50px;">
+                        <i class="bi bi-shield-lock fs-4"></i>
+                    </div>
+                    <div>
+                        <strong class="d-block text-dark fs-6">Chính Sách Chống Spam Đánh Giá</strong>
+                        <span class="text-secondary small">
+                            Để bảo đảm tính khách quan và uy tín, chỉ khách hàng đã mua sản phẩm này và hoàn tất xác thực SĐT/Gmail mới có thể viết đánh giá.
+                        </span>
+                    </div>
+                </div>
+                <div class="d-flex gap-2">
+                    <a asp-controller="Customer" asp-action="Login" asp-route-returnUrl="@Context.Request.Path" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold">
+                        <i class="bi bi-box-arrow-in-right me-1"></i>Đăng nhập
+                    </a>
+                    <a asp-controller="Customer" asp-action="Register" asp-route-returnUrl="@Context.Request.Path" class="btn btn-primary btn-sm rounded-pill px-3 fw-bold">
+                        <i class="bi bi-person-plus me-1"></i>Đăng ký tài khoản
+                    </a>
+                </div>
+            </div>
+        }
+        else if (!canReview)
+        {
+            <div class="review-gate-card gate-not-purchased d-flex flex-wrap align-items-center justify-content-between gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-warning-subtle text-warning-emphasis rounded-circle d-flex align-items-center justify-content-center p-3" style="width: 50px; height: 50px;">
+                        <i class="bi bi-shield-exclamation fs-4"></i>
+                    </div>
+                    <div>
+                        <strong class="d-block text-dark fs-6">Chỉ Dành Cho Khách Hàng Đã Mua Mặt Hàng Này</strong>
+                        <span class="text-secondary small">
+                            Tài khoản <strong>@custName</strong> (@custPhone) chưa có đơn hàng cho <strong>@Model.ProductName</strong>. Hãy mua sản phẩm để trải nghiệm và gửi đánh giá nhé!
+                        </span>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-warning btn-sm rounded-pill px-4 fw-bold text-dark" onclick="addToCart(@Model.ProductId)">
+                    <i class="bi bi-bag-plus me-1"></i>Mua ngay để trải nghiệm
+                </button>
+            </div>
+        }
+        else
+        {
+            <div class="review-gate-card gate-purchased d-flex flex-wrap align-items-center justify-content-between gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="bg-success text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 46px; height: 46px;">
+                        <i class="bi bi-patch-check-fill fs-4"></i>
+                    </div>
+                    <div>
+                        <div class="d-flex align-items-center gap-2">
+                            <strong class="text-dark fs-6">Xác nhận khách hàng đã mua sản phẩm</strong>
+                            <span class="review-badge-verified"><i class="bi bi-shield-check"></i> Verified Buyer</span>
+                        </div>
+                        <span class="text-secondary small">
+                            Xin chào <strong>@custName</strong>! Cảm ơn bạn đã tin tưởng mua <strong>@Model.ProductName</strong> tại KittyPhone. Hãy chia sẻ cảm nhận thực tế nhé!
+                        </span>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-danger btn-sm rounded-pill px-4 fw-bold shadow-sm" style="background-color: var(--cps-red); border-color: var(--cps-red);" data-bs-toggle="modal" data-bs-target="#writeReviewModal">
+                    <i class="bi bi-star-fill text-warning me-1"></i>Viết đánh giá ngay
+                </button>
+            </div>
+        }
+
+        <!-- Reviews List & Rating Breakdown -->
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="review-rating-summary">
+                    <span class="text-muted small fw-semibold text-uppercase tracking-wider">Đánh giá trung bình</span>
+                    <div class="review-score-big">
+                        @Model.AverageRating.ToString("F1")<span class="fs-5 text-muted fw-normal">/5</span>
+                    </div>
+                    <div class="text-warning fs-5 mb-2">
+                        @for (int s = 1; s <= 5; s++)
+                        {
+                            if (s <= Math.Round(Model.AverageRating))
+                            {
+                                <i class="bi bi-star-fill"></i>
+                            }
+                            else
+                            {
+                                <i class="bi bi-star"></i>
+                            }
+                        }
+                    </div>
+                    <span class="text-secondary small d-block">Dựa trên <strong>@reviews.Count</strong> lượt đánh giá đã xác thực</span>
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                @if (reviews.Count == 0)
+                {
+                    <div class="bg-white rounded-3 border p-5 text-center shadow-sm">
+                        <div class="bg-danger-subtle text-danger rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                            <i class="bi bi-chat-square-heart fs-3"></i>
+                        </div>
+                        <h6 class="fw-bold text-dark mb-1">Chưa có đánh giá nào cho sản phẩm này</h6>
+                        <p class="text-muted small mb-3">Tất cả đánh giá trên KittyPhone đều từ khách hàng đã mua thực tế.</p>
+                        @if (canReview)
+                        {
+                            <button type="button" class="btn btn-danger btn-sm rounded-pill px-4 fw-bold" style="background-color: var(--cps-red); border-color: var(--cps-red);" data-bs-toggle="modal" data-bs-target="#writeReviewModal">
+                                Hãy là người đầu tiên đánh giá!
+                            </button>
+                        }
+                    </div>
+                }
+                else
+                {
+                    @foreach (var rev in reviews)
+                    {
+                        <div class="review-card">
+                            <div class="d-flex align-items-center justify-content-between mb-2 flex-wrap gap-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 40px; height: 40px; font-size: 0.95rem;">
+                                        @(!string.IsNullOrEmpty(rev.CustomerName) ? rev.CustomerName.Trim().Substring(0, 1).ToUpper() : "K")
+                                    </div>
+                                    <div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="review-author">@rev.CustomerName</span>
+                                            <span class="review-badge-verified">
+                                                <i class="bi bi-shield-check"></i> Đã mua tại KittyPhone
+                                            </span>
+                                        </div>
+                                        <span class="text-muted" style="font-size: 0.75rem;">
+                                            <i class="bi bi-clock me-1"></i>@rev.CreatedAt.ToString("dd/MM/yyyy HH:mm")
+                                        </span>
+                                    </div>
+                                </div>
+                                <div class="text-warning small fs-6">
+                                    @for (int s = 1; s <= 5; s++)
+                                    {
+                                        if (s <= rev.Rating)
+                                        {
+                                            <i class="bi bi-star-fill"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="bi bi-star"></i>
+                                        }
+                                    }
+                                </div>
+                            </div>
+
+                            <p class="review-content-text">@rev.Comment</p>
+
+                            @if (!string.IsNullOrEmpty(rev.Reply))
+                            {
+                                <div class="review-reply-box">
+                                    <div class="review-reply-title">
+                                        <i class="bi bi-patch-check-fill text-danger"></i>
+                                        <span>Phản hồi từ KittyPhone</span>
+                                    </div>
+                                    <p class="review-reply-text">@rev.Reply</p>
+                                </div>
+                            }
+                        </div>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Write Review (Bảo đảm màu sắc hài hòa với KittyPhone) -->
+@if (canReview)
+{
+    <div class="modal fade" id="writeReviewModal" tabindex="-1" aria-labelledby="writeReviewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                <form asp-action="AddReview" method="post">
+                    <input type="hidden" name="ProductId" value="@Model.ProductId" />
+                    <div class="modal-header py-3 px-4 text-white" style="background: linear-gradient(135deg, #071538 0%, #0e2254 60%, #0284c7 100%);">
+                        <h5 class="modal-title fw-bold fs-6 d-flex align-items-center gap-2" id="writeReviewModalLabel">
+                            <i class="bi bi-star-fill text-warning"></i>
+                            <span>Đánh giá sản phẩm: @Model.ProductName</span>
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-4 bg-white">
+                        <!-- Chọn số sao -->
+                        <div class="mb-4 text-center p-3 rounded-3" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                            <label class="form-label d-block text-secondary small fw-bold mb-2 text-uppercase">BẠN ĐÁNH GIÁ SẢN PHẨM NÀY MẤY SAO?</label>
+                            <div class="rating-select d-inline-flex gap-2 fs-2 text-warning" style="cursor: pointer;">
+                                <input type="hidden" name="Rating" id="ratingInput" value="5" />
+                                <i class="bi bi-star-fill star-item star-interactive" data-value="1" title="1 sao - Rất tệ"></i>
+                                <i class="bi bi-star-fill star-item star-interactive" data-value="2" title="2 sao - Kém"></i>
+                                <i class="bi bi-star-fill star-item star-interactive" data-value="3" title="3 sao - Bình thường"></i>
+                                <i class="bi bi-star-fill star-item star-interactive" data-value="4" title="4 sao - Hài lòng"></i>
+                                <i class="bi bi-star-fill star-item star-interactive" data-value="5" title="5 sao - Tuyệt vời"></i>
+                            </div>
+                            <div class="small fw-bold text-primary mt-1" id="starDescription">Tuyệt vời (5/5 sao)</div>
+                        </div>
+
+                        <!-- Khách hàng đã xác thực -->
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-dark small">Họ và tên người đánh giá</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-person"></i></span>
+                                <input type="text" name="CustomerName" class="form-control bg-light border-start-0" value="@custName" readonly />
+                                <span class="input-group-text bg-light border-start-0 text-success"><i class="bi bi-shield-check me-1"></i>Đã xác thực</span>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-dark small">Số điện thoại mua hàng</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light text-muted border-end-0"><i class="bi bi-telephone"></i></span>
+                                <input type="text" name="Phone" class="form-control bg-light border-start-0" value="@custPhone" readonly />
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold text-dark small">Cảm nhận và nhận xét của bạn <span class="text-danger">*</span></label>
+                            <textarea name="Comment" class="form-control" rows="4" 
+                                      placeholder="Chia sẻ trải nghiệm thực tế về máy: hiệu năng, thiết kế, thời lượng pin, độ sắc nét camera..." required minlength="10" maxlength="1000"></textarea>
+                            <div class="form-text small text-muted">Tối thiểu 10 ký tự. Đánh giá của bạn sẽ được hiển thị ngay lập tức với huy hiệu Đã Mua Hàng.</div>
+                        </div>
+                    </div>
+                    <div class="modal-footer px-4 py-3 bg-light border-top">
+                        <button type="button" class="btn btn-outline-secondary rounded-pill px-3" data-bs-dismiss="modal">Hủy bỏ</button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" style="background: linear-gradient(135deg, #0e2254, #0284c7); border: none;">
+                            <i class="bi bi-send-fill me-1"></i>Gửi Đánh Giá Ngay
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@section Scripts {
+<script>
+    // Star rating picker with live text description
+    var starTexts = {
+        1: "Rất tệ (1/5 sao)",
+        2: "Kém, chưa hài lòng (2/5 sao)",
+        3: "Bình thường (3/5 sao)",
+        4: "Rất tốt, hài lòng (4/5 sao)",
+        5: "Tuyệt vời, vượt mong đợi (5/5 sao)"
+    };
+
+    $('.star-item').click(function() {
+        var val = $(this).data('value');
+        $('#ratingInput').val(val);
+        $('#starDescription').text(starTexts[val]);
+        $('.star-item').each(function() {
+            var itemVal = $(this).data('value');
+            if (itemVal <= val) {
+                $(this).removeClass('bi-star').addClass('bi-star-fill text-warning');
+            } else {
+                $(this).removeClass('bi-star-fill text-warning').addClass('bi-star text-muted');
+            }
+        });
+    });
+
+    function addToCart(productId) {
+        $.post('/Cart/Add', { productId: productId, quantity: 1 }, function(res) {
+            if (res.success) {
+                if (window.updateCartBadges) {
+                    window.updateCartBadges(res.count);
+                } else {
+                    $('#cartBadgeCount').text(res.count);
+                }
+                if (window.showCartToast) {
+                    window.showCartToast(res.message || "Đã thêm sản phẩm vào giỏ hàng thành công!", true);
+                } else {
+                    alert("Đã thêm sản phẩm vào giỏ hàng thành công!");
+                }
+            } else {
+                if (window.showCartToast) {
+                    window.showCartToast(res.message || "Sản phẩm tạm thời hết hàng", false);
+                } else {
+                    alert(res.message);
+                }
+            }
+        });
+    }
+</script>
+}

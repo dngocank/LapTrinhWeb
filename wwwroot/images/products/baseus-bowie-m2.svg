@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#f1f5f9"/>
+    </linearGradient>
+    <linearGradient id="case-black" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1e293b"/>
+      <stop offset="100%" stop-color="#0f172a"/>
+    </linearGradient>
+    <filter id="drop" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg)" rx="24"/>
+  <!-- Charging Case -->
+  <g filter="url(#drop)">
+    <!-- Main Capsule Case -->
+    <rect x="110" y="100" width="180" height="150" rx="36" fill="url(#case-black)" stroke="#334155" stroke-width="2"/>
+    <!-- Lid Split line -->
+    <line x1="110" y1="150" x2="290" y2="150" stroke="#475569" stroke-width="2"/>
+    <!-- LED Indicator -->
+    <circle cx="200" cy="180" r="3" fill="#38bdf8"/>
+    <!-- Earbuds inside / peeking -->
+    <path d="M140 85 C140 70 155 70 155 85 L155 130 C155 135 150 140 145 140 C140 140 140 135 140 130 Z" fill="#334155" stroke="#475569" stroke-width="1.5"/>
+    <path d="M245 85 C245 70 260 70 260 85 L260 130 C260 135 255 140 250 140 C245 140 245 135 245 130 Z" fill="#334155" stroke="#475569" stroke-width="1.5"/>
+    <!-- Earbud Stem tips metallic orange Baseus accent -->
+    <rect x="142" y="125" width="11" height="4" rx="1" fill="#f97316"/>
+    <rect x="247" y="125" width="11" height="4" rx="1" fill="#f97316"/>
+  </g>
+  <text x="200" y="315" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif" font-size="14" font-weight="700" fill="#1e293b" text-anchor="middle">Baseus Bowie M2+ ANC</text>
+  <text x="200" y="335" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="500" fill="#64748b" text-anchor="middle">Khử Ồn Chủ Động Hybrid -42dB Bluetooth 5.2</text>
+  <!-- Spec Badge -->
+  <rect x="155" y="350" width="90" height="20" rx="10" fill="#e0f2fe"/>
+  <text x="200" y="364" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10" font-weight="600" fill="#0284c7" text-anchor="middle">🎧 ANC -42dB</text>
+</svg>

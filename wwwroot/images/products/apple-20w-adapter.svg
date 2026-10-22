@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#f1f5f9"/>
+    </linearGradient>
+    <linearGradient id="body" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#f1f5f9"/>
+    </linearGradient>
+    <filter id="drop" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="16" stdDeviation="20" flood-color="#0f172a" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg)" rx="24"/>
+  <!-- Pins (US/EU style) -->
+  <rect x="170" y="70" width="12" height="45" rx="3" fill="#cbd5e1" stroke="#94a3b8" stroke-width="1.5"/>
+  <rect x="218" y="70" width="12" height="45" rx="3" fill="#cbd5e1" stroke="#94a3b8" stroke-width="1.5"/>
+  <!-- Main Adapter Body -->
+  <g filter="url(#drop)">
+    <rect x="120" y="105" width="160" height="170" rx="28" fill="url(#body)" stroke="#e2e8f0" stroke-width="2"/>
+    <!-- Subtle curve highlight -->
+    <path d="M124 135 C124 118 138 107 155 107 L245 107 C262 107 276 118 276 135 Z" fill="#ffffff" opacity="0.6"/>
+    <!-- USB-C Port -->
+    <rect x="160" y="225" width="80" height="22" rx="11" fill="#e2e8f0" stroke="#cbd5e1" stroke-width="1.5"/>
+    <rect x="170" y="231" width="60" height="10" rx="5" fill="#334155"/>
+    <rect x="185" y="234" width="30" height="4" rx="2" fill="#94a3b8"/>
+  </g>
+  <!-- Apple Logo subtle -->
+  <path d="M200 155 C203 155 205 153 206 150 C203 150 201 152 200 155 Z M206 160 C204 160 203 158 201 158 C199 158 197 160 195 160 C192 160 190 157 190 152 C190 148 193 145 196 145 C198 145 199 146 201 146 C202 146 204 145 206 145 C208 145 210 146 212 148 C210 150 210 153 212 155 C210 158 208 160 206 160 Z" fill="#94a3b8" opacity="0.6"/>
+  <!-- 20W USB-C Text -->
+  <text x="200" y="325" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif" font-size="14" font-weight="700" fill="#334155" text-anchor="middle">Apple 20W USB-C</text>
+  <text x="200" y="345" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="11" font-weight="500" fill="#94a3b8" text-anchor="middle">Power Adapter Chính Hãng</text>
+  <!-- Power Badge -->
+  <rect x="165" y="358" width="70" height="20" rx="10" fill="#fef2f2"/>
+  <text x="200" y="372" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10" font-weight="600" fill="#ef4444" text-anchor="middle">⚡ Fast Charge</text>
+</svg>

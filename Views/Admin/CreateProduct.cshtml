@@ -1,0 +1,83 @@
+@model BTL_PTTKYC.Models.ProductViewModel
+@{
+    ViewData["Title"] = "Thêm Mới Sản Phẩm";
+    Layout = "_AdminLayout";
+    var brands = ViewBag.Brands as List<(int id, string name)> ?? new();
+    var categories = ViewBag.Categories as List<(int id, string name)> ?? new();
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <a asp-controller="Sales" asp-action="Products" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Quay lại danh sách
+            </a>
+            <h4 class="fw-bold mb-0">Thêm Mới Sản Phẩm</h4>
+        </div>
+
+        <div class="bg-white p-4 rounded-3 border shadow-sm">
+            <form asp-action="CreateProduct" method="post">
+                @Html.AntiForgeryToken()
+
+                <div class="mb-3">
+                    <label asp-for="ProductName" class="form-label fw-semibold">Tên sản phẩm <span class="text-danger">*</span></label>
+                    <input asp-for="ProductName" class="form-control" placeholder="Ví dụ: iPhone 16 Pro Max 256GB" required />
+                    <span asp-validation-for="ProductName" class="text-danger small"></span>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="BrandId" class="form-label fw-semibold">Hãng sản xuất</label>
+                        <select asp-for="BrandId" class="form-select" required>
+                            @foreach (var b in brands)
+                            {
+                                <option value="@b.id">@b.name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="CategoryId" class="form-label fw-semibold">Danh mục</label>
+                        <select asp-for="CategoryId" class="form-select" required>
+                            @foreach (var c in categories)
+                            {
+                                <option value="@c.id">@c.name</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="ImportPrice" class="form-label fw-semibold">Giá nhập dự kiến (VNĐ) <span class="text-danger">*</span></label>
+                        <input asp-for="ImportPrice" type="number" step="10000" class="form-control" required />
+                        <span asp-validation-for="ImportPrice" class="text-danger small"></span>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="SellingPrice" class="form-label fw-semibold">Giá bán niêm yết (VNĐ) <span class="text-danger">*</span></label>
+                        <input asp-for="SellingPrice" type="number" step="10000" class="form-control" required />
+                        <span asp-validation-for="SellingPrice" class="text-danger small"></span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="ImageUrl" class="form-label fw-semibold">URL Hình ảnh đại diện</label>
+                    <input asp-for="ImageUrl" class="form-control" placeholder="https://..." />
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Description" class="form-label fw-semibold">Mô tả sản phẩm</label>
+                    <textarea asp-for="Description" class="form-control" rows="3" placeholder="Nhập tóm tắt tính năng, cấu hình máy..."></textarea>
+                </div>
+
+                <div class="p-3 bg-light rounded-3 mb-4 small text-muted">
+                    <i class="bi bi-info-circle me-1"></i>Theo quy định CSDL, sản phẩm mới tạo có số lượng tồn kho ban đầu = 0. Để nhập hàng vào kho, nhân viên sẽ tạo phiếu nhập tại mục <strong>Quản Lý Nhập Kho</strong>.
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a asp-controller="Sales" asp-action="Products" class="btn btn-secondary rounded-pill px-4">Hủy bỏ</a>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">Tạo Sản Phẩm</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

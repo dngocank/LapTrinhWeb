@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#f1f5f9"/>
+    </linearGradient>
+    <linearGradient id="kb-body" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fcfcfc"/>
+      <stop offset="100%" stop-color="#e5e7eb"/>
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#0f172a" flood-opacity="0.08"/>
+    </filter>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg)" rx="24"/>
+  <!-- Floating Cantilever Stand -->
+  <path d="M110 270 L140 180 L260 180 L290 270 Z" fill="#94a3b8" opacity="0.3"/>
+  <!-- Magic Keyboard Base -->
+  <g filter="url(#shadow)">
+    <rect x="50" y="200" width="300" height="130" rx="14" fill="url(#kb-body)" stroke="#d1d5db" stroke-width="1.5"/>
+    <!-- Keys Grid -->
+    <rect x="65" y="212" width="270" height="60" rx="6" fill="#f3f4f6" stroke="#e5e7eb" stroke-width="1"/>
+    <!-- Key Rows Pattern -->
+    <line x1="65" y1="227" x2="335" y2="227" stroke="#e2e8f0" stroke-width="1.5"/>
+    <line x1="65" y1="242" x2="335" y2="242" stroke="#e2e8f0" stroke-width="1.5"/>
+    <line x1="65" y1="257" x2="335" y2="257" stroke="#e2e8f0" stroke-width="1.5"/>
+    <!-- Glass Trackpad -->
+    <rect x="150" y="282" width="100" height="38" rx="6" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.2"/>
+  </g>
+  <!-- Floating iPad Silhouette -->
+  <g filter="url(#shadow)">
+    <rect x="70" y="60" width="260" height="145" rx="12" fill="#1e293b" stroke="#334155" stroke-width="2"/>
+    <rect x="76" y="66" width="248" height="133" rx="8" fill="#0f172a"/>
+    <!-- Screen content shine -->
+    <path d="M76 66 L200 66 L140 199 L76 199 Z" fill="#ffffff" opacity="0.04"/>
+    <circle cx="200" cy="132" r="18" fill="#38bdf8" opacity="0.2"/>
+    <circle cx="200" cy="132" r="10" fill="#38bdf8" opacity="0.4"/>
+  </g>
+  <!-- Apple Logo -->
+  <path d="M200 95 C204 95 207 92 208 88 C204 88 201 91 200 95 Z M208 102 C205 102 204 100 201 100 C198 100 196 102 193 102 C189 102 186 98 186 92 C186 86 190 83 194 83 C197 83 199 85 201 85 C203 85 205 83 208 83 C211 83 214 85 216 88 C213 90 213 94 216 96 C214 100 211 102 208 102 Z" fill="#ffffff" opacity="0.8"/>
+  <text x="200" y="365" font-family="-apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif" font-size="13" font-weight="600" fill="#475569" text-anchor="middle">Apple Magic Keyboard</text>
+  <text x="200" y="382" font-family="-apple-system, BlinkMacSystemFont, sans-serif" font-size="10" font-weight="500" fill="#94a3b8" text-anchor="middle">iPad Pro 11-inch (M4)</text>
+</svg>

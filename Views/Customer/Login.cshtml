@@ -1,0 +1,100 @@
+@model BTL_PTTKYC.Models.CustomerLoginViewModel
+@{
+    ViewData["Title"] = "Đăng Nhập Khách Hàng | KittyPhone";
+}
+
+<div class="auth-wrapper py-5">
+    <div class="container d-flex justify-content-center">
+        <div class="auth-card">
+            <!-- Header -->
+            <div class="auth-card-header">
+                <div class="d-inline-flex p-3 rounded-circle bg-white text-primary mb-3 shadow-sm" style="width: 58px; height: 58px; align-items: center; justify-content: center;">
+                    <i class="bi bi-person-fill fs-2 text-primary"></i>
+                </div>
+                <h4 class="fw-bold mb-1 text-white">Đăng Nhập KittyMember</h4>
+                <p class="small text-white-50 mb-0">Tích điểm chiết khấu & tra cứu bảo hành đơn hàng</p>
+            </div>
+
+            <!-- Body -->
+            <div class="auth-card-body">
+                @if (TempData["SuccessMessage"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show rounded-3 small py-2 mb-3" role="alert">
+                        <i class="bi bi-check-circle-fill me-2"></i>@TempData["SuccessMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                @if (TempData["AuthRequired"] != null)
+                {
+                    <div class="alert alert-info alert-dismissible fade show rounded-3 small py-2 mb-3" role="alert" style="background-color: #f0f9ff; border: 1px solid #bae6fd; color: #0369a1;">
+                        <i class="bi bi-shield-lock-fill me-2 text-primary"></i>@TempData["AuthRequired"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                @if (!ViewData.ModelState.IsValid)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show rounded-3 small py-2 mb-3" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        @Html.ValidationSummary(true, "", new { @class = "text-danger d-inline mb-0" })
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                <form asp-action="Login" method="post">
+                    <input type="hidden" asp-for="ReturnUrl" />
+
+                    <!-- Số điện thoại hoặc Gmail -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark small">Số điện thoại hoặc Email <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted"><i class="bi bi-person"></i></span>
+                            <input asp-for="Identifier" class="form-control" placeholder="0912345678 hoặc email@gmail.com" autofocus />
+                        </div>
+                        <span asp-validation-for="Identifier" class="text-danger small"></span>
+                    </div>
+
+                    <!-- Mật khẩu -->
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-dark small">Mật khẩu <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light text-muted"><i class="bi bi-lock"></i></span>
+                            <input asp-for="Password" type="password" class="form-control" placeholder="Nhập mật khẩu của bạn" />
+                        </div>
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                        <div class="form-check">
+                            <input asp-for="RememberMe" class="form-check-input" />
+                            <label asp-for="RememberMe" class="form-check-label small text-muted">Ghi nhớ đăng nhập</label>
+                        </div>
+                        <span class="small text-muted"><i class="bi bi-telephone-fill me-1 text-primary"></i>Hotline: 0396166509</span>
+                    </div>
+
+                    <button type="submit" class="btn text-white w-100 py-2 rounded-pill fw-bold shadow-sm mb-3" style="background: linear-gradient(135deg, #0e2254, #0284c7); border: none;">
+                        <i class="bi bi-box-arrow-in-right me-1"></i>ĐĂNG NHẬP KITTYMEMBER
+                    </button>
+                </form>
+
+                <div class="text-center pt-3 border-top">
+                    <span class="text-muted small">Chưa là thành viên KittyMember?</span>
+                    <a asp-controller="Customer" asp-action="Register" asp-route-returnUrl="@Model.ReturnUrl" class="fw-bold text-primary ms-1 small text-decoration-none">
+                        Đăng ký ngay
+                    </a>
+                </div>
+
+                <div class="text-center mt-3">
+                    <a asp-controller="Account" asp-action="Login" class="text-secondary small text-decoration-none">
+                        <i class="bi bi-shield-lock me-1"></i>Cổng đăng nhập Quản trị viên / Nhân viên
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

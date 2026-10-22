@@ -1,0 +1,83 @@
+@model List<BTL_PTTKYC.Models.ProductViewModel>
+@{
+    ViewData["Title"] = "Quản Lý Sản Phẩm & Thiết Bị";
+    Layout = "_AdminLayout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h4 class="fw-bold mb-1 text-dark"><i class="bi bi-tag-fill text-primary me-2"></i>Quản Lý Sản Phẩm & Thiết Bị KittyPhone</h4>
+        <span class="text-muted small">Quản lý toàn bộ danh mục sản phẩm trong CSDL, cập nhật giá bán, hình ảnh và trạng thái kinh doanh</span>
+    </div>
+    <a asp-action="CreateProduct" class="btn btn-primary rounded-pill px-4 fw-bold">
+        <i class="bi bi-plus-lg me-1"></i>Thêm Mới Sản Phẩm
+    </a>
+</div>
+
+<div class="bg-white rounded-3 border shadow-sm overflow-hidden">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th style="width: 80px;">Hình Ảnh</th>
+                    <th>Tên Sản Phẩm</th>
+                    <th>Hãng & Danh Mục</th>
+                    <th class="text-end">Giá Nhập</th>
+                    <th class="text-end">Giá Bán</th>
+                    <th class="text-center">Tồn Kho</th>
+                    <th>Trạng Thái</th>
+                    <th class="text-center" style="width: 140px;">Thao Tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var p in Model)
+                {
+                    <tr class="@(!p.IsActive ? "opacity-75" : "")">
+                        <td>
+                            <img src="@(string.IsNullOrEmpty(p.ImageUrl) ? "/images/placeholder-phone.svg" : p.ImageUrl)" 
+                                 style="width: 52px; height: 52px; object-fit: contain;" 
+                                 class="border rounded p-1 bg-white" 
+                                 onerror="this.onerror=null;this.src='/images/placeholder-phone.svg';" />
+                        </td>
+                        <td>
+                            <div class="fw-bold text-dark fs-6">@p.ProductName</div>
+                            <div class="small text-muted" style="max-width: 320px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                @p.Description
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge bg-secondary me-1">@p.BrandName</span>
+                            <span class="badge bg-light text-dark border">@p.CategoryName</span>
+                        </td>
+                        <td class="text-end text-muted">
+                            @p.ImportPrice.ToString("N0")đ
+                        </td>
+                        <td class="text-end fw-bold text-primary fs-6">
+                            @p.SellingPrice.ToString("N0")đ
+                        </td>
+                        <td class="text-center">
+                            <span class="badge @(p.Quantity > 5 ? "bg-success" : (p.Quantity > 0 ? "bg-warning text-dark" : "bg-danger"))">
+                                @p.Quantity chiếc
+                            </span>
+                        </td>
+                        <td>
+                            @if (p.IsActive)
+                            {
+                                <span class="badge bg-success-subtle text-success border border-success"><i class="bi bi-check-circle me-1"></i>Đang bán</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger-subtle text-danger border border-danger"><i class="bi bi-pause-circle me-1"></i>Ngừng bán</span>
+                            }
+                        </td>
+                        <td class="text-center">
+                            <a asp-action="EditProduct" asp-route-id="@p.ProductId" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-pencil-square me-1"></i>Chỉnh sửa
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

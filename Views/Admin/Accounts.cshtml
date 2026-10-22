@@ -1,0 +1,90 @@
+@model List<BTL_PTTKYC.Models.AccountModel>
+@{
+    ViewData["Title"] = "Quản Lý Tài Khoản Nhân Sự & Phân Quyền";
+    Layout = "_AdminLayout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h4 class="fw-bold mb-1"><i class="bi bi-people-fill text-danger me-2"></i>Quản Lý Tài Khoản & Phân Quyền Hệ Thống</h4>
+        <span class="text-muted small">Cấp phát tài khoản nhân sự, điều chỉnh phân quyền (Admin, Sales, Warehouse) và bảo mật</span>
+    </div>
+    <a asp-action="CreateAccount" class="btn btn-danger rounded-pill px-4 fw-bold">
+        <i class="bi bi-person-plus-fill me-1"></i>Tạo Tài Khoản Mới
+    </a>
+</div>
+
+<!-- Accounts List Table -->
+<div class="bg-white rounded-3 border shadow-sm overflow-hidden">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th style="width: 70px;">ID</th>
+                    <th>Nhân Viên (Employee)</th>
+                    <th>Chức Vụ</th>
+                    <th>Tên Đăng Nhập</th>
+                    <th>Mật Khẩu</th>
+                    <th>Phân Quyền (Role)</th>
+                    <th>Trạng Thái</th>
+                    <th class="text-center" style="width: 140px;">Thao Tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var acc in Model)
+                {
+                    <tr class="@(!acc.IsActive ? "table-light opacity-75" : "")">
+                        <td class="fw-bold text-muted">#@acc.AccountId</td>
+                        <td>
+                            <div class="fw-bold text-dark">@acc.EmployeeName</div>
+                            @if (!string.IsNullOrEmpty(acc.Phone))
+                            {
+                                <div class="small text-muted"><i class="bi bi-telephone me-1"></i>@acc.Phone</div>
+                            }
+                        </td>
+                        <td>
+                            <span class="badge bg-light text-dark border">@(acc.Position ?? "Nhân viên")</span>
+                        </td>
+                        <td>
+                            <code class="fw-bold text-cyan fs-6 bg-light px-2 py-1 rounded">@acc.Username</code>
+                        </td>
+                        <td>
+                            <span class="badge bg-dark border border-secondary text-info px-2 py-1" title="Mật khẩu được băm 1 chiều bằng thuật toán BCrypt. Không thể giải mã hay xem mật khẩu dạng chữ rõ.">
+                                <i class="bi bi-shield-lock-fill me-1"></i>•••••••• (Không thể xem mật khẩu)
+                            </span>
+                        </td>
+                        <td>
+                            @if (acc.Role == "Admin")
+                            {
+                                <span class="badge bg-danger fs-6 px-3 py-1"><i class="bi bi-shield-lock me-1"></i>Admin</span>
+                            }
+                            else if (acc.Role == "Sales")
+                            {
+                                <span class="badge bg-primary fs-6 px-3 py-1"><i class="bi bi-cart me-1"></i>Sales</span>
+                            }
+                            else if (acc.Role == "Warehouse")
+                            {
+                                <span class="badge bg-warning text-dark fs-6 px-3 py-1"><i class="bi bi-box-seam me-1"></i>Warehouse</span>
+                            }
+                        </td>
+                        <td>
+                            @if (acc.IsActive)
+                            {
+                                <span class="badge bg-success-subtle text-success"><i class="bi bi-check-circle me-1"></i>Hoạt động</span>
+                            }
+                            else
+                            {
+                                <span class="badge bg-danger-subtle text-danger"><i class="bi bi-slash-circle me-1"></i>Bị khóa</span>
+                            }
+                        </td>
+                        <td class="text-center">
+                            <a asp-action="EditAccount" asp-route-id="@acc.AccountId" class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-gear me-1"></i>Phân quyền & Sửa
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

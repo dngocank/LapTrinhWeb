@@ -1,0 +1,176 @@
+@{
+    ViewData["Title"] = "Tổng Quan Quản Trị Hệ Thống (Dashboard)";
+    Layout = "_AdminLayout";
+    var recentOrders = ViewBag.RecentOrders as List<BTL_PTTKYC.Models.InvoiceModel> ?? new();
+    var lowStockList = ViewBag.LowStockList as List<BTL_PTTKYC.Models.ProductViewModel> ?? new();
+    decimal totalRevenue = (decimal)(ViewBag.TotalRevenue ?? 0m);
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h4 class="fw-bold mb-1"><i class="bi bi-speedometer2 text-danger me-2"></i>Bảng Điều Khiển Tổng Quan</h4>
+        <span class="text-muted small">Thống kê doanh thu, đơn hàng, kho bãi và tài khoản phân quyền</span>
+    </div>
+    <div class="d-flex gap-2">
+        <a asp-action="Accounts" class="btn btn-outline-dark btn-sm rounded-pill">
+            <i class="bi bi-people me-1"></i>Quản lý tài khoản
+        </a>
+        <a asp-action="Orders" class="btn btn-danger btn-sm rounded-pill">
+            <i class="bi bi-receipt me-1"></i>Xem tất cả đơn hàng
+        </a>
+    </div>
+</div>
+
+<!-- 4 Stat Metric Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon-wrap bg-danger bg-opacity-10 text-danger">
+                <i class="bi bi-cash-stack"></i>
+            </div>
+            <div>
+                <span class="text-muted small d-block">Doanh thu đã thu</span>
+                <h4 class="fw-bold text-dark mb-0">@totalRevenue.ToString("N0")đ</h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon-wrap bg-primary bg-opacity-10 text-primary">
+                <i class="bi bi-receipt-cutoff"></i>
+            </div>
+            <div>
+                <span class="text-muted small d-block">Tổng số đơn hàng</span>
+                <h4 class="fw-bold text-dark mb-0">@ViewBag.TotalOrders đơn</h4>
+                <span class="small text-warning fw-semibold">(@ViewBag.PendingOrders chờ cọc)</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon-wrap bg-success bg-opacity-10 text-success">
+                <i class="bi bi-phone"></i>
+            </div>
+            <div>
+                <span class="text-muted small d-block">Tổng sản phẩm</span>
+                <h4 class="fw-bold text-dark mb-0">@ViewBag.TotalProducts mã</h4>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon-wrap bg-warning bg-opacity-10 text-warning">
+                <i class="bi bi-person-badge"></i>
+            </div>
+            <div>
+                <span class="text-muted small d-block">Tài khoản nhân sự</span>
+                <h4 class="fw-bold text-dark mb-0">@ViewBag.TotalAccounts user</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left: Recent Orders -->
+    <div class="col-lg-7">
+        <div class="bg-white p-4 rounded-3 border shadow-sm">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0"><i class="bi bi-clock-history text-danger me-2"></i>Đơn Hàng Gần Đây</h5>
+                <a asp-action="Orders" class="small text-danger fw-semibold">Xem tất cả <i class="bi bi-chevron-right"></i></a>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 small">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Mã đơn</th>
+                            <th>Khách hàng</th>
+                            <th>Tổng tiền</th>
+                            <th>Trạng thái</th>
+                            <th>Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var o in recentOrders)
+                        {
+                            <tr>
+                                <td><strong class="text-danger">#@o.InvoiceId</strong></td>
+                                <td>
+                                    <div class="fw-bold text-dark">@o.CustomerName</div>
+                                    <div class="text-muted">@o.CustomerPhone</div>
+                                </td>
+                                <td class="fw-bold text-danger">@o.TotalAmount.ToString("N0")đ</td>
+                                <td>
+                                    @if (o.Status == "Paid")
+                                    {
+                                        <span class="badge bg-success">Đã thanh toán</span>
+                                    }
+                                    else if (o.Status == "Cancelled")
+                                    {
+                                        <span class="badge bg-danger">Đã hủy</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-warning text-dark">Chờ cọc 50%</span>
+                                    }
+                                </td>
+                                <td>
+                                    <a asp-action="OrderDetail" asp-route-id="@o.InvoiceId" class="btn btn-sm btn-outline-danger py-0 px-2">Chi tiết</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: Low Stock Warnings -->
+    <div class="col-lg-5">
+        <div class="bg-white p-4 rounded-3 border shadow-sm">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0 text-warning"><i class="bi bi-exclamation-triangle-fill me-2"></i>Cảnh Báo Tồn Kho Thấp</h5>
+                <a asp-controller="Warehouse" asp-action="CreateImport" class="btn btn-sm btn-outline-warning text-dark fw-bold">
+                    <i class="bi bi-plus-circle me-1"></i>Nhập thêm hàng
+                </a>
+            </div>
+
+            @if (lowStockList.Count == 0)
+            {
+                <div class="p-4 text-center text-muted">
+                    <i class="bi bi-check-circle-fill text-success fs-3 d-block mb-2"></i>
+                    Tất cả các sản phẩm đều đang có lượng tồn kho dồi dào (> 5 máy).
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0 small">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Sản phẩm</th>
+                                <th>Hãng</th>
+                                <th class="text-center">Tồn kho</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in lowStockList)
+                            {
+                                <tr>
+                                    <td class="fw-semibold text-dark">@p.ProductName</td>
+                                    <td><span class="badge bg-secondary">@p.BrandName</span></td>
+                                    <td class="text-center">
+                                        <span class="badge bg-danger">Còn @p.Quantity máy</span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

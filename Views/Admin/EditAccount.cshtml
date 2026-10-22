@@ -1,0 +1,68 @@
+@model BTL_PTTKYC.Models.EditAccountViewModel
+@{
+    ViewData["Title"] = $"Chỉnh Sửa Quyền & Tài Khoản: {Model.Username}";
+    Layout = "_AdminLayout";
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <a asp-action="Accounts" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Quay lại danh sách
+            </a>
+            <h4 class="fw-bold mb-0">Cập Nhật Phân Quyền & Tài Khoản</h4>
+        </div>
+
+        <div class="bg-white p-4 rounded-3 border shadow-sm">
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger shadow-sm mb-4">
+                    <div asp-validation-summary="All" class="text-danger small mb-0"></div>
+                </div>
+            }
+
+            <form asp-action="EditAccount" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="AccountId" />
+                <input type="hidden" asp-for="EmployeeId" />
+                <input type="hidden" asp-for="Username" />
+
+                <div class="mb-3">
+                    <label class="form-label text-muted small fw-bold">NHÂN VIÊN SỞ HỮU</label>
+                    <input type="text" class="form-control bg-light fw-bold" value="@Model.EmployeeName" readonly />
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-muted small fw-bold">TÊN ĐĂNG NHẬP (USERNAME)</label>
+                    <input type="text" class="form-control bg-light" value="@Model.Username" readonly />
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Role" class="form-label fw-semibold">Cập Nhật Phân Quyền Vai Trò (Role) <span class="text-danger">*</span></label>
+                    <select asp-for="Role" class="form-select form-select-lg fs-6" required>
+                        <option value="Admin">Admin - Quản trị viên (Toàn quyền hệ thống, quản lý tài khoản & doanh thu)</option>
+                        <option value="Sales">Sales - Nhân viên bán hàng (Quản lý đơn hàng, xác nhận cọc, xem review)</option>
+                        <option value="Warehouse">Warehouse - Nhân viên kho (Trang riêng cho nhập kho, kiểm kê tồn kho, IMEI)</option>
+                    </select>
+                    <span asp-validation-for="Role" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="NewPassword" class="form-label fw-semibold">Đổi mật khẩu mới (Bỏ trống nếu giữ nguyên mật khẩu cũ)</label>
+                    <input asp-for="NewPassword" type="password" class="form-control" placeholder="Nhập mật khẩu mới nếu muốn đổi..." />
+                    <span asp-validation-for="NewPassword" class="text-danger small"></span>
+                </div>
+
+                <div class="form-check form-switch mb-4">
+                    <input class="form-check-input" type="checkbox" asp-for="IsActive" id="activeAccount">
+                    <label class="form-check-label fw-semibold" for="activeAccount">Tài khoản đang hoạt động (Bỏ tích để khóa tài khoản)</label>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a asp-action="Accounts" class="btn btn-secondary rounded-pill px-4">Hủy bỏ</a>
+                    <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold">Lưu Thay Đổi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,327 @@
+@model List<BTL_PTTKYC.Models.CartItemModel>
+@{
+    ViewData["Title"] = "Giỏ hàng của bạn | KittyPhone";
+    var selectedItems = Model.Where(i => i.IsSelected).ToList();
+    decimal selectedTotal = selectedItems.Sum(i => i.LineTotal);
+    int selectedQty = selectedItems.Sum(i => i.Quantity);
+    int selectedCount = selectedItems.Count;
+    bool allSelected = Model.Count > 0 && Model.All(i => i.IsSelected);
+}
+
+<div class="container py-4">
+    <!-- Breadcrumb & Step Indicator -->
+    <div class="cps-cart-container mb-4">
+        <div class="cps-checkout-steps">
+            <div class="cps-step-item active">
+                <span class="cps-step-num">1</span>
+                <span>Chọn sản phẩm</span>
+            </div>
+            <div class="cps-step-divider"></div>
+            <div class="cps-step-item">
+                <span class="cps-step-num">2</span>
+                <span>Thông tin đặt hàng</span>
+            </div>
+            <div class="cps-step-divider"></div>
+            <div class="cps-step-item">
+                <span class="cps-step-num">3</span>
+                <span>Hoàn tất đặt hàng</span>
+            </div>
+        </div>
+    </div>
+
+    @if (Model.Count == 0)
+    {
+        <div class="cps-cart-container">
+            <div class="bg-white rounded-3 border p-5 text-center shadow-sm">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle mb-3" style="width: 80px; height: 80px; background: #e0f2fe;">
+                    <i class="bi bi-cart-x text-primary" style="font-size: 2.5rem;"></i>
+                </div>
+                <h4 class="fw-bold mb-2 text-dark">Giỏ hàng của bạn đang trống</h4>
+                <p class="text-muted mb-4">Không có sản phẩm nào trong giỏ hàng. Hãy tiếp tục khám phá các deal công nghệ hot tại KittyPhone nhé!</p>
+                <a asp-controller="Home" asp-action="Index" class="btn btn-primary px-4 py-2 fw-bold rounded-pill shadow-sm" style="background: linear-gradient(135deg, #0e2254, #0284c7); border: none;">
+                    <i class="bi bi-arrow-left me-2"></i>QUAY LẠI TRANG CHỦ MUA SẮM
+                </a>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="cps-cart-container">
+            <div class="row g-4">
+                <!-- Left: Cart Items List -->
+                <div class="col-lg-7">
+                    <div class="cps-cart-card mb-3">
+                        <div class="p-3 bg-light border-bottom d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center gap-2">
+                                <input type="checkbox" id="checkAllCartItems" class="form-check-input mt-0 cursor-pointer" style="width: 19px; height: 19px;" @(allSelected ? "checked" : "") title="Chọn tất cả sản phẩm" />
+                                <label for="checkAllCartItems" class="fw-bold mb-0 text-dark cursor-pointer small">
+                                    <i class="bi bi-bag-check-fill text-primary me-1"></i>Chọn tất cả (@Model.Count sản phẩm)
+                                </label>
+                            </div>
+                            <a asp-controller="Home" asp-action="Index" class="text-decoration-none small text-primary fw-semibold">
+                                <i class="bi bi-plus-circle me-1"></i>Thêm sản phẩm khác
+                            </a>
+                        </div>
+
+                        <div>
+                            @foreach (var item in Model)
+                            {
+                                <div class="cps-cart-item @(!item.IsSelected ? "bg-light opacity-75" : "")" id="cart-row-@item.ProductId" style="transition: all 0.2s ease;">
+                                    <div class="d-flex align-items-center gap-3 flex-grow-1">
+                                        <!-- Checkbox Chọn mua / Để mua sau -->
+                                        <div class="form-check m-0 p-0 d-flex align-items-center">
+                                            <input type="checkbox" 
+                                                   class="form-check-input cart-item-check cursor-pointer m-0" 
+                                                   style="width: 20px; height: 20px;"
+                                                   id="check-item-@item.ProductId"
+                                                   data-product-id="@item.ProductId"
+                                                   data-price="@item.Price"
+                                                   data-quantity="@item.Quantity"
+                                                   data-line-total="@item.LineTotal"
+                                                   @(item.IsSelected ? "checked" : "")
+                                                   title="Tích để chọn thanh toán sản phẩm này" />
+                                        </div>
+
+                                        <img src="@(string.IsNullOrEmpty(item.ImageUrl) ? "/images/placeholder-phone.svg" : item.ImageUrl)" 
+                                             alt="@item.ProductName" 
+                                             class="cps-cart-img"
+                                             onerror="this.onerror=null;this.src='/images/placeholder-phone.svg';" />
+                                        <div class="flex-grow-1">
+                                            <a asp-controller="Home" asp-action="Detail" asp-route-id="@item.ProductId" class="cps-cart-title d-block text-decoration-none">
+                                                @item.ProductName
+                                            </a>
+                                            <div class="d-flex align-items-baseline gap-2 mb-2">
+                                                <span class="fw-bold text-primary fs-6">@item.Price.ToString("N0")đ</span>
+                                            </div>
+                                            <div class="d-flex align-items-center gap-2 flex-wrap">
+                                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle" style="font-size: 11px;">
+                                                    <i class="bi bi-shield-check me-1"></i>Chính hãng VN/A
+                                                </span>
+                                                <span class="badge bg-light text-secondary border" style="font-size: 11px;">
+                                                    1 đổi 1 30 ngày
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex flex-column align-items-end justify-content-between gap-3 flex-shrink-0">
+                                        <!-- Remove item button -->
+                                        <form asp-action="Remove" method="post">
+                                            <input type="hidden" name="productId" value="@item.ProductId" />
+                                            <button type="submit" class="btn btn-sm btn-link text-muted p-0" title="Xóa hẳn khỏi giỏ hàng">
+                                                <i class="bi bi-trash3 text-secondary fs-6 hover-danger"></i>
+                                            </button>
+                                        </form>
+
+                                        <!-- Quantity Stepper -->
+                                        <div class="cps-cart-stepper">
+                                            <form asp-action="UpdateQuantity" method="post" class="d-inline">
+                                                <input type="hidden" name="productId" value="@item.ProductId" />
+                                                <button type="submit" name="quantity" value="@(item.Quantity - 1)" title="Giảm số lượng">-</button>
+                                            </form>
+                                            <span>@item.Quantity</span>
+                                            <form asp-action="UpdateQuantity" method="post" class="d-inline">
+                                                <input type="hidden" name="productId" value="@item.ProductId" />
+                                                <button type="submit" name="quantity" value="@(item.Quantity + 1)" title="Tăng số lượng">+</button>
+                                            </form>
+                                        </div>
+
+                                        <div class="text-end">
+                                            <span class="small text-muted d-block" style="font-size: 11px;">Thành tiền:</span>
+                                            <strong class="text-primary fw-bold">@item.LineTotal.ToString("N0")đ</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <!-- KittyMember Callout Bar -->
+                    <div class="p-3 rounded-3 mb-3 border d-flex align-items-center justify-content-between flex-wrap gap-2" style="background: #f0f9ff; border-color: #bae6fd !important;">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-award-fill text-primary fs-4"></i>
+                            <div>
+                                <strong class="text-primary small d-block">Đặc quyền hội viên KittyMember</strong>
+                                <span class="text-muted small">Đăng nhập tài khoản để tích điểm và giảm thêm tới 1% giá trị đơn hàng.</span>
+                            </div>
+                        </div>
+                        <a asp-controller="Customer" asp-action="Login" class="btn btn-sm btn-outline-primary rounded-pill fw-bold px-3">
+                            Đăng nhập
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Right: Summary & Checkout Button -->
+                <div class="col-lg-5">
+                    <div class="bg-white rounded-3 border p-4 shadow-sm sticky-top" style="top: 96px; z-index: 10;">
+                        <h6 class="fw-bold mb-3 border-bottom pb-2 text-dark">
+                            <i class="bi bi-receipt-cutoff me-2 text-primary"></i>Chi Tiết Thanh Toán
+                        </h6>
+
+                        <div class="d-flex justify-content-between mb-2 small">
+                            <span class="text-muted">Tổng tiền hàng:</span>
+                            <span class="fw-semibold text-dark" id="lblSubTotal">@selectedTotal.ToString("N0")đ</span>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-2 small">
+                            <span class="text-muted">Sản phẩm chọn mua:</span>
+                            <span class="fw-bold text-primary" id="lblSelectedCount">@selectedCount / @Model.Count sản phẩm (<span id="lblSelectedQty">@selectedQty</span> món)</span>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-2 small">
+                            <span class="text-muted">Phí vận chuyển:</span>
+                            <span class="text-success fw-bold">Miễn phí (Toàn quốc)</span>
+                        </div>
+
+                        <div class="d-flex justify-content-between mb-2 small">
+                            <span class="text-muted">Giảm giá voucher:</span>
+                            <span class="text-muted">0đ</span>
+                        </div>
+
+                        <hr class="my-3" />
+
+                        <div class="d-flex justify-content-between align-items-baseline mb-3">
+                            <span class="fw-bold text-dark fs-6">Cần thanh toán:</span>
+                            <span class="fw-bold text-primary fs-3" id="lblFinalTotal">@selectedTotal.ToString("N0")đ</span>
+                        </div>
+
+                        <!-- Deposit policy note -->
+                        <div class="deposit-notice-badge mb-3">
+                            <i class="bi bi-info-circle-fill me-1"></i>
+                            <strong>Chính sách giao hàng:</strong> Thiết bị công nghệ giá trị cao, hình thức COD yêu cầu đặt cọc trước tối thiểu 50% hoặc thanh toán chuyển khoản 100%. Các sản phẩm không tích chọn sẽ vẫn nằm nguyên vẹn trong giỏ hàng để mua sau.
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <a id="btnProceedCheckout" 
+                               asp-action="Checkout" 
+                               class="btn text-white btn-lg fw-bold py-3 rounded-3 shadow-sm text-uppercase @(selectedCount == 0 ? "disabled opacity-50" : "")" 
+                               style="background: linear-gradient(135deg, #0e2254, #0284c7); border: none; font-size: 15px; letter-spacing: 0.5px;">
+                                TIẾN HÀNH ĐẶT HÀNG (<span id="btnSummaryQty">@selectedQty</span> MÓN)
+                            </a>
+                            <div id="noItemAlert" class="alert alert-warning py-2 px-3 small mt-2 mb-0 rounded-3 text-center" style="display: @(selectedCount == 0 ? "block" : "none");">
+                                <i class="bi bi-exclamation-triangle me-1"></i>Vui lòng tích chọn ít nhất 1 sản phẩm để thanh toán.
+                            </div>
+                            <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary btn-sm py-2 rounded-3 text-center mt-2">
+                                <i class="bi bi-arrow-left me-1"></i>Chọn thêm sản phẩm khác
+                            </a>
+                        </div>
+
+                        <div class="mt-3 pt-3 border-top small text-muted">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <i class="bi bi-shield-lock-fill text-success"></i>
+                                <span>Bảo mật thông tin thanh toán 100%</span>
+                            </div>
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-arrow-repeat text-primary"></i>
+                                <span>Bảo hành chính hãng & đổi mới 30 ngày nếu lỗi</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+<script>
+    function formatVND(num) {
+        return Math.round(num).toLocaleString('vi-VN') + 'đ';
+    }
+
+    function updateCartCalculation() {
+        let total = 0;
+        let selectedQty = 0;
+        let selectedCount = 0;
+        const allChecks = document.querySelectorAll('.cart-item-check');
+
+        allChecks.forEach(function (chk) {
+            const row = document.getElementById('cart-row-' + chk.dataset.productId);
+            if (chk.checked) {
+                const lineTotal = parseFloat(chk.dataset.lineTotal) || 0;
+                const qty = parseInt(chk.dataset.quantity) || 0;
+                total += lineTotal;
+                selectedQty += qty;
+                selectedCount++;
+                if (row) {
+                    row.classList.remove('bg-light', 'opacity-75');
+                }
+            } else {
+                if (row) {
+                    row.classList.add('bg-light', 'opacity-75');
+                }
+            }
+        });
+
+        // Update labels
+        const lblSubTotal = document.getElementById('lblSubTotal');
+        const lblFinalTotal = document.getElementById('lblFinalTotal');
+        const lblSelectedCount = document.getElementById('lblSelectedCount');
+        const btnSummaryQty = document.getElementById('btnSummaryQty');
+        const btnProceed = document.getElementById('btnProceedCheckout');
+        const noItemAlert = document.getElementById('noItemAlert');
+        const checkAll = document.getElementById('checkAllCartItems');
+
+        if (lblSubTotal) lblSubTotal.textContent = formatVND(total);
+        if (lblFinalTotal) lblFinalTotal.textContent = formatVND(total);
+        if (lblSelectedCount) lblSelectedCount.innerHTML = selectedCount + ' / ' + allChecks.length + ' sản phẩm (<span id="lblSelectedQty">' + selectedQty + '</span> món)';
+        if (btnSummaryQty) btnSummaryQty.textContent = selectedQty;
+
+        if (checkAll) {
+            checkAll.checked = (selectedCount === allChecks.length && allChecks.length > 0);
+        }
+
+        if (selectedCount === 0) {
+            if (btnProceed) {
+                btnProceed.classList.add('disabled', 'opacity-50');
+                btnProceed.removeAttribute('href');
+            }
+            if (noItemAlert) noItemAlert.style.display = 'block';
+        } else {
+            if (btnProceed) {
+                btnProceed.classList.remove('disabled', 'opacity-50');
+                btnProceed.setAttribute('href', '/Cart/Checkout');
+            }
+            if (noItemAlert) noItemAlert.style.display = 'none';
+        }
+    }
+
+    // Checkbox item change handler
+    document.querySelectorAll('.cart-item-check').forEach(function (chk) {
+        chk.addEventListener('change', function () {
+            const productId = this.dataset.productId;
+            const isSelected = this.checked;
+
+            updateCartCalculation();
+
+            // AJAX update server session
+            $.post('/Cart/ToggleSelection', {
+                productId: productId,
+                isSelected: isSelected
+            }).fail(function (err) {
+                console.error('Lỗi cập nhật chọn sản phẩm:', err);
+            });
+        });
+    });
+
+    // Check all change handler
+    const checkAllEl = document.getElementById('checkAllCartItems');
+    if (checkAllEl) {
+        checkAllEl.addEventListener('change', function () {
+            const isChecked = this.checked;
+            document.querySelectorAll('.cart-item-check').forEach(function (chk) {
+                chk.checked = isChecked;
+            });
+
+            updateCartCalculation();
+
+            // AJAX update server session
+            $.post('/Cart/ToggleSelectAll', {
+                isSelected: isChecked
+            }).fail(function (err) {
+                console.error('Lỗi chọn tất cả sản phẩm:', err);
+            });
+        });
+    }
+</script>
+}

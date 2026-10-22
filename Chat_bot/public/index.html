@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KittyBot AI - Trang kiểm thử độc lập (Microservice Port 3001)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="kittybot.css" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: radial-gradient(circle at top left, #f0f9ff 0%, #e0f2fe 50%, #f8fafc 100%);
+      color: #0f172a;
+      min-height: 100vh;
+      padding: 40px 20px;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .header-card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: 0 10px 30px -10px rgba(2, 132, 199, 0.15);
+      margin-bottom: 24px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 20px;
+      background: #e0f2fe;
+      color: #0284c7;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
+    }
+    p.desc {
+      color: #64748b;
+      font-size: 15px;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+    .status-panel {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      background: #f8fafc;
+      padding: 16px;
+      border-radius: 14px;
+      border: 1px solid #e2e8f0;
+    }
+    .status-item {
+      font-size: 13px;
+    }
+    .status-item span.label {
+      color: #64748b;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .status-item span.val {
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .test-suite {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: 0 10px 25px -10px rgba(0, 0, 0, 0.05);
+    }
+    h2 {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    .test-buttons {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 12px;
+    }
+    .btn-test {
+      background: #f1f5f9;
+      border: 1px solid #cbd5e1;
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 13.5px;
+      font-weight: 600;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .btn-test:hover {
+      background: #e0f2fe;
+      border-color: #38bdf8;
+      color: #0284c7;
+      transform: translateY(-2px);
+    }
+    .btn-test span.sub {
+      font-size: 11px;
+      color: #64748b;
+      font-weight: normal;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header-card">
+      <span class="badge">🤖 KittyPhone AI Microservice</span>
+      <h1>Trang Kiểm Thử Độc Lập - KittyBot AI ✦</h1>
+      <p class="desc">
+        Chatbot trợ lý mua sắm điện thoại thông minh vận hành độc lập trên cổng <strong>3001</strong>.
+        Tích hợp cơ chế <strong>Dual-Engine</strong> (Tầng 1: Groq Cloud API + Function Calling; Tầng 2: Rule-Based Engine Offline kết nối trực tiếp CSDL <strong>PhoneStoreDB</strong>).
+      </p>
+
+      <div class="status-panel">
+        <div class="status-item">
+          <span class="label">Trạng thái Server:</span>
+          <span class="val" id="server-status" style="color: #10b981;">Đang kết nối...</span>
+        </div>
+        <div class="status-item">
+          <span class="label">Cơ sở dữ liệu (PhoneStoreDB):</span>
+          <span class="val" id="db-status">Đang kiểm tra...</span>
+        </div>
+        <div class="status-item">
+          <span class="label">Cấu hình Groq Online:</span>
+          <span class="val" id="groq-status">Đang tải...</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="test-suite">
+      <h2>⚡ Kịch bản Kiểm thử Nhanh (Click để Chatbot tự mở và trả lời)</h2>
+      <div class="test-buttons">
+        <button class="btn-test" onclick="window.kittyOpenChat('Tư vấn giúp mình điện thoại chơi game tầm 10 đến 15 triệu với!')">
+          🎮 Cày game tầm 10-15 triệu
+          <span class="sub">Kiểm tra lọc máy theo cấu hình Chip mạnh, RAM lớn & ngân sách</span>
+        </button>
+
+        <button class="btn-test" onclick="window.kittyOpenChat('Cho mình hỏi chiếc iPhone 15 Pro Max hiện cửa hàng còn bao nhiêu máy trong kho?')">
+          📦 Kiểm tra tồn kho iPhone 15 Pro Max
+          <span class="sub">Truy vấn bảng Product kiểm tra số lượng thực tế</span>
+        </button>
+
+        <button class="btn-test" onclick="window.kittyOpenChat('So sánh giúp mình iPhone 15 và Galaxy S25 máy nào chụp ảnh và pin tốt hơn?')">
+          ⚖️ So sánh iPhone 15 và Galaxy S25
+          <span class="sub">Kích hoạt hàm so sánh cấu hình chi tiết 2 dòng flagship</span>
+        </button>
+
+        <button class="btn-test" onclick="window.kittyOpenChat('KittyPhone hiện đang có khuyến mãi hoặc mã giảm giá gì không?')">
+          🎁 Tra cứu Khuyến mãi & Voucher
+          <span class="sub">Truy vấn bảng Promotion các chương trình đang hiệu lực</span>
+        </button>
+
+        <button class="btn-test" onclick="window.kittyOpenChat('Có máy nào pin trâu dưới 5 triệu cho người lớn tuổi không?')">
+          🔋 Pin trâu dưới 5 triệu
+          <span class="sub">Lọc máy pin khủng, màn hình lớn, giá phổ thông</span>
+        </button>
+
+        <button class="btn-test" onclick="window.kittyOpenChat('Làm cho mình một bài thơ về mùa thu được không?')">
+          🚫 Thử nghiệm câu hỏi ngoài lề
+          <span class="sub">Kiểm tra quy tắc Chuyên viên công nghệ chỉ trả lời về điện thoại</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Nhúng Widget KittyBot -->
+  <script src="kittybot.js"></script>
+  <script>
+    // Kiểm tra health check khi load trang
+    fetch('/api/health')
+      .then(res => res.json())
+      .then(data => {
+        document.getElementById('server-status').textContent = '✅ Đang hoạt động (Port ' + data.port + ')';
+        document.getElementById('db-status').textContent = data.database === 'Connected' ? '✅ Đã kết nối' : '⚠️ Ngắt kết nối';
+        document.getElementById('groq-status').textContent = data.groqConfigured ? '✅ Sẵn sàng (' + data.model + ')' : '⚡ Chế độ Offline 0đ (Rule-Based)';
+      })
+      .catch(() => {
+        document.getElementById('server-status').textContent = '❌ Không thể kết nối';
+      });
+  </script>
+</body>
+</html>
