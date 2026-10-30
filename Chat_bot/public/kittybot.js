@@ -1,9 +1,22 @@
 (function () {
   'use strict';
 
-  // API endpoint configuration
-  const API_BASE = window.KITTYBOT_API_URL || 'http://localhost:3001';
-  const CHAT_ENDPOINT = `${API_BASE}/api/chat`;
+  // Smart Endpoint Discovery
+  // 1. Explicit config: window.KITTYBOT_API_URL
+  // 2. NodeJS Standalone UI (port 3001): '/api/chat'
+  // 3. ASP.NET Core Website (HTTPS or HTTP): '/api/chatbot/chat' (same-origin, eliminates Mixed Content & CORS)
+  function getPrimaryEndpoint() {
+    if (window.KITTYBOT_API_URL) return `${window.KITTYBOT_API_URL.replace(/\/+$/, '')}/api/chat`;
+    if (window.location.port === '3001') return '/api/chat';
+    return '/api/chatbot/chat';
+  }
+
+  function getFallbackEndpoint() {
+    if (window.location.protocol === 'http:' && window.location.port !== '3001') {
+      return 'http://localhost:3001/api/chat';
+    }
+    return null;
+  }
 
   let isChatOpen = false;
   let chatHistory = [];
@@ -263,19 +276,38 @@
     showTypingIndicator();
 
     try {
-      const response = await fetch(CHAT_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          message: text,
-          history: chatHistory
-        })
-      });
+      const endpoint = getPrimaryEndpoint();
+      let response;
+      try {
+        response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            message: text,
+            history: chatHistory
+          })
+        });
+      } catch (primaryErr) {
+        const fallback = getFallbackEndpoint();
+        if (fallback) {
+          console.warn(`Primary endpoint (${endpoint}) failed, trying fallback (${fallback})...`);
+          response = await fetch(fallback, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              message: text,
+              history: chatHistory
+            })
+          });
+        } else {
+          throw primaryErr;
+        }
+      }
 
       removeTypingIndicator();
 
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}`);
+      if (!response || !response.ok) {
+        throw new Error(`HTTP ${response ? response.status : 'error'}`);
       }
 
       const data = await response.json();
@@ -289,7 +321,7 @@
       removeTypingIndicator();
       console.warn('Lỗi gọi API chat:', err);
       appendBotMessage(
-        '⚠️ Hiện tại chưa kết nối được với máy chủ KittyBot (Port 3001). Bạn vui lòng kiểm tra xem dịch vụ chatbot đã được khởi động chưa nhé!',
+        '⚠️ Hiện tại chưa nhận được phản hồi từ máy chủ KittyBot. Bạn vui lòng thử gửi lại câu hỏi hoặc kiểm tra kết nối nhé!',
         'Lỗi mạng'
       );
     } finally {

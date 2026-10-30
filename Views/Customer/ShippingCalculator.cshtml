@@ -1,0 +1,447 @@
+@model BTL_PTTKYC.Models.ShippingQuoteResult
+@{
+    ViewData["Title"] = "Công Cụ Tra Cứu & Ước Tính Cước Ship Tận Nhà | KittyPhone";
+    var districts = ViewBag.Districts as List<BTL_PTTKYC.Models.DistrictDistanceInfo> ?? new();
+}
+
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-secondary"><i class="bi bi-house-door me-1"></i>Trang chủ</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Customer" asp-action="Profile" class="text-secondary">Tài khoản</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Ước tính cước Ship tận nhà</li>
+        </ol>
+    </nav>
+
+    <!-- Banner giới thiệu -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4 text-white overflow-hidden" style="background: linear-gradient(135deg, #0e2254, #0284c7);">
+        <div class="card-body p-4 p-md-5">
+            <div class="row align-items-center g-4">
+                <div class="col-lg-8">
+                    <span class="badge bg-white text-primary rounded-pill px-3 py-1 fw-bold text-uppercase mb-2">
+                        <i class="bi bi-truck me-1"></i>Minh Bạch Cước Phí & Chống Rủi Ro
+                    </span>
+                    <h2 class="fw-bold mb-2">Công Cụ Ước Tính & Tra Cứu Tiền Ship Tận Nhà</h2>
+                    <p class="mb-0 text-white-50" style="max-width: 650px;">
+                        Hệ thống tự động so sánh cước phí thời gian thực giữa các đơn vị giao hàng hàng đầu Việt Nam: 
+                        <strong>Xanh SM, Grab, Be, Giao Hàng Nhanh, Viettel Post</strong>. Đảm bảo cước phí hợp lý cho khách hàng và an toàn tuyệt đối cho cửa hàng.
+                    </p>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    <div class="p-3 rounded-3 bg-white bg-opacity-10 border border-white-50 text-start">
+                        <div class="small text-white-50">Kho xuất phát:</div>
+                        <div class="fw-bold text-warning small">123 Thái Hà, Đống Đa, Hà Nội</div>
+                        <div class="small text-white-50 mt-2">Bảo hiểm bưu kiện:</div>
+                        <div class="fw-bold text-white small">Cam kết 100% giá trị máy</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Cột trái: Form điều chỉnh thông số kiện hàng & địa điểm -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 sticky-top" style="top: 85px;">
+                <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                    <i class="bi bi-sliders text-primary"></i>
+                    <span>Thông Số Tra Cứu</span>
+                </h5>
+
+                <form id="shippingCalcForm">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">Tỉnh / Thành phố nhận:</label>
+                        <select id="selProvince" class="form-select rounded-3 small">
+                            <option value="Hà Nội" selected>Hà Nội</option>
+                            <option value="TP. Hồ Chí Minh">TP. Hồ Chí Minh</option>
+                            <option value="Đà Nẵng">Đà Nẵng</option>
+                            <option value="Hải Phòng">Hải Phòng</option>
+                            <option value="Quảng Ninh">Quảng Ninh</option>
+                            <option value="Bắc Ninh">Bắc Ninh</option>
+                            <option value="Cần Thơ">Cần Thơ</option>
+                            <option value="Bình Dương">Bình Dương</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">Quận / Huyện nhận hàng:</label>
+                        <select id="selDistrict" class="form-select rounded-3 small">
+                            <option value="Đống Đa" data-km="1.2" selected>Đống Đa (gần kho ~1.2 km)</option>
+                            <option value="Ba Đình" data-km="3.5">Ba Đình (~3.5 km)</option>
+                            <option value="Cầu Giấy" data-km="3.8">Cầu Giấy (~3.8 km)</option>
+                            <option value="Thanh Xuân" data-km="3.2">Thanh Xuân (~3.2 km)</option>
+                            <option value="Hoàn Kiếm" data-km="5.2">Hoàn Kiếm (~5.2 km)</option>
+                            <option value="Hai Bà Trưng" data-km="4.8">Hai Bà Trưng (~4.8 km)</option>
+                            <option value="Tây Hồ" data-km="6.5">Tây Hồ (~6.5 km)</option>
+                            <option value="Hoàng Mai" data-km="6.8">Hoàng Mai (~6.8 km)</option>
+                            <option value="Hà Đông" data-km="8.5">Hà Đông (~8.5 km)</option>
+                            <option value="Nam Từ Liêm" data-km="7.2">Nam Từ Liêm (~7.2 km)</option>
+                            <option value="Bắc Từ Liêm" data-km="9.8">Bắc Từ Liêm (~9.8 km)</option>
+                            <option value="Long Biên" data-km="10.5">Long Biên (~10.5 km)</option>
+                            <option value="Gia Lâm" data-km="15.0">Gia Lâm (~15 km)</option>
+                            <option value="Đông Anh" data-km="18.5">Đông Anh (~18.5 km)</option>
+                            <option value="Sóc Sơn" data-km="33.0">Sóc Sơn (~33 km - ngoài cự ly xe máy)</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">Khoảng cách thực tế (km):</label>
+                        <div class="input-group">
+                            <input type="number" id="inpDistance" class="form-control rounded-start-3 small" value="@Model.Request.DistanceKm" step="0.5" min="0.5" max="2500" />
+                            <span class="input-group-text small">km</span>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">Giá trị hàng hóa (VNĐ):</label>
+                        <select id="selDeclaredValue" class="form-select rounded-3 small">
+                            <option value="500000">Phụ kiện (~500.000đ)</option>
+                            <option value="5000000">Điện thoại phổ thông (~5.000.000đ)</option>
+                            <option value="15000000" selected>Điện thoại tầm trung (~15.000.000đ)</option>
+                            <option value="30000000">iPhone / Samsung Flagship (~30.000.000đ)</option>
+                            <option value="50000000">iPhone Duo / Titan cao cấp (~50.000.000đ)</option>
+                        </select>
+                        <div class="form-text" style="font-size: 0.75rem;">Tính phí bảo hiểm khai giá 0.5% để phòng tránh rủi ro mất hàng.</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-dark">Mục đích vận chuyển:</label>
+                        <div class="form-check small">
+                            <input class="form-check-input" type="radio" name="purposeRadio" id="purposeSales" value="sales" checked>
+                            <label class="form-check-label" for="purposeSales">Mua hàng (Được trợ giá freeship đơn $\ge$ 5Tr)</label>
+                        </div>
+                        <div class="form-check small">
+                            <input class="form-check-input" type="radio" name="purposeRadio" id="purposeWarranty" value="warranty">
+                            <label class="form-check-label" for="purposeWarranty">Bảo hành tại nhà (Trợ giá máy còn hạn)</label>
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-dark">Trọng lượng (gam):</label>
+                            <input type="number" id="inpWeight" class="form-control rounded-3 small" value="500" step="50" min="50" max="20000" />
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-dark">Kích thước (cm):</label>
+                            <input type="text" id="inpDimensions" class="form-control rounded-3 small" value="20x12x8" title="Dài x Rộng x Cao" />
+                        </div>
+                    </div>
+
+                    <button type="button" id="btnRecalculate" class="btn btn-primary w-100 rounded-pill fw-bold shadow-sm py-2">
+                        <i class="bi bi-arrow-repeat me-1"></i>Tính Lại Cước Phí
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Cột phải: Bảng so sánh 5 nhà vận chuyển & Phân tích rủi ro -->
+        <div class="col-lg-8">
+            <!-- Thông báo phạm vi tính cước -->
+            <div class="alert alert-light border shadow-sm rounded-4 p-3 mb-4 d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-geo-alt-fill text-danger fs-4"></i>
+                    <div>
+                        <div class="text-muted small">Phạm vi lộ trình:</div>
+                        <strong class="text-dark" id="displayScope">@Model.CalculatedScope</strong>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill px-3 py-1 font-monospace">
+                        Cân nặng tính cước: <span id="displayWeight">@Model.ChargeableWeightKg kg</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Danh sách gói cước các đơn vị vận chuyển -->
+            <div id="carrierCardsContainer" class="d-flex flex-column gap-3 mb-4">
+                @foreach (var carrier in Model.AvailableCarriers)
+                {
+                    <div class="card border-0 shadow-sm rounded-4 p-4 carrier-card @(carrier.IsRecommended ? "border border-2 border-primary" : "") @(!carrier.IsFeasible ? "opacity-50" : "")" style="background: #ffffff;">
+                        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 pb-3 border-bottom">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="rounded-3 border p-2 bg-light d-flex align-items-center justify-content-center" style="width: 55px; height: 55px;">
+                                    <i class="bi @(carrier.CarrierId == "xanhsm" || carrier.CarrierId == "grab" || carrier.CarrierId == "be" ? "bi-bicycle" : "bi-truck") fs-2 text-@carrier.BadgeColor"></i>
+                                </div>
+                                <div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <h5 class="fw-bold mb-0 text-dark">@carrier.CarrierName</h5>
+                                        @if (carrier.IsRecommended)
+                                        {
+                                            <span class="badge bg-primary text-white rounded-pill px-2 py-1 small">
+                                                <i class="bi bi-star-fill me-1 text-warning"></i>Khuyên Dùng
+                                            </span>
+                                        }
+                                    </div>
+                                    <span class="badge bg-light text-secondary border rounded-pill mt-1">@carrier.ServiceTypeBadge</span>
+                                </div>
+                            </div>
+
+                            <div class="text-end">
+                                <div class="small text-muted">Cước khách thanh toán:</div>
+                                <div class="fs-4 fw-bold text-@carrier.BadgeColor">
+                                    @(carrier.IsFeasible ? carrier.FinalFee.ToString("N0") + "đ" : "Không hỗ trợ")
+                                </div>
+                                @if (carrier.StoreSubsidy > 0 && carrier.IsFeasible)
+                                {
+                                    <div class="small text-success">
+                                        <i class="bi bi-tag-fill me-1"></i>Trợ giá: -@carrier.StoreSubsidy.ToString("N0")đ
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Chi tiết cấu thành cước -->
+                        <div class="row g-2 pt-3 small text-muted">
+                            <div class="col-md-3">
+                                <span>Cước cơ bản:</span>
+                                <strong class="text-dark d-block">@carrier.BaseFare.ToString("N0")đ</strong>
+                            </div>
+                            <div class="col-md-3">
+                                <span>Cước km / cân nặng:</span>
+                                <strong class="text-dark d-block">@((carrier.DistanceFare + carrier.WeightFare).ToString("N0"))đ</strong>
+                            </div>
+                            <div class="col-md-3">
+                                <span>Bảo hiểm an toàn máy:</span>
+                                <strong class="text-dark d-block">@carrier.InsuranceFee.ToString("N0")đ</strong>
+                            </div>
+                            <div class="col-md-3">
+                                <span>Thời gian giao:</span>
+                                <strong class="text-primary d-block">@carrier.EstimatedDeliveryTime</strong>
+                            </div>
+                        </div>
+
+                        <!-- Ghi chú an toàn & chống lỗ hổng -->
+                        <div class="mt-3 p-2 px-3 rounded-3 bg-light border small text-dark d-flex align-items-center gap-2">
+                            <i class="bi bi-shield-check text-success fs-5"></i>
+                            <span>@carrier.RiskPreventionNote</span>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Bảng phân tích chi tiết: Làm cách nào để tính tiền ship không lỗ và không quá đắt -->
+            <div class="card border-0 shadow-sm rounded-4 p-4" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+                <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                    <i class="bi bi-lightbulb-fill text-warning fs-4"></i>
+                    <span>Báo Cáo Nghiên Cứu: Cơ Chế Tính Cước Minh Bạch & Chống Lỗ Hổng Cửa Hàng</span>
+                </h5>
+
+                <div class="accordion accordion-flush" id="accordionRisk">
+                    <!-- Item 1: Công thức tính -->
+                    <div class="accordion-item bg-transparent">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-bold text-dark bg-transparent" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapse1">
+                                1. Phân biệt cách tính cước: Xe máy tức thời (Grab/Be/Xanh SM) vs. Bưu cục (GHN/Viettel Post)
+                            </button>
+                        </h2>
+                        <div id="flush-collapse1" class="accordion-collapse collapse show">
+                            <div class="accordion-body small text-secondary">
+                                <ul>
+                                    <li><strong>Xe máy hỏa tốc (GrabExpress / BeDelivery / Xanh SM)</strong>: Tính cước dựa hoàn toàn vào <strong>số km thực tế</strong>. Giá mở cửa 2km đầu từ 14.000đ - 16.000đ, mỗi km tiếp theo 5.000đ - 5.500đ/km. Chỉ áp dụng trong nội thành dưới 25km.</li>
+                                    <li><strong>Bưu cục chuyển phát (GHN / Viettel Post)</strong>: Tính cước dựa trên <strong>phân vùng địa lý</strong> (Nội tỉnh / Nội miền / Liên miền) kết hợp với <strong>Trọng lượng tính cước</strong>.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Item 2: Quy tắc trọng lượng thể tích -->
+                    <div class="accordion-item bg-transparent">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-bold text-dark bg-transparent" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapse2">
+                                2. Quy tắc trọng lượng quy đổi kích thước thể tích (Volumetric Weight)
+                            </button>
+                        </h2>
+                        <div id="flush-collapse2" class="accordion-collapse collapse">
+                            <div class="accordion-body small text-secondary">
+                                <p>Hàng điện tử đóng thùng xốp chống sốc thường có thể tích lớn hơn trọng lượng thực tế. Tiêu chuẩn bưu chính áp dụng công thức:</p>
+                                <div class="p-2 bg-white rounded border font-monospace text-primary text-center my-2">
+                                    Trọng lượng thể tích (kg) = (Dài x Rộng x Cao cm) / 5000
+                                </div>
+                                <p class="mb-0">Hệ thống luôn chọn <strong>Max(Cân thực tế, Cân thể tích)</strong> để tính cước chính xác, tránh việc cửa hàng bị bưu cục phạt phụ thu quá khổ.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Item 3: Phí bảo hiểm và phòng ngừa lỗ hổng chí mạng -->
+                    <div class="accordion-item bg-transparent">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-bold text-danger bg-transparent" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapse3">
+                                3. Lỗ hổng chí mạng: Bắt buộc khai giá bảo hiểm bưu gửi hàng giá trị cao
+                            </button>
+                        </h2>
+                        <div id="flush-collapse3" class="accordion-collapse collapse">
+                            <div class="accordion-body small text-secondary">
+                                <div class="alert alert-danger p-2 px-3 small rounded-3 mb-2">
+                                    <strong>CẢNH BÁO RỦI RO:</strong> Theo Luật Bưu chính Việt Nam, nếu bưu phẩm gửi không mua gói bảo hiểm khai giá, khi bưu tá làm mất hàng, bưu cục chỉ đền bù tối đa <strong>4 lần cước vận chuyển (khoảng 140.000đ)</strong>!
+                                </div>
+                                <p class="mb-0">Do đó, với các thiết bị điện thoại trị giá từ 5.000.000đ đến 40.000.000đ, hệ thống KittyPhone luôn <strong>tự động đính kèm phí bảo hiểm khai giá 0.5%</strong>. Nếu xảy ra rủi ro cướp giật hoặc thất lạc, đơn vị bảo hiểm và nhà vận chuyển sẽ bồi thường 100% giá trị hóa đơn cho cửa hàng.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Item 4: Chính sách trợ giá để không quá đắt -->
+                    <div class="accordion-item bg-transparent">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed fw-bold text-success bg-transparent" type="button" data-bs-toggle="collapse" data-bs-target="#flush-collapse4">
+                                4. Làm cách nào để tiền ship không quá đắt với khách hàng?
+                            </button>
+                        </h2>
+                        <div id="flush-collapse4" class="accordion-collapse collapse">
+                            <div class="accordion-body small text-secondary">
+                                <ul>
+                                    <li><strong>Trợ giá đơn hàng giá trị cao</strong>: Với đơn mua hàng $\ge$ 5 triệu, KittyPhone trợ giá trực tiếp 35.000đ (khách dùng GHN được <strong>Freeship 0đ</strong>, khách chọn Xanh SM hỏa tốc chỉ trả thêm phần chênh lệch nhỏ ~15.000đ).</li>
+                                    <li><strong>Trợ giá bảo hành chính hãng</strong>: Thiết bị còn hạn bảo hành được KittyPhone tài trợ 100% cước tiêu chuẩn 2 chiều.</li>
+                                    <li><strong>Đặc quyền thành viên KittyMember</strong>: Hạng Vàng được giảm thêm 10.000đ, hạng Kim Cương giảm thêm 20.000đ.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const selDistrict = document.getElementById("selDistrict");
+        const inpDistance = document.getElementById("inpDistance");
+        const selProvince = document.getElementById("selProvince");
+        const selDeclaredValue = document.getElementById("selDeclaredValue");
+        const btnRecalculate = document.getElementById("btnRecalculate");
+
+        // Khi chọn quận huyện, tự động cập nhật số km tương ứng
+        selDistrict.addEventListener("change", function () {
+            const opt = this.options[this.selectedIndex];
+            const km = opt.getAttribute("data-km");
+            if (km) {
+                inpDistance.value = km;
+            }
+        });
+
+        // Khi chọn tỉnh thành khác Hà Nội
+        selProvince.addEventListener("change", function () {
+            if (this.value === "TP. Hồ Chí Minh") inpDistance.value = "1720";
+            else if (this.value === "Đà Nẵng") inpDistance.value = "760";
+            else if (this.value === "Hải Phòng") inpDistance.value = "118";
+            else if (this.value === "Bắc Ninh") inpDistance.value = "38";
+            else if (this.value === "Cần Thơ") inpDistance.value = "1880";
+            else if (this.value === "Hà Nội") inpDistance.value = "5";
+        });
+
+        // Gọi API tính lại cước phí qua AJAX
+        btnRecalculate.addEventListener("click", function () {
+            const isWarranty = document.getElementById("purposeWarranty").checked;
+            const dims = (document.getElementById("inpDimensions").value || "20x12x8").split("x");
+
+            const payload = {
+                destinationProvince: selProvince.value,
+                destinationDistrict: selDistrict.value,
+                distanceKm: parseFloat(inpDistance.value) || 5,
+                declaredValue: parseFloat(selDeclaredValue.value) || 15000000,
+                weightGrams: parseInt(document.getElementById("inpWeight").value) || 500,
+                lengthCm: parseFloat(dims[0]) || 20,
+                widthCm: parseFloat(dims[1]) || 12,
+                heightCm: parseFloat(dims[2]) || 8,
+                isWarrantyService: isWarranty,
+                isUnderWarranty: true,
+                customerRank: "Standard"
+            };
+
+            btnRecalculate.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Đang tính...';
+            btnRecalculate.disabled = true;
+
+            fetch("/Customer/CalculateShipping", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(payload)
+            })
+            .then(res => res.json())
+            .then(res => {
+                btnRecalculate.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Tính Lại Cước Phí';
+                btnRecalculate.disabled = false;
+
+                if (res.success && res.quote) {
+                    renderCarrierCards(res.quote);
+                }
+            })
+            .catch(err => {
+                btnRecalculate.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Tính Lại Cước Phí';
+                btnRecalculate.disabled = false;
+                console.error(err);
+            });
+        });
+
+        function renderCarrierCards(quote) {
+            document.getElementById("displayScope").innerText = quote.calculatedScope;
+            document.getElementById("displayWeight").innerText = quote.chargeableWeightKg + " kg";
+
+            const container = document.getElementById("carrierCardsContainer");
+            container.innerHTML = "";
+
+            quote.availableCarriers.forEach(c => {
+                const isRecClass = c.isRecommended ? "border border-2 border-primary" : "";
+                const disabledClass = !c.isFeasible ? "opacity-50" : "";
+                const feeText = c.isFeasible ? Number(c.finalFee).toLocaleString() + "đ" : "Không hỗ trợ";
+                const subsidyHtml = (c.storeSubsidy > 0 && c.isFeasible) 
+                    ? `<div class="small text-success"><i class="bi bi-tag-fill me-1"></i>Trợ giá: -${Number(c.storeSubsidy).toLocaleString()}đ</div>` 
+                    : "";
+
+                const cardHtml = `
+                <div class="card border-0 shadow-sm rounded-4 p-4 carrier-card ${isRecClass} ${disabledClass}" style="background: #ffffff;">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 pb-3 border-bottom">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-3 border p-2 bg-light d-flex align-items-center justify-content-center" style="width: 55px; height: 55px;">
+                                <i class="bi ${c.carrierId === "xanhsm" || c.carrierId === "grab" || c.carrierId === "be" ? "bi-bicycle" : "bi-truck"} fs-2 text-${c.badgeColor}"></i>
+                            </div>
+                            <div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <h5 class="fw-bold mb-0 text-dark">${c.carrierName}</h5>
+                                    ${c.isRecommended ? '<span class="badge bg-primary text-white rounded-pill px-2 py-1 small"><i class="bi bi-star-fill me-1 text-warning"></i>Khuyên Dùng</span>' : ''}
+                                </div>
+                                <span class="badge bg-light text-secondary border rounded-pill mt-1">${c.serviceTypeBadge}</span>
+                            </div>
+                        </div>
+
+                        <div class="text-end">
+                            <div class="small text-muted">Cước khách thanh toán:</div>
+                            <div class="fs-4 fw-bold text-${c.badgeColor}">${feeText}</div>
+                            ${subsidyHtml}
+                        </div>
+                    </div>
+
+                    <div class="row g-2 pt-3 small text-muted">
+                        <div class="col-md-3">
+                            <span>Cước cơ bản:</span>
+                            <strong class="text-dark d-block">${Number(c.baseFare).toLocaleString()}đ</strong>
+                        </div>
+                        <div class="col-md-3">
+                            <span>Cước km / cân nặng:</span>
+                            <strong class="text-dark d-block">${Number(c.distanceFare + c.weightFare).toLocaleString()}đ</strong>
+                        </div>
+                        <div class="col-md-3">
+                            <span>Bảo hiểm an toàn máy:</span>
+                            <strong class="text-dark d-block">${Number(c.insuranceFee).toLocaleString()}đ</strong>
+                        </div>
+                        <div class="col-md-3">
+                            <span>Thời gian giao:</span>
+                            <strong class="text-primary d-block">${c.estimatedDeliveryTime}</strong>
+                        </div>
+                    </div>
+
+                    <div class="mt-3 p-2 px-3 rounded-3 bg-light border small text-dark d-flex align-items-center gap-2">
+                        <i class="bi bi-shield-check text-success fs-5"></i>
+                        <span>${c.riskPreventionNote}</span>
+                    </div>
+                </div>`;
+
+                container.insertAdjacentHTML("beforeend", cardHtml);
+            });
+        }
+    });
+</script>
+}

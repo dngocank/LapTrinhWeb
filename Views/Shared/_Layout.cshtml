@@ -19,10 +19,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - KittyPhone - Điện thoại, máy tính bảng, phụ kiện chính hãng</title>
     
-    <!-- Google Fonts Inter (KittyPhone Typography) -->
+    <!-- Google Fonts Inter (KittyPhone Typography - Full Range & Vietnamese support) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
 
     <!-- Bootstrap 5 CSS -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
@@ -110,6 +110,15 @@
                         </div>
                     </a>
 
+                    <!-- Tra cứu bảo hành -->
+                    <a asp-controller="Customer" asp-action="Warranty" class="cps-header-action d-none d-lg-flex text-decoration-none">
+                        <i class="bi bi-shield-check"></i>
+                        <div class="d-flex flex-column text-start">
+                            <span class="cps-action-sub">Tracking</span>
+                            <span class="cps-action-main">Bảo hành</span>
+                        </div>
+                    </a>
+
                     <!-- Giỏ hàng -->
                     <a asp-controller="Cart" asp-action="Index" class="cps-header-action cps-cart-action text-decoration-none">
                         <div class="position-relative">
@@ -140,6 +149,9 @@
                                 <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 py-2">
                                     <li><a class="dropdown-item fw-semibold text-primary" asp-controller="Customer" asp-action="Profile"><i class="bi bi-person-badge me-2"></i>Tài khoản KittyMember</a></li>
                                     <li><a class="dropdown-item fw-semibold" asp-controller="Customer" asp-action="Orders"><i class="bi bi-receipt me-2"></i>Đơn hàng đã đặt</a></li>
+                                    <li><a class="dropdown-item fw-semibold text-success" asp-controller="Customer" asp-action="Warranty"><i class="bi bi-shield-check me-2"></i>Tracking bảo hành</a></li>
+                                    <li><a class="dropdown-item fw-semibold text-warning" asp-controller="Customer" asp-action="Profile" asp-fragment="homewarranty-pane"><i class="bi bi-house-door me-2"></i>Đăng ký BH tại nhà</a></li>
+                                    <li><a class="dropdown-item fw-semibold text-info" asp-controller="Customer" asp-action="ShippingCalculator"><i class="bi bi-calculator me-2"></i>Ước tính phí ship</a></li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
                                         <form asp-controller="Customer" asp-action="Logout" method="post" class="px-2">
@@ -174,6 +186,10 @@
                                     @if (User.IsInRole("Warehouse") || User.IsInRole("Admin"))
                                     {
                                         <li><a class="dropdown-item" asp-controller="Warehouse" asp-action="Index"><i class="bi bi-box-seam me-2"></i>Quản lý Kho</a></li>
+                                    }
+                                    @if (User.IsInRole("Technician") || User.IsInRole("Admin"))
+                                    {
+                                        <li><a class="dropdown-item text-primary fw-semibold" asp-controller="Technician" asp-action="Index"><i class="bi bi-tools me-2"></i>Kỹ thuật & Bảo hành</a></li>
                                     }
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
@@ -254,6 +270,8 @@
                         <li><a asp-controller="Home" asp-action="Policy" asp-route-tab="online-payment" class="cps-footer-link" onclick="return openPolicyModal('online-payment', event);"><i class="bi bi-chevron-right me-1 small text-danger"></i>Mua hàng và thanh toán Online</a></li>
                         <li><a asp-controller="Home" asp-action="Policy" asp-route-tab="installment-0" class="cps-footer-link" onclick="return openPolicyModal('installment-0', event);"><i class="bi bi-chevron-right me-1 small text-danger"></i>Mua hàng trả góp 0% qua thẻ tín dụng</a></li>
                         <li><a asp-controller="Home" asp-action="Policy" asp-route-tab="shipping-inspection" class="cps-footer-link" onclick="return openPolicyModal('shipping-inspection', event);"><i class="bi bi-chevron-right me-1 small text-danger"></i>Chính sách giao hàng & kiểm hàng</a></li>
+                        <li><a asp-controller="Customer" asp-action="ShippingCalculator" class="cps-footer-link"><i class="bi bi-chevron-right me-1 small text-primary"></i>Ước tính phí ship tận nhà & Bảng giá cước</a></li>
+                        <li><a asp-controller="Customer" asp-action="Warranty" class="cps-footer-link"><i class="bi bi-chevron-right me-1 small text-success"></i>Tra cứu & Đăng ký bảo hành tại nhà</a></li>
                         <li><a asp-controller="Home" asp-action="Policy" asp-route-tab="warranty-30days" class="cps-footer-link" onclick="return openPolicyModal('warranty-30days', event);"><i class="bi bi-chevron-right me-1 small text-danger"></i>Chính sách bảo hành 1 đổi 1 trong 30 ngày</a></li>
                         <li><a asp-controller="Home" asp-action="Policy" asp-route-tab="vat-invoice" class="cps-footer-link" onclick="return openPolicyModal('vat-invoice', event);"><i class="bi bi-chevron-right me-1 small text-danger"></i>Tra cứu hóa đơn điện tử VAT</a></li>
                         <li><a asp-controller="Home" asp-action="Policy" asp-route-tab="privacy-policy" class="cps-footer-link" onclick="return openPolicyModal('privacy-policy', event);"><i class="bi bi-chevron-right me-1 small text-danger"></i>Chính sách bảo vệ thông tin khách hàng</a></li>

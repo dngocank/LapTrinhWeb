@@ -1,0 +1,174 @@
+@model BTL_PTTKYC.Models.WarrantyTicketModel
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Phiếu Tiếp Nhận & Hẹn Trả Máy - @Model.TicketCode</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8fafc;
+            color: #1e293b;
+        }
+        .ticket-wrapper {
+            max-width: 800px;
+            margin: 20px auto;
+            background: #fff;
+            padding: 30px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+        .barcode-box {
+            font-family: 'Courier New', Courier, monospace;
+            letter-spacing: 4px;
+            font-weight: 700;
+        }
+        @@media print {
+            body {
+                background: #fff;
+                padding: 0;
+            }
+            .ticket-wrapper {
+                margin: 0;
+                padding: 15px;
+                border: none;
+                box-shadow: none;
+                max-width: 100%;
+            }
+            .no-print {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="ticket-wrapper">
+        <!-- Print Toolbar -->
+        <div class="no-print d-flex justify-content-between align-items-center mb-4 p-2 bg-light rounded border">
+            <div>
+                <a href="javascript:window.close()" class="btn btn-sm btn-outline-secondary">Đóng</a>
+            </div>
+            <div class="d-flex gap-2">
+                <button onclick="window.print()" class="btn btn-sm btn-primary fw-bold">
+                    <i class="bi bi-printer me-1"></i>In Phiếu Ngay
+                </button>
+            </div>
+        </div>
+
+        <!-- Store Header -->
+        <div class="row align-items-center border-bottom pb-3 mb-3">
+            <div class="col-7">
+                <h4 class="fw-bold mb-0 text-primary">KITTYPHONE SERVICE CENTER</h4>
+                <div class="small text-muted">Hệ thống bán lẻ & Trung tâm bảo hành công nghệ chính hãng</div>
+                <div class="small text-muted">Địa chỉ: 123 Đường Công Nghệ, Quận 1, TP. Hồ Chí Minh</div>
+                <div class="small text-muted">Hotline kỹ thuật: <strong>0396.166.509</strong> | Website: kittyphone.vn</div>
+            </div>
+            <div class="col-5 text-end">
+                <div class="barcode-box fs-5 text-dark">|||||||||||||||||||||||||</div>
+                <div class="fs-5 fw-bold text-danger font-monospace">@Model.TicketCode</div>
+                <div class="small text-muted">Ngày nhận: @Model.ReceiveDate.ToString("dd/MM/yyyy HH:mm")</div>
+            </div>
+        </div>
+
+        <!-- Title -->
+        <div class="text-center my-3">
+            <h5 class="fw-bold text-uppercase mb-1">PHIẾU TIẾP NHẬN BẢO HÀNH & SỬA CHỮA</h5>
+            <span class="badge @Model.StatusBadgeClass">Trạng thái: @Model.StatusVietnamese</span>
+        </div>
+
+        <!-- Customer & Device Info -->
+        <div class="row g-3 mb-3">
+            <div class="col-6">
+                <div class="p-3 bg-light rounded border h-100">
+                    <div class="fw-bold text-primary small text-uppercase mb-2">1. THÔNG TIN KHÁCH HÀNG</div>
+                    <div>Họ và tên: <strong>@Model.CustomerName</strong></div>
+                    <div>Số điện thoại: <strong>@Model.CustomerPhone</strong></div>
+                    <div>Kỹ thuật viên tiếp nhận: @(Model.TechnicianName ?? "Kỹ thuật trực quầy")</div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="p-3 bg-light rounded border h-100">
+                    <div class="fw-bold text-primary small text-uppercase mb-2">2. THÔNG TIN THIẾT BỊ</div>
+                    <div>Dòng máy: <strong>@(Model.ProductName ?? "Máy tiếp nhận ngoài")</strong></div>
+                    <div>Số IMEI: <code class="fw-bold text-dark">@(Model.ImeiNumber ?? "Không xác định")</code></div>
+                    <div>Hạn bảo hành gốc: <strong>@Model.WarrantyCoverageText</strong></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Issue and Condition -->
+        <div class="p-3 bg-light rounded border mb-3">
+            <div class="row g-2">
+                <div class="col-12">
+                    <div class="fw-bold small text-uppercase text-danger">Hiện tượng lỗi do khách thông báo:</div>
+                    <div class="fst-italic text-dark">"@Model.CustomerIssue"</div>
+                </div>
+                <div class="col-12 mt-2 pt-2 border-top">
+                    <div class="fw-bold small text-uppercase text-secondary">Tình trạng ngoại quan & Linh kiện gửi kèm:</div>
+                    <div class="text-dark small">@(string.IsNullOrEmpty(Model.DeviceCondition) ? "Nguyên bản, không ghi nhận trầy móp đặc biệt" : Model.DeviceCondition)</div>
+                </div>
+                @if (!string.IsNullOrEmpty(Model.Diagnosis))
+                {
+                    <div class="col-12 mt-2 pt-2 border-top">
+                        <div class="fw-bold small text-uppercase text-primary">Chẩn đoán kỹ thuật & Phương án:</div>
+                        <div class="text-dark small">@Model.Diagnosis - @Model.RepairAction</div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Cost and Estimated Return Date -->
+        <div class="row g-3 mb-4">
+            <div class="col-6">
+                <div class="p-3 border rounded">
+                    <div class="small text-muted">Thời gian dự kiến hoàn thành:</div>
+                    <div class="fw-bold text-primary fs-6">
+                        @(Model.ExpectedReturnDate.HasValue ? Model.ExpectedReturnDate.Value.ToString("dd/MM/yyyy") : "Theo thỏa thuận")
+                    </div>
+                </div>
+            </div>
+            <div class="col-6">
+                <div class="p-3 border rounded text-end">
+                    <div class="small text-muted">Chi phí ước tính / Thanh toán:</div>
+                    <div class="fw-bold fs-5 @(Model.RepairCost == 0 ? "text-success" : "text-danger")">
+                        @(Model.RepairCost == 0 ? "0 VNĐ (BẢO HÀNH MIỄN PHÍ)" : Model.RepairCost.ToString("N0") + " VNĐ")
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Terms of Service -->
+        <div class="small text-muted mb-4 border-top pt-3">
+            <strong>* ĐIỀU KHOẢN TIẾP NHẬN BẢO HÀNH & SỬA CHỮA:</strong>
+            <ol class="ps-3 mb-0" style="font-size: 0.78rem;">
+                <li>Khách hàng vui lòng sao lưu toàn bộ dữ liệu cá nhân (danh bạ, hình ảnh, tài khoản iCloud/Google) trước khi gửi máy. Trung tâm không chịu trách nhiệm đối với dữ liệu cá nhân.</li>
+                <li>Vui lòng mang theo phiếu này khi đến nhận máy. Nếu làm mất phiếu, quý khách phải xuất trình CCCD trùng tên người gửi.</li>
+                <li>Sau 30 ngày kể từ ngày hẹn trả máy, nếu quý khách không đến nhận hoặc không liên lạc được, trung tâm sẽ không chịu trách nhiệm về thiết bị.</li>
+                <li>Thời gian bảo hành đối với linh kiện thay thế mới: từ 03 đến 12 tháng tùy loại linh kiện.</li>
+            </ol>
+        </div>
+
+        <!-- Signatures -->
+        <div class="row text-center mt-4 pt-2">
+            <div class="col-6">
+                <div class="fw-bold">KHÁCH HÀNG</div>
+                <div class="small text-muted">(Ký và ghi rõ họ tên)</div>
+                <div style="height: 70px;"></div>
+                <div class="fw-semibold">@Model.CustomerName</div>
+            </div>
+            <div class="col-6">
+                <div class="fw-bold">ĐẠI DIỆN TRUNG TÂM BẢO HÀNH</div>
+                <div class="small text-muted">(Ký và ghi rõ họ tên)</div>
+                <div style="height: 70px;"></div>
+                <div class="fw-semibold">@(Model.TechnicianName ?? "Kỹ thuật viên")</div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

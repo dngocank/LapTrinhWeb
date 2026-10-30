@@ -15,6 +15,11 @@ builder.Services.AddScoped<AccountRepository>();
 builder.Services.AddScoped<WarehouseRepository>();
 builder.Services.AddScoped<CustomerRepository>();
 builder.Services.AddScoped<PromotionRepository>();
+builder.Services.AddScoped<WarrantyRepository>();
+
+// Register Custom Business Services (Shipping Calculator & Notification Engine)
+builder.Services.AddScoped<BTL_PTTKYC.Services.IShippingService, BTL_PTTKYC.Services.ShippingService>();
+builder.Services.AddScoped<BTL_PTTKYC.Services.INotificationService, BTL_PTTKYC.Services.NotificationService>();
 
 // Add Distributed Memory Cache & Session for Cart
 builder.Services.AddDistributedMemoryCache();
@@ -51,6 +56,7 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
     options.AddPolicy("SalesOrAdmin", policy => policy.RequireRole("Admin", "Sales"));
     options.AddPolicy("WarehouseOrAdmin", policy => policy.RequireRole("Admin", "Warehouse"));
+    options.AddPolicy("TechnicianOrAdmin", policy => policy.RequireRole("Admin", "Technician"));
     options.AddPolicy("CustomerOnly", policy => policy.RequireRole("Customer"));
 });
 

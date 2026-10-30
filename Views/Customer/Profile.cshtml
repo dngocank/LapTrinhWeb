@@ -92,7 +92,7 @@
         <!-- Cột phải: Tabs Quản Lý -->
         <div class="col-lg-8">
             <div class="bg-white rounded-3 border shadow-sm p-4">
-                <ul class="nav nav-pills mb-4 gap-2" id="profileTab" role="tablist">
+                <ul class="nav nav-pills mb-4 gap-2 flex-wrap" id="profileTab" role="tablist">
                     <li class="nav-item" role="presentation">
                         <button class="nav-link active rounded-pill fw-bold" id="purchased-tab" data-bs-toggle="tab" data-bs-target="#purchased-pane" type="button" role="tab">
                             <i class="bi bi-box-seam me-1"></i>Sản Phẩm Đã Mua (@Model.PurchasedProducts.Count)
@@ -101,6 +101,21 @@
                     <li class="nav-item" role="presentation">
                         <button class="nav-link rounded-pill fw-bold" id="orders-tab" data-bs-toggle="tab" data-bs-target="#orders-pane" type="button" role="tab">
                             <i class="bi bi-receipt me-1"></i>Lịch Sử Đơn Hàng (@Model.Orders.Count)
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link rounded-pill fw-bold" id="warranty-tab" data-bs-toggle="tab" data-bs-target="#warranty-pane" type="button" role="tab">
+                            <i class="bi bi-shield-check me-1"></i>Tracking Bảo Hành (@Model.WarrantyTickets.Count)
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link rounded-pill fw-bold text-primary bg-primary-subtle" id="homewarranty-tab" data-bs-toggle="tab" data-bs-target="#homewarranty-pane" type="button" role="tab">
+                            <i class="bi bi-house-door-fill me-1"></i>Đăng Ký BH Tại Nhà
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link rounded-pill fw-bold" id="shipping-tab" data-bs-toggle="tab" data-bs-target="#shipping-pane" type="button" role="tab">
+                            <i class="bi bi-truck me-1"></i>Ước Tính Tiền Ship
                         </button>
                     </li>
                 </ul>
@@ -252,8 +267,432 @@
                             </div>
                         }
                     </div>
+
+                    <!-- Tab 3: Tracking Tiến Độ Bảo Hành -->
+                    <div class="tab-pane fade" id="warranty-pane" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                                <i class="bi bi-shield-check text-primary fs-5"></i>
+                                <span>Phiếu Bảo Hành Của Bạn (@Model.WarrantyTickets.Count)</span>
+                            </h6>
+                            <button type="button" class="btn btn-sm btn-primary rounded-pill fw-bold px-3" onclick="bootstrap.Tab.getOrCreateInstance(document.getElementById('homewarranty-tab')).show();">
+                                <i class="bi bi-plus-circle me-1"></i>Đăng Ký BH Mới
+                            </button>
+                        </div>
+
+                        @if (Model.WarrantyTickets.Count == 0)
+                        {
+                            <div class="text-center py-5 text-muted border rounded-3 bg-light">
+                                <i class="bi bi-shield-slash display-5 d-block mb-3 text-secondary"></i>
+                                <h6 class="fw-bold text-dark">Bạn chưa có phiếu bảo hành nào</h6>
+                                <p class="small text-muted mb-3">Nếu thiết bị của bạn gặp sự cố, hãy sử dụng dịch vụ tiếp nhận bảo hành tận nhà tiện lợi của KittyPhone!</p>
+                                <button type="button" class="btn btn-primary rounded-pill btn-sm px-4 fw-bold" onclick="bootstrap.Tab.getOrCreateInstance(document.getElementById('homewarranty-tab')).show();">
+                                    <i class="bi bi-house-door me-1"></i>Đăng ký bảo hành tại nhà ngay
+                                </button>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="d-flex flex-column gap-3">
+                                @foreach (var t in Model.WarrantyTickets)
+                                {
+                                    <div class="card border rounded-3 p-3 shadow-sm bg-white">
+                                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 pb-2 border-bottom">
+                                            <div class="d-flex align-items-center gap-2">
+                                                <span class="fw-bold text-primary font-monospace fs-6">#@t.TicketCode</span>
+                                                <span class="badge @t.StatusBadgeClass rounded-pill px-2 py-1 small">@t.StatusVietnamese</span>
+                                                @if (t.IsHomeService)
+                                                {
+                                                    <span class="badge bg-warning text-dark rounded-pill px-2 py-1 small">
+                                                        <i class="bi bi-house-door me-1"></i>Tận Nhà
+                                                    </span>
+                                                }
+                                            </div>
+                                            <div class="small text-muted">
+                                                Tiếp nhận: @t.ReceiveDate.ToString("dd/MM/yyyy")
+                                            </div>
+                                        </div>
+
+                                        <div class="row g-2 py-3 align-items-center">
+                                            <div class="col-md-7">
+                                                <h6 class="fw-bold text-dark mb-1">@(t.ProductName ?? "Điện thoại / Thiết bị thông minh")</h6>
+                                                @if (!string.IsNullOrEmpty(t.ImeiNumber))
+                                                {
+                                                    <div class="small text-muted font-monospace mb-1">IMEI: @t.ImeiNumber</div>
+                                                }
+                                                <div class="small text-danger">
+                                                    <strong>Lỗi báo:</strong> @t.CustomerIssue
+                                                </div>
+                                                @if (!string.IsNullOrEmpty(t.Diagnosis))
+                                                {
+                                                    <div class="small text-primary mt-1">
+                                                        <strong>Chẩn đoán:</strong> @t.Diagnosis
+                                                    </div>
+                                                }
+                                            </div>
+
+                                            <div class="col-md-5 text-md-end">
+                                                <div class="small text-muted mb-1">Chi phí sửa chữa:</div>
+                                                <div class="fw-bold text-dark fs-6 mb-1">
+                                                    @(t.RepairCost == 0 ? "0đ (Miễn phí BH)" : t.RepairCost.ToString("N0") + "đ")
+                                                </div>
+                                                <span class="@t.PaymentStatusBadgeClass px-2 py-1 rounded-pill small">
+                                                    @t.PaymentStatusVietnamese
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                            <div class="small text-muted">
+                                                <i class="bi bi-person-gear me-1"></i>KTV: @(t.TechnicianName ?? "Nguyễn Văn Kỹ Thuật")
+                                            </div>
+                                            <a asp-action="WarrantyDetail" asp-route-id="@t.TicketId" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold">
+                                                Xem Tiến Độ Chi Tiết <i class="bi bi-arrow-right ms-1"></i>
+                                            </a>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Tab 4: Đăng Ký Bảo Hành Tại Nhà -->
+                    <div class="tab-pane fade" id="homewarranty-pane" role="tabpanel">
+                        <div class="bg-light p-3 rounded-3 border mb-4">
+                            <div class="d-flex align-items-center gap-2 mb-1">
+                                <i class="bi bi-shield-check text-success fs-4"></i>
+                                <h6 class="fw-bold text-dark mb-0">Dịch Vụ Tiếp Nhận & Sửa Chữa Thiết Bị Tận Nơi</h6>
+                            </div>
+                            <p class="small text-muted mb-0">
+                                Quý khách không cần trực tiếp đến cửa hàng! Kỹ thuật viên hoặc đối tác vận chuyển hỏa tốc (Xanh SM / Grab) sẽ đến tận địa chỉ theo lịch hẹn để nhận máy và bàn giao trả sau khi sửa xong.
+                            </p>
+                        </div>
+
+                        <form asp-action="RegisterHomeWarranty" method="post" id="homeWarrantyForm">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" asp-for="HomeWarrantyForm.CustomerId" />
+
+                            <!-- Chọn thiết bị -->
+                            <div class="card border rounded-3 p-3 mb-3">
+                                <h6 class="fw-bold text-dark mb-3 small text-uppercase">1. Chọn Thiết Bị Cần Bảo Hành</h6>
+                                
+                                @if (Model.PurchasedProducts.Count > 0)
+                                {
+                                    <div class="mb-3">
+                                        <label class="form-label small text-muted">Chọn từ sản phẩm bạn đã mua:</label>
+                                        <select id="selPurchasedDevice" class="form-select form-select-sm rounded-3">
+                                            <option value="">-- Chọn sản phẩm đã mua tại KittyPhone --</option>
+                                            @foreach (var p in Model.PurchasedProducts)
+                                            {
+                                                <option value="@p.ProductId" data-name="@p.ProductName">
+                                                    @p.ProductName (Đơn #@p.InvoiceId - @p.OrderDate.ToString("dd/MM/yyyy"))
+                                                </option>
+                                            }
+                                        </select>
+                                    </div>
+                                }
+
+                                <div class="row g-3">
+                                    <div class="col-md-7">
+                                        <label asp-for="HomeWarrantyForm.DeviceName" class="form-label small fw-bold">Tên thiết bị / Dòng máy <span class="text-danger">*</span></label>
+                                        <input asp-for="HomeWarrantyForm.DeviceName" id="hwDeviceName" class="form-control form-control-sm rounded-3" placeholder="Ví dụ: iPhone 15 Pro Max 256GB" required />
+                                        <span asp-validation-for="HomeWarrantyForm.DeviceName" class="text-danger small"></span>
+                                    </div>
+                                    <div class="col-md-5">
+                                        <label asp-for="HomeWarrantyForm.SerialNumberOrImei" class="form-label small fw-bold">Số IMEI / Serial</label>
+                                        <input asp-for="HomeWarrantyForm.SerialNumberOrImei" id="hwImei" class="form-control form-control-sm rounded-3 font-monospace" placeholder="15 chữ số IMEI" />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Địa chỉ và thời gian hẹn -->
+                            <div class="card border rounded-3 p-3 mb-3">
+                                <h6 class="fw-bold text-dark mb-3 small text-uppercase">2. Địa Chỉ & Thời Gian Tiếp Nhận Tận Nhà</h6>
+                                
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-6">
+                                        <label asp-for="HomeWarrantyForm.CustomerName" class="form-label small fw-bold">Họ và tên người gửi <span class="text-danger">*</span></label>
+                                        <input asp-for="HomeWarrantyForm.CustomerName" class="form-control form-control-sm rounded-3" required />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label asp-for="HomeWarrantyForm.CustomerPhone" class="form-label small fw-bold">Số điện thoại liên hệ <span class="text-danger">*</span></label>
+                                        <input asp-for="HomeWarrantyForm.CustomerPhone" class="form-control form-control-sm rounded-3" required />
+                                    </div>
+                                    <div class="col-12">
+                                        <label asp-for="HomeWarrantyForm.CustomerEmail" class="form-label small fw-bold">Địa chỉ Email nhận tiến độ <span class="text-danger">*</span></label>
+                                        <input asp-for="HomeWarrantyForm.CustomerEmail" class="form-control form-control-sm rounded-3" placeholder="gmail@example.com" required />
+                                        <div class="form-text" style="font-size: 0.75rem;">Hệ thống sẽ gửi email cập nhật chi tiết mỗi khi KTV kiểm tra hoặc sửa chữa xong.</div>
+                                    </div>
+                                    <div class="col-md-8">
+                                        <label asp-for="HomeWarrantyForm.PickupAddress" class="form-label small fw-bold">Địa chỉ nhận máy tận nơi <span class="text-danger">*</span></label>
+                                        <input asp-for="HomeWarrantyForm.PickupAddress" id="hwAddress" class="form-control form-control-sm rounded-3" placeholder="Số nhà, ngõ/ngách, tên đường, phường/xã" required />
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label small fw-bold">Quận / Huyện</label>
+                                        <select asp-for="HomeWarrantyForm.PickupDistrict" id="hwDistrict" class="form-select form-select-sm rounded-3">
+                                            <option value="Đống Đa" selected>Đống Đa (Gần shop)</option>
+                                            <option value="Ba Đình">Ba Đình</option>
+                                            <option value="Cầu Giấy">Cầu Giấy</option>
+                                            <option value="Thanh Xuân">Thanh Xuân</option>
+                                            <option value="Hoàn Kiếm">Hoàn Kiếm</option>
+                                            <option value="Hai Bà Trưng">Hai Bà Trưng</option>
+                                            <option value="Tây Hồ">Tây Hồ</option>
+                                            <option value="Hà Đông">Hà Đông</option>
+                                            <option value="Nam Từ Liêm">Nam Từ Liêm</option>
+                                            <option value="Bắc Từ Liêm">Bắc Từ Liêm</option>
+                                            <option value="Long Biên">Long Biên</option>
+                                            <option value="Gia Lâm">Gia Lâm</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label asp-for="HomeWarrantyForm.PickupDate" class="form-label small fw-bold">Ngày hẹn lấy máy <span class="text-danger">*</span></label>
+                                        <input asp-for="HomeWarrantyForm.PickupDate" type="date" class="form-control form-control-sm rounded-3" min="@DateTime.Today.ToString("yyyy-MM-dd")" required />
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label asp-for="HomeWarrantyForm.PickupTimeSlot" class="form-label small fw-bold">Khung giờ hẹn lấy máy <span class="text-danger">*</span></label>
+                                        <select asp-for="HomeWarrantyForm.PickupTimeSlot" class="form-select form-select-sm rounded-3">
+                                            <option value="08:30 - 11:30">Buổi sáng (08:30 - 11:30)</option>
+                                            <option value="14:00 - 17:30" selected>Buổi chiều (14:00 - 17:30)</option>
+                                            <option value="18:00 - 20:30">Buổi tối (18:00 - 20:30)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Mô tả lỗi & Tình trạng -->
+                            <div class="card border rounded-3 p-3 mb-3">
+                                <h6 class="fw-bold text-dark mb-3 small text-uppercase">3. Hiện Tượng Lỗi Thiết Bị</h6>
+                                
+                                <div class="mb-3">
+                                    <label asp-for="HomeWarrantyForm.CustomerIssue" class="form-label small fw-bold">Mô tả chi tiết lỗi gặp phải <span class="text-danger">*</span></label>
+                                    <textarea asp-for="HomeWarrantyForm.CustomerIssue" rows="3" class="form-control form-control-sm rounded-3" placeholder="Ví dụ: Màn hình bị chớp giật sọc xanh, sạc pin không vào hoặc mất sóng 5G..." required></textarea>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label asp-for="HomeWarrantyForm.DeviceCondition" class="form-label small fw-bold">Tình trạng ngoại quan máy</label>
+                                    <input asp-for="HomeWarrantyForm.DeviceCondition" class="form-control form-control-sm rounded-3" placeholder="Ví dụ: Máy không trầy xước, còn nguyên vẹn, dán kính cường lực" />
+                                </div>
+
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">Hình thức tiếp nhận:</label>
+                                        <select asp-for="HomeWarrantyForm.ServiceType" class="form-select form-select-sm rounded-3">
+                                            <option value="Kỹ thuật viên KittyPhone qua tận nơi">Kỹ thuật viên KittyPhone qua tận nhà</option>
+                                            <option value="Book Shipper lấy máy về trung tâm">Book Shipper hỏa tốc nhận máy về trung tâm</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-bold">Đối tác vận chuyển:</label>
+                                        <select asp-for="HomeWarrantyForm.ShippingCarrier" class="form-select form-select-sm rounded-3">
+                                            <option value="Xanh SM Express">Xanh SM Express (Xe máy điện VinFast)</option>
+                                            <option value="GrabExpress">GrabExpress Siêu Tốc</option>
+                                            <option value="Giao Hàng Nhanh">Giao Hàng Nhanh (GHN)</option>
+                                            <option value="Viettel Post">Viettel Post</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Khung chi phí ship & Cam kết thông báo -->
+                            <div class="alert alert-success border border-success-subtle rounded-3 p-3 mb-4">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="fw-bold text-success mb-1">
+                                            <i class="bi bi-tag-fill me-1"></i>Chính Sách Hỗ Trợ Phí Vận Chuyển:
+                                        </div>
+                                        <div class="small text-secondary">
+                                            Thiết bị còn hạn bảo hành được KittyPhone tài trợ 100% cước ship 2 chiều.
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <span class="badge bg-success fs-6 px-3 py-2 rounded-pill">0đ (Miễn Phí)</span>
+                                    </div>
+                                </div>
+                                <hr class="my-2" />
+                                <div class="small text-muted d-flex align-items-center gap-2">
+                                    <i class="bi bi-envelope-check-fill text-primary"></i>
+                                    <span>Sau khi nhấn đăng ký, hệ thống sẽ tự động gửi <strong>Email xác nhận chi tiết</strong> và <strong>tin nhắn SMS</strong> tới số điện thoại của bạn.</span>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100 rounded-pill fw-bold py-2 shadow-sm" style="background: linear-gradient(135deg, #0e2254, #0284c7); border: none;">
+                                <i class="bi bi-check-circle-fill me-1"></i>Xác Nhận Đăng Ký Bảo Hành Tại Nhà
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Tab 5: Ước Tính Tiền Ship -->
+                    <div class="tab-pane fade" id="shipping-pane" role="tabpanel">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+                                <i class="bi bi-calculator text-primary fs-5"></i>
+                                <span>Ước Tính Tiền Ship Về Tận Nhà</span>
+                            </h6>
+                            <a asp-action="ShippingCalculator" class="btn btn-outline-primary btn-sm rounded-pill fw-bold px-3">
+                                <i class="bi bi-arrows-fullscreen me-1"></i>Xem Chi Tiết 5 Nhà Vận Chuyển
+                            </a>
+                        </div>
+
+                        <div class="p-3 bg-light rounded-3 border mb-3">
+                            <div class="row g-3 align-items-end">
+                                <div class="col-md-5">
+                                    <label class="form-label small fw-bold">Chọn khu vực nhận hàng:</label>
+                                    <select id="quickDistrict" class="form-select form-select-sm rounded-3">
+                                        <option value="Đống Đa" data-km="1.2">Hà Nội - Đống Đa (~1.2 km)</option>
+                                        <option value="Ba Đình" data-km="3.5">Hà Nội - Ba Đình (~3.5 km)</option>
+                                        <option value="Cầu Giấy" data-km="3.8" selected>Hà Nội - Cầu Giấy (~3.8 km)</option>
+                                        <option value="Thanh Xuân" data-km="3.2">Hà Nội - Thanh Xuân (~3.2 km)</option>
+                                        <option value="Hà Đông" data-km="8.5">Hà Nội - Hà Đông (~8.5 km)</option>
+                                        <option value="Long Biên" data-km="10.5">Hà Nội - Long Biên (~10.5 km)</option>
+                                        <option value="Hải Phòng" data-km="118">Hải Phòng (~118 km)</option>
+                                        <option value="TP. Hồ Chí Minh" data-km="1720">TP. Hồ Chí Minh (~1720 km)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-bold">Giá trị hàng hóa:</label>
+                                    <select id="quickValue" class="form-select form-select-sm rounded-3">
+                                        <option value="15000000" selected>Điện thoại (~15.000.000đ)</option>
+                                        <option value="30000000">iPhone Cao Cấp (~30.000.000đ)</option>
+                                        <option value="1000000">Phụ kiện (~1.000.000đ)</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <button type="button" id="btnQuickCalc" class="btn btn-primary btn-sm w-100 rounded-pill fw-bold">
+                                        <i class="bi bi-search me-1"></i>Tra Cước
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bảng kết quả nhanh -->
+                        <div id="quickResultBox" class="table-responsive">
+                            <table class="table table-sm align-middle border rounded-3 mb-0">
+                                <thead class="table-light small">
+                                    <tr>
+                                        <th>Đơn Vị Vận Chuyển</th>
+                                        <th>Hình Thức</th>
+                                        <th>Thời Gian Giao</th>
+                                        <th class="text-end">Cước Khách Trả</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="quickRatesBody">
+                                    <tr>
+                                        <td><strong class="text-success"><i class="bi bi-bicycle me-1"></i>Xanh SM Express</strong></td>
+                                        <td>Hỏa tốc xe máy điện</td>
+                                        <td>30 - 60 phút</td>
+                                        <td class="text-end fw-bold text-success">23.000đ</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong class="text-success"><i class="bi bi-bicycle me-1"></i>GrabExpress</strong></td>
+                                        <td>Hỏa tốc xe máy</td>
+                                        <td>45 - 90 phút</td>
+                                        <td class="text-end fw-bold text-success">25.900đ</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong class="text-primary"><i class="bi bi-truck me-1"></i>Giao Hàng Nhanh (GHN)</strong></td>
+                                        <td>Bưu cục chuẩn</td>
+                                        <td>1 - 2 ngày</td>
+                                        <td class="text-end fw-bold text-primary">0đ (Freeship)</td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong class="text-danger"><i class="bi bi-truck me-1"></i>Viettel Post</strong></td>
+                                        <td>Bưu chính tiêu chuẩn</td>
+                                        <td>1 - 2 ngày</td>
+                                        <td class="text-end fw-bold text-danger">0đ (Freeship)</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="mt-3 p-3 bg-light rounded-3 small text-muted">
+                            <i class="bi bi-shield-lock-fill text-primary me-1"></i>
+                            <strong>Chính sách an toàn tuyệt đối:</strong> Tất cả bưu phẩm điện thoại đều được đóng thùng xốp chịu lực, quấn 4 lớp bóng khí và mua bảo hiểm khai giá 100% hóa đơn.
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+@section Scripts {
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Tự động chuyển tab nếu có yêu cầu từ TempData
+        const activeTabKey = '@TempData["ActiveTab"]';
+        if (activeTabKey) {
+            const triggerEl = document.querySelector(`button[data-bs-target="#${activeTabKey}"]`);
+            if (triggerEl) {
+                bootstrap.Tab.getOrCreateInstance(triggerEl).show();
+            }
+        }
+
+        // Auto pre-fill khi khách chọn thiết bị đã mua
+        const selPurchased = document.getElementById("selPurchasedDevice");
+        if (selPurchased) {
+            selPurchased.addEventListener("change", function () {
+                const opt = this.options[this.selectedIndex];
+                const dName = opt.getAttribute("data-name");
+                if (dName) {
+                    document.getElementById("hwDeviceName").value = dName;
+                }
+            });
+        }
+
+        // Quick shipping calculator on profile
+        const btnQuickCalc = document.getElementById("btnQuickCalc");
+        const quickDistrict = document.getElementById("quickDistrict");
+        const quickValue = document.getElementById("quickValue");
+
+        if (btnQuickCalc) {
+            btnQuickCalc.addEventListener("click", function () {
+                const opt = quickDistrict.options[quickDistrict.selectedIndex];
+                const distKm = parseFloat(opt.getAttribute("data-km")) || 5;
+
+                btnQuickCalc.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+                btnQuickCalc.disabled = true;
+
+                fetch("/Customer/CalculateShipping", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        destinationProvince: "Hà Nội",
+                        destinationDistrict: quickDistrict.value,
+                        distanceKm: distKm,
+                        declaredValue: parseFloat(quickValue.value) || 15000000,
+                        weightGrams: 500,
+                        isWarrantyService: false,
+                        customerRank: "@Model.Customer.RankName"
+                    })
+                })
+                .then(res => res.json())
+                .then(res => {
+                    btnQuickCalc.innerHTML = '<i class="bi bi-search me-1"></i>Tra Cước';
+                    btnQuickCalc.disabled = false;
+
+                    if (res.success && res.quote) {
+                        const tbody = document.getElementById("quickRatesBody");
+                        tbody.innerHTML = "";
+                        res.quote.availableCarriers.forEach(c => {
+                            const feeStr = c.isFeasible ? (c.finalFee === 0 ? "0đ (Freeship)" : Number(c.finalFee).toLocaleString() + "đ") : "Không hỗ trợ";
+                            const row = `
+                                <tr>
+                                    <td><strong class="text-${c.badgeColor}">${c.carrierName}</strong></td>
+                                    <td>${c.serviceTypeBadge}</td>
+                                    <td>${c.estimatedDeliveryTime}</td>
+                                    <td class="text-end fw-bold text-${c.badgeColor}">${feeStr}</td>
+                                </tr>`;
+                            tbody.insertAdjacentHTML("beforeend", row);
+                        });
+                    }
+                })
+                .catch(err => {
+                    btnQuickCalc.innerHTML = '<i class="bi bi-search me-1"></i>Tra Cước';
+                    btnQuickCalc.disabled = false;
+                });
+            });
+        }
+    });
+</script>
+}
+

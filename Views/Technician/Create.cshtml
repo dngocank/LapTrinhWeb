@@ -1,0 +1,162 @@
+@model BTL_PTTKYC.Models.WarrantyTicketCreateViewModel
+@{
+    ViewData["Title"] = "Tiếp Nhận Máy Bảo Hành & Sửa Chữa Mới";
+    Layout = "_AdminLayout";
+    var technicians = ViewBag.Technicians as List<BTL_PTTKYC.Models.EmployeeOptionModel> ?? new();
+    var lookupDevice = ViewBag.LookupDevice as BTL_PTTKYC.Models.WarrantyLookupResultViewModel;
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <a asp-action="Tickets" class="btn btn-sm btn-outline-secondary rounded-pill">
+                <i class="bi bi-arrow-left me-1"></i>Quay lại danh sách
+            </a>
+            <h4 class="fw-bold mb-0 text-primary">
+                <i class="bi bi-plus-circle me-1"></i>Lập Phiếu Tiếp Nhận Bảo Hành
+            </h4>
+        </div>
+
+        @if (lookupDevice != null && lookupDevice.Found)
+        {
+            <div class="alert alert-success border-0 shadow-sm rounded-3 mb-4">
+                <div class="d-flex align-items-center gap-3">
+                    <i class="bi bi-shield-check display-6 text-success"></i>
+                    <div>
+                        <div class="fw-bold fs-6">Đã tìm thấy thông tin sản phẩm trên hệ thống: @lookupDevice.ProductName</div>
+                        <div class="small">
+                            Hãng: <strong>@lookupDevice.BrandName</strong> | 
+                            IMEI: <code>@lookupDevice.ImeiNumber</code> | 
+                            Trạng thái BH: 
+                            <span class="badge @(lookupDevice.IsEligible ? "bg-success" : "bg-danger")">
+                                @(lookupDevice.IsEligible ? $"Còn bảo hành ({lookupDevice.DaysLeft} ngày)" : "Hết hạn bảo hành")
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+
+        <div class="bg-white p-4 rounded-3 border shadow-sm">
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger shadow-sm mb-4">
+                    <div asp-validation-summary="All" class="text-danger small mb-0"></div>
+                </div>
+            }
+
+            <form asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
+
+                <!-- Section 1: Device identification -->
+                <div class="border-bottom pb-3 mb-4">
+                    <h6 class="fw-bold text-dark text-uppercase small tracking-wide">
+                        <i class="bi bi-phone me-1 text-primary"></i>1. Định Danh Thiết Bị
+                    </h6>
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-8">
+                            <label asp-for="SerialNumberOrImei" class="form-label fw-semibold">
+                                Số IMEI hoặc Số Serial máy (Nếu mua tại hệ thống)
+                            </label>
+                            <div class="input-group">
+                                <input asp-for="SerialNumberOrImei" class="form-control" placeholder="Ví dụ: 358912345678901 hoặc SN..." id="imeiInput" />
+                                <button type="button" class="btn btn-outline-secondary" onclick="checkImei()">
+                                    <i class="bi bi-search me-1"></i>Kiểm Tra IMEI
+                                </button>
+                            </div>
+                            <span class="form-text text-muted small">
+                                Nhập IMEI để hệ thống tự động kiểm tra thời hạn bảo hành gốc và tự điền tên máy. Có thể để trống nếu nhận máy ngoài.
+                            </span>
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="TechnicianId" class="form-label fw-semibold">Kỹ thuật viên tiếp nhận / phụ trách</label>
+                            <select asp-for="TechnicianId" class="form-select">
+                                <option value="">-- Tự động gán cho tôi --</option>
+                                @foreach (var tech in technicians)
+                                {
+                                    <option value="@tech.EmployeeId">@tech.EmployeeName (@(tech.Position ?? "Kỹ thuật"))</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Customer Information -->
+                <div class="border-bottom pb-3 mb-4">
+                    <h6 class="fw-bold text-dark text-uppercase small tracking-wide">
+                        <i class="bi bi-person me-1 text-primary"></i>2. Thông Tin Khách Hàng
+                    </h6>
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-6">
+                            <label asp-for="CustomerName" class="form-label fw-semibold">Họ và tên khách hàng <span class="text-danger">*</span></label>
+                            <input asp-for="CustomerName" class="form-control" placeholder="Ví dụ: Nguyễn Văn A..." required />
+                            <span asp-validation-for="CustomerName" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="CustomerPhone" class="form-label fw-semibold">Số điện thoại liên hệ <span class="text-danger">*</span></label>
+                            <input asp-for="CustomerPhone" class="form-control" placeholder="Ví dụ: 0901234567..." required />
+                            <span asp-validation-for="CustomerPhone" class="text-danger small"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 3: Issue and Condition -->
+                <div class="border-bottom pb-3 mb-4">
+                    <h6 class="fw-bold text-dark text-uppercase small tracking-wide">
+                        <i class="bi bi-exclamation-octagon me-1 text-primary"></i>3. Tình Trạng Lỗi & Ngoại Quan Thiết Bị
+                    </h6>
+                    <div class="row g-3 mt-1">
+                        <div class="col-12">
+                            <label asp-for="CustomerIssue" class="form-label fw-semibold">Mô tả hiện tượng lỗi do khách hàng báo <span class="text-danger">*</span></label>
+                            <textarea asp-for="CustomerIssue" class="form-control" rows="3" 
+                                      placeholder="Ví dụ: Máy không nhận sạc, màn hình có 1 đường sọc xanh dọc, loa thoại nghe rè khi đàm thoại..." required></textarea>
+                            <span asp-validation-for="CustomerIssue" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-12">
+                            <label asp-for="DeviceCondition" class="form-label fw-semibold">Tình trạng ngoại quan & Linh kiện đính kèm khi nhận máy</label>
+                            <input asp-for="DeviceCondition" class="form-control" 
+                                   placeholder="Ví dụ: Máy viền trầy xước nhẹ, mặt lưng lành lặn, không ốp, có kèm khay sim và que chọc sim..." />
+                            <div class="form-text small">Rất quan trọng để tránh tranh chấp khi bàn giao máy trả cho khách hàng.</div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="ExpectedDays" class="form-label fw-semibold">Thời gian dự kiến xử lý (Ngày)</label>
+                            <div class="input-group">
+                                <input asp-for="ExpectedDays" type="number" class="form-control" min="1" max="60" value="3" />
+                                <span class="input-group-text">ngày</span>
+                            </div>
+                            <span asp-validation-for="ExpectedDays" class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label asp-for="Notes" class="form-label fw-semibold">Ghi chú thêm nội bộ (Nếu có)</label>
+                            <input asp-for="Notes" class="form-control" placeholder="Ví dụ: Khách cần máy gấp đi công tác, ưu tiên xử lý trước..." />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="d-flex justify-content-end gap-2 pt-2">
+                    <a asp-action="Tickets" class="btn btn-secondary rounded-pill px-4">Hủy Bỏ</a>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold">
+                        <i class="bi bi-check-circle me-1"></i>Tạo Phiếu & Tiếp Nhận Máy
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function checkImei() {
+            var imei = document.getElementById('imeiInput').value.trim();
+            if (!imei) {
+                alert('Vui lòng nhập IMEI hoặc Serial trước khi kiểm tra.');
+                return;
+            }
+            window.location.href = '@Url.Action("Create", "Technician")?imei=' + encodeURIComponent(imei);
+        }
+    </script>
+}

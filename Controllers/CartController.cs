@@ -337,8 +337,15 @@ namespace BTL_PTTKYC.Controllers
                     {
                         ModelState.AddModelError(string.Empty, $"Khuyến mãi '{promo.PromotionName}' không đủ điều kiện: {failureReason}");
                     }
+                    else
+                    {
+                        model.DiscountPercent = promo.DiscountPercent;
+                        model.DiscountAmount = Math.Round(model.SubTotal * promo.DiscountPercent / 100m / 1000m) * 1000m;
+                    }
                 }
             }
+
+            model.TotalAmount = Math.Max(0, model.SubTotal - model.DiscountAmount) + model.ShippingFee;
 
             if (!ModelState.IsValid)
             {

@@ -1,0 +1,125 @@
+@model List<BTL_PTTKYC.Models.WarrantyTicketModel>
+@{
+    ViewData["Title"] = "Tracking Tiến Độ Bảo Hành Thiết Bị | KittyPhone";
+    var customer = ViewBag.Customer as BTL_PTTKYC.Models.CustomerModel;
+}
+
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-secondary"><i class="bi bi-house-door me-1"></i>Trang chủ</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Customer" asp-action="Profile" class="text-secondary">Tài khoản</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Tracking Bảo Hành</li>
+        </ol>
+    </nav>
+
+    <!-- Header Banner -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4 text-white overflow-hidden" style="background: linear-gradient(135deg, #0e2254, #0284c7);">
+        <div class="card-body p-4 p-md-5">
+            <div class="row align-items-center g-3">
+                <div class="col-lg-8">
+                    <span class="badge bg-white text-primary rounded-pill px-3 py-1 fw-bold text-uppercase mb-2">
+                        <i class="bi bi-shield-check me-1"></i>Trung Tâm Dịch Vụ Khách Hàng
+                    </span>
+                    <h2 class="fw-bold mb-2">Theo Dõi & Tracking Tiến Độ Bảo Hành</h2>
+                    <p class="mb-0 text-white-50">
+                        Cập nhật thời gian thực từng giai đoạn tiếp nhận, kiểm tra chẩn đoán, linh kiện thay thế và bàn giao máy tận nơi của bạn.
+                    </p>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    <a asp-action="Profile" class="btn btn-warning rounded-pill fw-bold px-4 py-2 shadow-sm text-dark">
+                        <i class="bi bi-house-door-fill me-1"></i>Đăng Ký BH Tại Nhà
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Danh sách phiếu bảo hành -->
+    <div class="card border-0 shadow-sm rounded-4 p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-bold text-dark mb-0">Danh Sách Phiếu Bảo Hành (@Model.Count)</h5>
+            <div class="d-flex gap-2">
+                <a asp-controller="Technician" asp-action="Lookup" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+                    <i class="bi bi-search me-1"></i>Tra Cứu Theo IMEI
+                </a>
+            </div>
+        </div>
+
+        @if (Model.Count == 0)
+        {
+            <div class="text-center py-5 text-muted border rounded-3 bg-light">
+                <i class="bi bi-shield-slash display-5 d-block mb-3 text-secondary"></i>
+                <h6 class="fw-bold text-dark">Bạn chưa có phiếu bảo hành nào</h6>
+                <p class="small text-muted mb-3">Đăng ký dịch vụ tiếp nhận bảo hành tận nhà để kỹ thuật viên hoặc shipper tới nhận máy tiện lợi.</p>
+                <a asp-action="Profile" class="btn btn-primary rounded-pill btn-sm px-4 fw-bold">
+                    <i class="bi bi-plus-circle me-1"></i>Đăng Ký Bảo Hành Tận Nhà
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="d-flex flex-column gap-3">
+                @foreach (var t in Model)
+                {
+                    <div class="card border rounded-3 p-3 shadow-sm bg-white hover-shadow transition">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 pb-2 border-bottom">
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="fw-bold text-primary font-monospace fs-6">#@t.TicketCode</span>
+                                <span class="badge @t.StatusBadgeClass rounded-pill px-2 py-1 small">@t.StatusVietnamese</span>
+                                @if (t.IsHomeService)
+                                {
+                                    <span class="badge bg-warning text-dark rounded-pill px-2 py-1 small">
+                                        <i class="bi bi-house-door-fill me-1"></i>Bảo Hành Tận Nhà (@t.ShippingCarrier)
+                                    </span>
+                                }
+                            </div>
+                            <div class="small text-muted">
+                                Tiếp nhận: @t.ReceiveDate.ToString("dd/MM/yyyy HH:mm")
+                            </div>
+                        </div>
+
+                        <div class="row g-3 py-3 align-items-center">
+                            <div class="col-md-7">
+                                <h6 class="fw-bold text-dark mb-1">@(t.ProductName ?? "Điện thoại / Thiết bị di động")</h6>
+                                @if (!string.IsNullOrEmpty(t.ImeiNumber))
+                                {
+                                    <div class="small text-muted font-monospace mb-1">IMEI: @t.ImeiNumber</div>
+                                }
+                                <div class="small text-danger">
+                                    <strong>Lỗi khách báo:</strong> @t.CustomerIssue
+                                </div>
+                                @if (!string.IsNullOrEmpty(t.Diagnosis))
+                                {
+                                    <div class="small text-primary mt-1">
+                                        <strong>Chẩn đoán KTV:</strong> @t.Diagnosis
+                                    </div>
+                                }
+                            </div>
+
+                            <div class="col-md-5 text-md-end">
+                                <div class="small text-muted mb-1">Chi phí sửa chữa:</div>
+                                <div class="fw-bold text-dark fs-5 mb-1">
+                                    @(t.RepairCost == 0 ? "0đ (Miễn phí BH)" : t.RepairCost.ToString("N0") + "đ")
+                                </div>
+                                <span class="@t.PaymentStatusBadgeClass px-2 py-1 rounded-pill small">
+                                    @t.PaymentStatusVietnamese
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                            <div class="small text-muted">
+                                <i class="bi bi-person-gear me-1"></i>KTV phụ trách: <strong>@(t.TechnicianName ?? "Nguyễn Văn Kỹ Thuật")</strong>
+                            </div>
+                            <a asp-action="WarrantyDetail" asp-route-id="@t.TicketId" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold">
+                                Xem Chi Tiết & Timeline <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>

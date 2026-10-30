@@ -12,17 +12,20 @@ namespace BTL_PTTKYC.Controllers
         private readonly OrderRepository _orderRepo;
         private readonly ReviewRepository _reviewRepo;
         private readonly ProductRepository _productRepo;
+        private readonly WarrantyRepository _warrantyRepo;
 
         public AdminController(
             AccountRepository accountRepo,
             OrderRepository orderRepo,
             ReviewRepository reviewRepo,
-            ProductRepository productRepo)
+            ProductRepository productRepo,
+            WarrantyRepository warrantyRepo)
         {
             _accountRepo = accountRepo;
             _orderRepo = orderRepo;
             _reviewRepo = reviewRepo;
             _productRepo = productRepo;
+            _warrantyRepo = warrantyRepo;
         }
 
         // 1. DASHBOARD OVERVIEW
@@ -32,6 +35,7 @@ namespace BTL_PTTKYC.Controllers
             var products = _productRepo.GetAllProducts(includeInactive: true);
             var accounts = _accountRepo.GetAllAccounts();
             var lowStock = _productRepo.GetLowStockProducts();
+            var warrantyStats = _warrantyRepo.GetDashboardStats();
 
             ViewBag.TotalOrders = orders.Count;
             ViewBag.PendingOrders = orders.Count(o => o.Status == "Pending");
@@ -40,6 +44,7 @@ namespace BTL_PTTKYC.Controllers
             ViewBag.TotalProducts = products.Count;
             ViewBag.TotalAccounts = accounts.Count;
             ViewBag.LowStockCount = lowStock.Count;
+            ViewBag.WarrantyStats = warrantyStats;
 
             ViewBag.RecentOrders = orders.Take(5).ToList();
             ViewBag.LowStockList = lowStock.Take(5).ToList();

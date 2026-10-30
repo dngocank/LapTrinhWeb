@@ -22,7 +22,7 @@ namespace BTL_PTTKYC.Models
         public string? Position { get; set; }
         public string? Phone { get; set; }
         public string Username { get; set; } = string.Empty;
-        public string Role { get; set; } = string.Empty; // 'Admin', 'Sales', 'Warehouse'
+        public string Role { get; set; } = string.Empty; // 'Admin', 'Sales', 'Warehouse', 'Technician'
         public bool IsActive { get; set; } = true;
     }
 
@@ -41,7 +41,7 @@ namespace BTL_PTTKYC.Models
         public string Password { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Vui lòng chọn phân quyền")]
-        public string Role { get; set; } = "Sales"; // 'Admin', 'Sales', 'Warehouse'
+        public string Role { get; set; } = "Sales"; // 'Admin', 'Sales', 'Warehouse', 'Technician'
 
         public bool IsActive { get; set; } = true;
     }

@@ -13,8 +13,10 @@ start "KittyBot AI Microservice (NodeJS)" cmd /k "cd Chat_bot && npm start"
 echo.
 echo ==============================================
 echo Da khoi dong xong!
-echo - Website KittyPhone: http://localhost:5000 (hoac cong duoc cau hinh)
-echo - Chatbot Microservice: http://localhost:3001
+echo - Website KittyPhone: https://localhost:7260 (hoac http://localhost:5190)
+echo - Chatbot Microservice (NodeJS): http://localhost:3001
 echo - Trang test rieng Chatbot: http://localhost:3001/index.html
+echo - Chatbot da duoc tich hop truc tiep, chay Visual Studio (F5) hay chay run.bat deu dung duoc 100%!
 echo ==============================================
 pause
+

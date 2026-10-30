@@ -1,0 +1,145 @@
+@model BTL_PTTKYC.Models.WarrantyTicketUpdateViewModel
+@{
+    ViewData["Title"] = $"Xử Lý Kỹ Thuật - Phiếu #{Model.TicketCode}";
+    Layout = "_AdminLayout";
+    var technicians = ViewBag.Technicians as List<BTL_PTTKYC.Models.EmployeeOptionModel> ?? new();
+    var ticket = ViewBag.Ticket as BTL_PTTKYC.Models.WarrantyTicketModel;
+}
+
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <a asp-action="Detail" asp-route-id="@Model.TicketId" class="btn btn-sm btn-outline-secondary rounded-pill">
+                <i class="bi bi-arrow-left me-1"></i>Quay lại chi tiết
+            </a>
+            <h4 class="fw-bold mb-0 text-warning text-dark">
+                <i class="bi bi-wrench-adjustable me-1"></i>Cập Nhật Kỹ Thuật & Tiến Độ Xử Lý
+            </h4>
+        </div>
+
+        @if (ticket != null)
+        {
+            <div class="bg-light p-3 rounded-3 border mb-4">
+                <div class="row g-2 align-items-center">
+                    <div class="col-md-3">
+                        <span class="text-muted small d-block">Mã phiếu:</span>
+                        <strong class="text-primary font-monospace">@ticket.TicketCode</strong>
+                    </div>
+                    <div class="col-md-4">
+                        <span class="text-muted small d-block">Khách hàng:</span>
+                        <strong>@ticket.CustomerName</strong> (@ticket.CustomerPhone)
+                    </div>
+                    <div class="col-md-5">
+                        <span class="text-muted small d-block">Thiết bị & IMEI:</span>
+                        <span class="fw-semibold">@(ticket.ProductName ?? "Máy ngoài")</span>
+                        @if (!string.IsNullOrEmpty(ticket.ImeiNumber))
+                        {
+                            <span class="badge bg-secondary ms-1">@ticket.ImeiNumber</span>
+                        }
+                    </div>
+                </div>
+                <div class="mt-2 pt-2 border-top">
+                    <span class="text-danger small fw-bold"><i class="bi bi-exclamation-triangle me-1"></i>Lỗi khách báo:</span>
+                    <span class="small text-dark">@ticket.CustomerIssue</span>
+                </div>
+            </div>
+        }
+
+        <div class="bg-white p-4 rounded-3 border shadow-sm">
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div class="alert alert-danger shadow-sm mb-4">
+                    <div asp-validation-summary="All" class="text-danger small mb-0"></div>
+                </div>
+            }
+
+            <form asp-action="Process" method="post" id="processForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="TicketId" />
+                <input type="hidden" asp-for="TicketCode" />
+                <input type="hidden" asp-for="CustomerName" />
+                <input type="hidden" asp-for="CustomerPhone" />
+
+                <!-- Trạng thái và Kỹ thuật viên phụ trách -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label asp-for="Status" class="form-label fw-semibold">
+                            Cập nhật trạng thái phiếu <span class="text-danger">*</span>
+                        </label>
+                        <select asp-for="Status" class="form-select form-select-lg fs-6" required>
+                            <option value="Received">Tiếp nhận mới (Chờ kiểm tra)</option>
+                            <option value="Diagnosing">Đang kiểm tra & đo đạc lỗi</option>
+                            <option value="Processing">Đang tiến hành sửa chữa / thay thế</option>
+                            <option value="WaitingParts">Đang chờ linh kiện từ hãng / kho</option>
+                            <option value="Completed">Đã sửa xong hoàn tất (Chờ giao khách)</option>
+                            <option value="Delivered">Đã bàn giao và trả máy cho khách</option>
+                            <option value="Cancelled">Hủy / Từ chối bảo hành (Trả máy không sửa)</option>
+                        </select>
+                        <span asp-validation-for="Status" class="text-danger small"></span>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label asp-for="TechnicianId" class="form-label fw-semibold">Phân công kỹ thuật viên</label>
+                        <select asp-for="TechnicianId" class="form-select form-select-lg fs-6">
+                            <option value="">-- Chưa chỉ định --</option>
+                            @foreach (var tech in technicians)
+                            {
+                                <option value="@tech.EmployeeId">@tech.EmployeeName (@(tech.Position ?? "Kỹ thuật"))</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Chẩn đoán và Phương án -->
+                <div class="mb-4">
+                    <label asp-for="Diagnosis" class="form-label fw-semibold">Kết quả chẩn đoán lỗi chuyên sâu</label>
+                    <textarea asp-for="Diagnosis" class="form-control" rows="3" 
+                              placeholder="Ví dụ: Đo đạc phát hiện tụ điện C32 trên bo mạch chủ bị đoản mạch gây chập nguồn; cell pin đã chai 65%..."></textarea>
+                    <div class="form-text small">Mô tả chi tiết nguyên nhân phát sinh lỗi phần cứng/phần mềm.</div>
+                </div>
+
+                <div class="mb-4">
+                    <label asp-for="RepairAction" class="form-label fw-semibold">Phương án xử lý / Sửa chữa / Thay thế</label>
+                    <textarea asp-for="RepairAction" class="form-control" rows="3" 
+                              placeholder="Ví dụ: Đã thay thế cụm màn hình OLED chính hãng, ép lại kính cảm ứng, nạp lại firmware chuẩn của hãng..."></textarea>
+                </div>
+
+                <!-- Chi phí sửa chữa & Linh kiện -->
+                <div class="border-top pt-4 mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="fw-bold text-dark text-uppercase small tracking-wide mb-0">
+                            <i class="bi bi-cpu me-1 text-primary"></i>Linh Kiện & Chi Phí Sửa Chữa
+                        </h6>
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label asp-for="RepairCost" class="form-label fw-semibold">
+                                Tổng chi phí tính khách (VNĐ) <span class="text-danger">*</span>
+                            </label>
+                            <div class="input-group">
+                                <input asp-for="RepairCost" type="number" step="1000" min="0" class="form-control form-control-lg fw-bold text-danger" required />
+                                <span class="input-group-text fw-semibold">VNĐ</span>
+                            </div>
+                            <span class="form-text text-muted small">
+                                Nhập <code>0</code> nếu máy được bảo hành miễn phí 100% theo chính sách. Nhập số tiền nếu là sửa chữa dịch vụ / rơi vỡ vào nước.
+                            </span>
+                        </div>
+                        <div class="col-md-6">
+                            <label asp-for="Notes" class="form-label fw-semibold">Ghi chú kỹ thuật bổ sung</label>
+                            <input asp-for="Notes" class="form-control" placeholder="Ví dụ: Đã test áp suất chống nước, cảm ứng đa điểm nhạy..." />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Submit Buttons -->
+                <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                    <a asp-action="Detail" asp-route-id="@Model.TicketId" class="btn btn-secondary rounded-pill px-4">Hủy Bỏ</a>
+                    <button type="submit" class="btn btn-warning rounded-pill px-4 fw-bold text-dark">
+                        <i class="bi bi-save me-1"></i>Lưu & Cập Nhật Tiến Độ
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

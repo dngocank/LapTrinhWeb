@@ -1,0 +1,341 @@
+@model BTL_PTTKYC.Models.WarrantyTicketModel
+@{
+    ViewData["Title"] = $"Chi Tiết Phiếu Bảo Hành #{Model.TicketCode} | KittyPhone";
+}
+
+<div class="container py-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-3">
+        <ol class="breadcrumb small">
+            <li class="breadcrumb-item"><a asp-controller="Home" asp-action="Index" class="text-secondary"><i class="bi bi-house-door me-1"></i>Trang chủ</a></li>
+            <li class="breadcrumb-item"><a asp-controller="Customer" asp-action="Profile" class="text-secondary">Tài khoản KittyMember</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Phiếu bảo hành #@Model.TicketCode</li>
+        </ol>
+    </nav>
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show rounded-3 mb-4 shadow-sm" role="alert">
+            <i class="bi bi-check-circle-fill me-2 fs-5"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <!-- Header Banner Phiếu Bảo Hành -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4 text-white overflow-hidden" style="background: linear-gradient(135deg, #0e2254, #0284c7);">
+        <div class="card-body p-4">
+            <div class="row align-items-center g-3">
+                <div class="col-lg-8">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <span class="badge bg-white text-primary rounded-pill px-3 py-1 fw-bold">
+                            <i class="bi bi-shield-check me-1 text-primary"></i>Phiếu Bảo Hành Chính Hãng
+                        </span>
+                        @if (Model.IsHomeService)
+                        {
+                            <span class="badge bg-warning text-dark rounded-pill px-3 py-1 fw-bold">
+                                <i class="bi bi-house-door-fill me-1"></i>Dịch Vụ Tận Nhà
+                            </span>
+                        }
+                    </div>
+                    <h3 class="fw-bold mb-1">Mã Phiếu: <span class="font-monospace text-warning">#@Model.TicketCode</span></h3>
+                    <p class="mb-0 text-white-50">
+                        Thiết bị: <strong class="text-white">@(Model.ProductName ?? "Điện thoại thông minh")</strong>
+                        @if (!string.IsNullOrEmpty(Model.ImeiNumber))
+                        {
+                            <span> • IMEI: <code class="text-warning">@Model.ImeiNumber</code></span>
+                        }
+                    </p>
+                </div>
+                <div class="col-lg-4 text-lg-end">
+                    <div class="small text-white-50 mb-1">Trạng thái hiện tại:</div>
+                    <span class="badge @Model.StatusBadgeClass fs-6 px-3 py-2 rounded-pill shadow-sm">
+                        @Model.StatusVietnamese
+                    </span>
+                    <div class="mt-2 text-white-50 small">
+                        Tiếp nhận: @Model.ReceiveDate.ToString("dd/MM/yyyy HH:mm")
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Stepper / Timeline Tiến Độ Xử Lý Trực Quan -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4 p-4">
+        <h5 class="fw-bold text-dark mb-4 d-flex align-items-center gap-2">
+            <i class="bi bi-activity text-primary fs-4"></i>
+            <span>Tiến Độ Xử Lý & Khắc Phục Lỗi</span>
+        </h5>
+
+        @{
+            int stepIndex = Model.Status switch
+            {
+                "Received" => 1,
+                "Diagnosing" => 2,
+                "Processing" => 3,
+                "WaitingParts" => 3,
+                "Completed" => 4,
+                "Delivered" => 5,
+                "Cancelled" => 0,
+                _ => 1
+            };
+        }
+
+        <div class="position-relative py-3">
+            <div class="d-flex justify-content-between position-relative z-1 flex-wrap gap-3">
+                <!-- Bước 1 -->
+                <div class="text-center" style="flex: 1; min-width: 120px;">
+                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center shadow-sm @(stepIndex >= 1 ? "bg-primary text-white" : "bg-light text-muted border")" style="width: 48px; height: 48px;">
+                        <i class="bi bi-inbox-fill fs-5"></i>
+                    </div>
+                    <div class="fw-bold mt-2 small text-dark">Tiếp Nhận Máy</div>
+                    <div class="text-muted" style="font-size: 0.75rem;">@Model.ReceiveDate.ToString("dd/MM/yyyy")</div>
+                </div>
+
+                <!-- Bước 2 -->
+                <div class="text-center" style="flex: 1; min-width: 120px;">
+                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center shadow-sm @(stepIndex >= 2 ? "bg-primary text-white" : "bg-light text-muted border")" style="width: 48px; height: 48px;">
+                        <i class="bi bi-search fs-5"></i>
+                    </div>
+                    <div class="fw-bold mt-2 small text-dark">Kiểm Tra Kỹ Thuật</div>
+                    <div class="text-muted" style="font-size: 0.75rem;">Chẩn đoán phần cứng</div>
+                </div>
+
+                <!-- Bước 3 -->
+                <div class="text-center" style="flex: 1; min-width: 120px;">
+                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center shadow-sm @(stepIndex >= 3 ? "bg-primary text-white" : "bg-light text-muted border")" style="width: 48px; height: 48px;">
+                        <i class="bi bi-tools fs-5"></i>
+                    </div>
+                    <div class="fw-bold mt-2 small text-dark">Đang Sửa Chữa</div>
+                    <div class="text-muted" style="font-size: 0.75rem;">
+                        @(Model.Status == "WaitingParts" ? "Chờ linh kiện" : "Khắc phục lỗi")
+                    </div>
+                </div>
+
+                <!-- Bước 4 -->
+                <div class="text-center" style="flex: 1; min-width: 120px;">
+                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center shadow-sm @(stepIndex >= 4 ? "bg-success text-white" : "bg-light text-muted border")" style="width: 48px; height: 48px;">
+                        <i class="bi bi-check-circle-fill fs-5"></i>
+                    </div>
+                    <div class="fw-bold mt-2 small text-dark">Đã Sửa Xong</div>
+                    <div class="text-muted" style="font-size: 0.75rem;">Kiểm định QC đạt</div>
+                </div>
+
+                <!-- Bước 5 -->
+                <div class="text-center" style="flex: 1; min-width: 120px;">
+                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center shadow-sm @(stepIndex >= 5 ? "bg-dark text-white" : "bg-light text-muted border")" style="width: 48px; height: 48px;">
+                        <i class="bi bi-box2-heart-fill fs-5"></i>
+                    </div>
+                    <div class="fw-bold mt-2 small text-dark">Bàn Giao Máy</div>
+                    <div class="text-muted" style="font-size: 0.75rem;">Trả tận nơi / tại shop</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Cột trái: Thông tin chẩn đoán, linh kiện, dịch vụ tận nhà -->
+        <div class="col-lg-8">
+            <!-- Thông tin dịch vụ tận nhà nếu có -->
+            @if (Model.IsHomeService)
+            {
+                <div class="card border-0 shadow-sm rounded-4 mb-4 border-start border-warning border-4">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                            <i class="bi bi-truck text-warning fs-5"></i>
+                            <span>Dịch Vụ Vận Chuyển & Tiếp Nhận Tận Nhà</span>
+                        </h6>
+                        <div class="row g-3 small">
+                            <div class="col-md-6">
+                                <span class="text-muted d-block">Địa chỉ nhận máy:</span>
+                                <strong class="text-dark">@Model.PickupAddress</strong>
+                            </div>
+                            <div class="col-md-6">
+                                <span class="text-muted d-block">Thời gian hẹn shipper/KTV:</span>
+                                <strong class="text-primary">@(Model.PickupTime.HasValue ? Model.PickupTime.Value.ToString("dd/MM/yyyy HH:mm") : "Trong 24 giờ")</strong>
+                            </div>
+                            <div class="col-md-6">
+                                <span class="text-muted d-block">Hình thức & Đơn vị phụ trách:</span>
+                                <strong class="text-dark">@Model.ServiceType</strong> (@Model.ShippingCarrier)
+                            </div>
+                            <div class="col-md-6">
+                                <span class="text-muted d-block">Cước phí ship vận chuyển:</span>
+                                <strong class="text-success">
+                                    @(Model.ShippingFee == 0 ? "0đ (KittyPhone tài trợ miễn phí)" : Model.ShippingFee.ToString("N0") + "đ")
+                                </strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Kết quả chẩn đoán kỹ thuật -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                        <i class="bi bi-clipboard2-pulse-fill text-primary fs-5"></i>
+                        <span>Chi Tiết Kỹ Thuật & Chẩn Đoán</span>
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-3">
+                                <span class="text-muted small d-block mb-1">Lỗi do khách hàng báo:</span>
+                                <strong class="text-danger small">@Model.CustomerIssue</strong>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-3">
+                                <span class="text-muted small d-block mb-1">Tình trạng ngoại quan khi nhận:</span>
+                                <span class="small text-dark">@(string.IsNullOrEmpty(Model.DeviceCondition) ? "Ngoại quan bình thường" : Model.DeviceCondition)</span>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="p-3 bg-light rounded-3">
+                                <span class="text-muted small d-block mb-1">Kết quả chẩn đoán của KTV:</span>
+                                <strong class="text-primary small">@(string.IsNullOrEmpty(Model.Diagnosis) ? "Đang tiến hành đo đạc bo mạch và kiểm tra linh kiện chuyên sâu" : Model.Diagnosis)</strong>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="p-3 bg-light rounded-3">
+                                <span class="text-muted small d-block mb-1">Phương án xử lý:</span>
+                                <span class="small text-dark">@(string.IsNullOrEmpty(Model.RepairAction) ? "Đang cập nhật biện pháp sửa chữa tối ưu" : Model.RepairAction)</span>
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrEmpty(Model.Notes))
+                        {
+                            <div class="col-12">
+                                <div class="p-3 bg-light rounded-3">
+                                    <span class="text-muted small d-block mb-1">Ghi chú bổ sung:</span>
+                                    <span class="small text-muted fst-italic">@Model.Notes</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bảng linh kiện thay thế nếu có -->
+            @if (Model.Components.Count > 0)
+            {
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+                    <div class="card-body p-4">
+                        <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                            <i class="bi bi-cpu text-primary fs-5"></i>
+                            <span>Linh Kiện Thay Thế Chính Hãng</span>
+                        </h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm align-middle mb-0">
+                                <thead class="table-light small">
+                                    <tr>
+                                        <th>Tên Linh Kiện</th>
+                                        <th class="text-center">Số Lượng</th>
+                                        <th class="text-end">Đơn Giá</th>
+                                        <th class="text-end">Thành Tiền</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var c in Model.Components)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <strong class="text-dark small">@c.ComponentName</strong>
+                                                @if (!string.IsNullOrEmpty(c.Note))
+                                                {
+                                                    <span class="text-muted small d-block font-monospace">@c.Note</span>
+                                                }
+                                            </td>
+                                            <td class="text-center">@c.Quantity</td>
+                                            <td class="text-end text-muted small">@c.Price.ToString("N0") đ</td>
+                                            <td class="text-end fw-bold text-primary small">@c.LineTotal.ToString("N0") đ</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            <!-- Lịch sử Thông báo gửi về Email & SMS cho khách -->
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+                        <i class="bi bi-bell-fill text-warning fs-5"></i>
+                        <span>Lịch Sử Thông Báo Email & SMS Đã Gửi</span>
+                    </h6>
+
+                    @if (Model.Notifications.Count == 0)
+                    {
+                        <div class="text-muted small py-3 text-center">
+                            Chưa có thông báo nào được lưu vết. Mỗi khi KTV cập nhật trạng thái, thông báo sẽ tự động gửi về Email của bạn.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="timeline-feed d-flex flex-column gap-3">
+                            @foreach (var notif in Model.Notifications)
+                            {
+                                <div class="p-3 border rounded-3 bg-light">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <span class="badge @notif.ChannelBadgeClass rounded-pill px-2 py-1 small">
+                                            <i class="bi @notif.ChannelIcon me-1"></i>@notif.Channel: @notif.Recipient
+                                        </span>
+                                        <span class="text-muted" style="font-size: 0.75rem;">@notif.SentAt.ToString("dd/MM/yyyy HH:mm")</span>
+                                    </div>
+                                    <strong class="text-dark d-block small mt-1">@notif.Title</strong>
+                                    <div class="text-muted small mt-1 text-truncate" style="max-height: 48px; overflow: hidden;">
+                                        @notif.MessageBody.Replace("<[^>]*>", "")
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Cột phải: Chi phí & Thanh toán VietQR -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 sticky-top" style="top: 90px;">
+                <h6 class="fw-bold text-dark mb-3">Thông Tin Chi Phí</h6>
+                <div class="d-flex justify-content-between py-2 border-bottom small">
+                    <span class="text-muted">Gói bảo hành:</span>
+                    <strong class="text-dark">@Model.WarrantyCoverageText</strong>
+                </div>
+                <div class="d-flex justify-content-between py-2 border-bottom small">
+                    <span class="text-muted">Chi phí sửa chữa:</span>
+                    <strong class="text-dark">@Model.RepairCost.ToString("N0") đ</strong>
+                </div>
+                <div class="d-flex justify-content-between py-2 border-bottom small">
+                    <span class="text-muted">Trạng thái thanh toán:</span>
+                    <span class="@Model.PaymentStatusBadgeClass px-2 py-1 rounded-pill small">
+                        @Model.PaymentStatusVietnamese
+                    </span>
+                </div>
+                @if (Model.RepairCost > 0 && Model.PaymentStatus != "Paid")
+                {
+                    <div class="mt-4 p-3 rounded-3 text-center" style="background: #f0fdf4; border: 1px dashed #22c55e;">
+                        <span class="text-success small fw-bold d-block mb-2">Quét mã QR thanh toán nhanh</span>
+                        <img src="https://img.vietqr.io/image/970454-0396166509-compact2.png?amount=@((long)Model.RepairCost)&addInfo=@Uri.EscapeDataString($"BH {Model.TicketCode}")&accountName=DUONG%20NGOC%20ANH" 
+                             alt="QR VietQR" class="img-fluid rounded border bg-white p-2 shadow-sm" style="max-width: 180px;" />
+                        <div class="small text-muted mt-2" style="font-size: 0.75rem;">
+                            Nội dung chuyển khoản: <strong class="text-dark font-monospace">BH @Model.TicketCode</strong>
+                        </div>
+                    </div>
+                }
+                else if (Model.RepairCost == 0)
+                {
+                    <div class="alert alert-success mt-4 p-3 rounded-3 small mb-0">
+                        <i class="bi bi-shield-check fs-5 me-1 align-middle"></i>
+                        <span>Chi phí hoàn toàn <strong>0đ</strong> theo chế độ bảo hành chính hãng của KittyPhone.</span>
+                    </div>
+                }
+
+                <div class="mt-4 pt-3 border-top">
+                    <a asp-controller="Customer" asp-action="Profile" class="btn btn-outline-secondary btn-sm w-100 rounded-pill fw-bold">
+                        <i class="bi bi-arrow-left me-1"></i>Quay Lại Tài Khoản
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,850 @@
+@model BTL_PTTKYC.Models.TechnicianWorkbenchViewModel
+@{
+    ViewData["Title"] = "Bàn Làm Việc Kỹ Thuật & Trung Tâm Bảo Hành";
+    Layout = "_AdminLayout";
+}
+
+<!-- Alert Messages -->
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show shadow-sm mb-4" role="alert">
+        <i class="bi bi-check-circle-fill me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show shadow-sm mb-4" role="alert">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>@TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- Top Header & Technician On-duty Banner -->
+<div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden" style="background: linear-gradient(135deg, #071538 0%, #0e2254 60%, #0284c7 100%);">
+    <div class="card-body p-4 text-white">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-white bg-opacity-10 border border-white border-opacity-25 p-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 60px; height: 60px;">
+                    <i class="bi bi-tools fs-2 text-info"></i>
+                </div>
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <h4 class="fw-bold mb-0 text-white">Bàn Làm Việc Kỹ Thuật Viên</h4>
+                        <span class="badge bg-success px-2 py-1"><i class="bi bi-broadcast me-1"></i>Đang trực ca</span>
+                    </div>
+                    <p class="text-white-50 small mb-0">
+                        Kỹ thuật viên: <strong class="text-white">@(Model.CurrentTechnicianName ?? "Nguyễn Văn Kỹ Thuật")</strong> | 
+                        Bộ phận: <span class="text-info fw-semibold">Sửa Chữa & Bảo Hành KittyPhone</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Quick Action Buttons -->
+            <div class="d-flex gap-2 flex-wrap">
+                <button type="button" class="btn btn-light rounded-pill px-3 fw-bold text-primary shadow-sm" onclick="switchMainTab('tab-intake')">
+                    <i class="bi bi-plus-circle me-1"></i>Tiếp Nhận Máy Mới
+                </button>
+                <button type="button" class="btn btn-outline-light rounded-pill px-3" onclick="switchMainTab('tab-cashier')">
+                    <i class="bi bi-qr-code-scan me-1"></i>Quầy QR ZaloPay
+                </button>
+                <button type="button" class="btn btn-outline-light rounded-pill px-3" onclick="switchMainTab('tab-lookup')">
+                    <i class="bi bi-search me-1"></i>Tra Cứu IMEI
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Realtime Counters Row -->
+<div class="row g-3 mb-4">
+    <div class="col-sm-6 col-xl-2">
+        <div class="bg-white p-3 rounded-3 border shadow-sm border-start border-primary border-4 h-100 cursor-pointer" onclick="filterWorkbench('Received')">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="text-muted small">Tiếp nhận mới</span>
+                <i class="bi bi-inbox text-primary fs-5"></i>
+            </div>
+            <h3 class="fw-bold text-primary mb-0 mt-2">@Model.Stats.ReceivedCount</h3>
+            <span class="text-muted" style="font-size: 0.72rem;">Chờ kiểm tra lỗi</span>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-2">
+        <div class="bg-white p-3 rounded-3 border shadow-sm border-start border-warning border-4 h-100 cursor-pointer" onclick="filterWorkbench('Processing')">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="text-muted small">Đang sửa chữa</span>
+                <i class="bi bi-gear-wide-connected text-warning fs-5"></i>
+            </div>
+            <h3 class="fw-bold text-warning text-dark mb-0 mt-2">@(Model.Stats.DiagnosingCount + Model.Stats.ProcessingCount + Model.Stats.WaitingPartsCount)</h3>
+            <span class="text-muted" style="font-size: 0.72rem;">@Model.Stats.ProcessingCount đang sửa, @Model.Stats.WaitingPartsCount chờ linh kiện</span>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-2">
+        <div class="bg-white p-3 rounded-3 border shadow-sm border-start border-success border-4 h-100 cursor-pointer" onclick="filterWorkbench('Completed')">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="text-muted small">Đã sửa xong</span>
+                <i class="bi bi-check2-circle text-success fs-5"></i>
+            </div>
+            <h3 class="fw-bold text-success mb-0 mt-2">@Model.Stats.CompletedCount</h3>
+            <span class="text-muted" style="font-size: 0.72rem;">Sẵn sàng trả khách</span>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-2">
+        <div class="bg-white p-3 rounded-3 border shadow-sm border-start border-danger border-4 h-100 cursor-pointer" onclick="switchMainTab('tab-cashier')">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="text-muted small">Cần thu tiền QR</span>
+                <i class="bi bi-qr-code text-danger fs-5"></i>
+            </div>
+            <h3 class="fw-bold text-danger mb-0 mt-2">@Model.UnpaidFeeTickets.Count</h3>
+            <span class="text-muted" style="font-size: 0.72rem;">Có chi phí chưa TT</span>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-2">
+        <div class="bg-white p-3 rounded-3 border shadow-sm border-start border-dark border-4 h-100 cursor-pointer" onclick="filterWorkbench('Delivered')">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="text-muted small">Đã bàn giao</span>
+                <i class="bi bi-box-arrow-right text-dark fs-5"></i>
+            </div>
+            <h3 class="fw-bold text-dark mb-0 mt-2">@Model.Stats.DeliveredCount</h3>
+            <span class="text-muted" style="font-size: 0.72rem;">Đã trả máy khách</span>
+        </div>
+    </div>
+
+    <div class="col-sm-6 col-xl-2">
+        <div class="bg-white p-3 rounded-3 border shadow-sm border-start border-info border-4 h-100">
+            <div class="d-flex justify-content-between align-items-center">
+                <span class="text-muted small">Thẻ BH hiệu lực</span>
+                <i class="bi bi-shield-check text-info fs-5"></i>
+            </div>
+            <h3 class="fw-bold text-info mb-0 mt-2">@Model.Stats.TotalWarrantiesActive</h3>
+            <span class="text-muted" style="font-size: 0.72rem;">Máy chính hãng Apple</span>
+        </div>
+    </div>
+</div>
+
+<!-- Main Workspace Interactive Tabs -->
+<div class="bg-white rounded-3 border shadow-sm p-4 mb-4">
+    <!-- Tab Navigation Pills -->
+    <ul class="nav nav-pills nav-fill gap-2 p-1 bg-light rounded-pill mb-4 border" id="workbenchTabNav" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active rounded-pill fw-bold" id="tab-active-btn" data-bs-toggle="pill" data-bs-target="#tab-active" type="button" role="tab">
+                <i class="bi bi-tools me-1"></i>1. Hàng Đợi Sửa Chữa (@Model.AllActiveTickets.Count)
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill fw-bold" id="tab-intake-btn" data-bs-toggle="pill" data-bs-target="#tab-intake" type="button" role="tab">
+                <i class="bi bi-plus-circle me-1"></i>2. Tiếp Nhận Máy Tại Quầy
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill fw-bold" id="tab-cashier-btn" data-bs-toggle="pill" data-bs-target="#tab-cashier" type="button" role="tab">
+                <i class="bi bi-qr-code-scan me-1"></i>3. Quầy Thu Tiền QR ZaloPay (@Model.UnpaidFeeTickets.Count)
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill fw-bold" id="tab-handover-btn" data-bs-toggle="pill" data-bs-target="#tab-handover" type="button" role="tab">
+                <i class="bi bi-box-arrow-right me-1"></i>4. Bàn Giao Trả Máy (@Model.CompletedTickets.Count)
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link rounded-pill fw-bold" id="tab-lookup-btn" data-bs-toggle="pill" data-bs-target="#tab-lookup" type="button" role="tab">
+                <i class="bi bi-search me-1"></i>5. Tra Cứu IMEI / SĐT
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Contents Container -->
+    <div class="tab-content" id="workbenchTabContent">
+        
+        <!-- ========================================== -->
+        <!-- TAB 1: ACTIVE REPAIR QUEUE & DESK          -->
+        <!-- ========================================== -->
+        <div class="tab-pane fade show active" id="tab-active" role="tabpanel">
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-muted small fw-semibold">Lọc nhanh:</span>
+                    <button type="button" class="btn btn-sm btn-dark rounded-pill px-3 btn-filter active" onclick="filterWorkbench('ALL', this)">Tất cả (@Model.AllActiveTickets.Count)</button>
+                    <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3 btn-filter" onclick="filterWorkbench('Received', this)">Tiếp nhận mới (@Model.ReceivedTickets.Count)</button>
+                    <button type="button" class="btn btn-sm btn-outline-warning rounded-pill px-3 btn-filter" onclick="filterWorkbench('Processing', this)">Đang sửa chữa (@Model.ProcessingTickets.Count)</button>
+                    <button type="button" class="btn btn-sm btn-outline-success rounded-pill px-3 btn-filter" onclick="filterWorkbench('Completed', this)">Đã sửa xong (@Model.CompletedTickets.Count)</button>
+                </div>
+                <div class="d-flex gap-2">
+                    <input type="text" id="filterTableSearch" class="form-control form-control-sm rounded-pill" placeholder="Lọc theo mã phiếu, SĐT, IMEI..." style="width: 250px;" onkeyup="searchWorkbenchTable()" />
+                </div>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 border" id="tableWorkbench">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Mã Phiếu</th>
+                            <th>Khách Hàng & Thiết Bị</th>
+                            <th>Lỗi Khách Báo</th>
+                            <th>Chẩn Đoán / Xử Lý</th>
+                            <th>Hạn Trả</th>
+                            <th>Chi Phí & Thanh Toán</th>
+                            <th>Trạng Thái</th>
+                            <th class="text-center" style="width: 140px;">Thao Tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.AllActiveTickets.Count == 0)
+                        {
+                            <tr>
+                                <td colspan="8" class="text-center py-5 text-muted">
+                                    <i class="bi bi-check-circle display-5 text-success d-block mb-2"></i>
+                                    Không có máy nào đang chờ xử lý!
+                                </td>
+                            </tr>
+                        }
+                        else
+                        {
+                            @foreach (var t in Model.AllActiveTickets)
+                            {
+                                <tr class="ticket-row" data-status="@t.Status" data-search="@t.TicketCode.ToLower() @t.CustomerName.ToLower() @t.CustomerPhone @(t.ImeiNumber ?? "")">
+                                    <td>
+                                        <a asp-action="Detail" asp-route-id="@t.TicketId" class="fw-bold text-primary text-decoration-none">
+                                            @t.TicketCode
+                                        </a>
+                                        <div class="small text-muted">@t.ReceiveDate.ToString("dd/MM/yyyy HH:mm")</div>
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">@t.CustomerName</div>
+                                        <div class="small text-muted"><i class="bi bi-telephone me-1"></i>@t.CustomerPhone</div>
+                                        @if (!string.IsNullOrEmpty(t.ProductName))
+                                        {
+                                            <div class="small text-truncate" style="max-width: 180px;"><strong class="text-dark">@t.ProductName</strong></div>
+                                        }
+                                        @if (!string.IsNullOrEmpty(t.ImeiNumber))
+                                        {
+                                            <code class="small text-secondary font-monospace">@t.ImeiNumber</code>
+                                        }
+                                    </td>
+                                    <td style="max-width: 200px;">
+                                        <div class="text-truncate small text-dark fw-semibold" title="@t.CustomerIssue">
+                                            @t.CustomerIssue
+                                        </div>
+                                    </td>
+                                    <td style="max-width: 200px;">
+                                        @if (string.IsNullOrEmpty(t.Diagnosis))
+                                        {
+                                            <span class="badge bg-light text-muted border">Chờ chẩn đoán</span>
+                                        }
+                                        else
+                                        {
+                                            <div class="small text-truncate text-muted" title="@t.Diagnosis">@t.Diagnosis</div>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (t.ExpectedReturnDate.HasValue)
+                                        {
+                                            var isOver = t.ExpectedReturnDate.Value < DateTime.Today;
+                                            <span class="small @(isOver ? "text-danger fw-bold" : "text-muted")">
+                                                @t.ExpectedReturnDate.Value.ToString("dd/MM/yyyy")
+                                                @if (isOver) { <span class="badge bg-danger ms-1">Trễ</span> }
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted small">---</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (t.RepairCost > 0)
+                                        {
+                                            <div class="fw-bold text-danger">@t.RepairCost.ToString("N0")đ</div>
+                                            @if (t.PaymentStatus == "Paid")
+                                            {
+                                                <span class="badge bg-success-subtle text-success border border-success" style="font-size: 0.68rem;"><i class="bi bi-check2 me-1"></i>Đã TT</span>
+                                            }
+                                            else
+                                            {
+                                                <button type="button" class="btn btn-sm btn-outline-danger py-0 px-2 mt-1" style="font-size: 0.68rem;" onclick="openQuickPayModal('@t.TicketId', '@t.TicketCode', @((long)t.RepairCost))">
+                                                    <i class="bi bi-qr-code me-1"></i>Thu QR
+                                                </button>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-success-subtle text-success">Miễn phí BH</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="badge @t.StatusBadgeClass">@t.StatusVietnamese</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm">
+                                            <a asp-action="Process" asp-route-id="@t.TicketId" class="btn btn-outline-warning" title="Cập nhật kỹ thuật">
+                                                <i class="bi bi-wrench"></i>
+                                            </a>
+                                            <a asp-action="Detail" asp-route-id="@t.TicketId" class="btn btn-outline-primary" title="Xem chi tiết">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a asp-action="PrintTicket" asp-route-id="@t.TicketId" target="_blank" class="btn btn-outline-secondary" title="In phiếu">
+                                                <i class="bi bi-printer"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 2: QUICK INTAKE / RECEIVE FORM         -->
+        <!-- ========================================== -->
+        <div class="tab-pane fade" id="tab-intake" role="tabpanel">
+            <div class="row justify-content-center">
+                <div class="col-lg-9">
+                    <div class="p-3 bg-light rounded-3 border mb-4">
+                        <h6 class="fw-bold text-primary mb-1"><i class="bi bi-box-arrow-in-down me-2"></i>Tiếp Nhận Thiết Bị Bảo Hành / Sửa Chữa Mới</h6>
+                        <span class="text-muted small">Nhập thông tin tiếp nhận máy của khách, hệ thống tự động kiểm tra bảo hành và cấp mã phiếu ngay</span>
+                    </div>
+
+                    <form asp-action="Create" method="post" id="formWorkbenchCreate">
+                        @Html.AntiForgeryToken()
+                        
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-dark small">Mã Serial / IMEI Thiết Bị:</label>
+                                <div class="input-group">
+                                    <input type="text" name="SerialNumberOrImei" id="wbInputImei" class="form-control" placeholder="Nhập IMEI (15 số) hoặc Serial..." />
+                                    <button type="button" class="btn btn-outline-primary" id="btnCheckImeiQuick" onclick="checkImeiForIntake()">
+                                        <i class="bi bi-search me-1"></i>Kiểm Tra
+                                    </button>
+                                </div>
+                                <div id="wbImeiResult" class="small mt-1 text-muted"></div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-dark small">Kỹ thuật viên tiếp nhận:</label>
+                                <select name="TechnicianId" class="form-select">
+                                    @foreach (var tech in Model.Technicians)
+                                    {
+                                        <option value="@tech.EmployeeId" selected="@(tech.EmployeeId == Model.CurrentTechnicianId)">
+                                            @tech.EmployeeName (@(tech.Position ?? "Kỹ thuật"))
+                                        </option>
+                                    }
+                                </select>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-dark small">Họ và tên khách hàng: <span class="text-danger">*</span></label>
+                                <input type="text" name="CustomerName" id="wbInputCustomerName" class="form-control" placeholder="Nguyễn Văn An..." required />
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-dark small">Số điện thoại liên hệ: <span class="text-danger">*</span></label>
+                                <input type="tel" name="CustomerPhone" id="wbInputCustomerPhone" class="form-control" placeholder="0901234567..." required />
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-bold text-dark small">Mô tả hiện tượng lỗi do khách báo: <span class="text-danger">*</span></label>
+                                <textarea name="CustomerIssue" rows="2" class="form-control" placeholder="Ví dụ: Máy không sạc được pin, màn hình chập chờn, rơi nước mất nguồn..." required></textarea>
+                            </div>
+
+                            <div class="col-md-8">
+                                <label class="form-label fw-bold text-dark small">Tình trạng ngoại quan khi nhận máy:</label>
+                                <input type="text" name="DeviceCondition" class="form-control" placeholder="Ví dụ: Máy trầy nhẹ viền dưới, màn hình nguyên vẹn không nứt vỡ..." />
+                            </div>
+
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold text-dark small">Số ngày hẹn trả máy:</label>
+                                <input type="number" name="ExpectedDays" class="form-control" value="3" min="1" max="60" />
+                            </div>
+
+                            <div class="col-12">
+                                <label class="form-label fw-bold text-dark small">Ghi chú thêm:</label>
+                                <input type="text" name="Notes" class="form-control" placeholder="Khách cần lấy gấp / phụ kiện gửi kèm gồm sạc cáp..." />
+                            </div>
+                        </div>
+
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-primary rounded-pill px-4 fw-bold py-2 shadow-sm">
+                                <i class="bi bi-check-circle me-1"></i>Lập Phiếu Tiếp Nhận & Tạo Mã Phiếu
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 3: CASHIER & ZALOPAY QR PAYMENT        -->
+        <!-- ========================================== -->
+        <div class="tab-pane fade" id="tab-cashier" role="tabpanel">
+            <div class="row g-4">
+                <div class="col-lg-7">
+                    <h6 class="fw-bold text-dark mb-3">
+                        <i class="bi bi-clock-history text-danger me-2"></i>Danh Sách Phiếu Cần Thu Chi Phí (@Model.UnpaidFeeTickets.Count)
+                    </h6>
+
+                    @if (Model.UnpaidFeeTickets.Count == 0)
+                    {
+                        <div class="text-center py-5 bg-light rounded-3 border text-muted">
+                            <i class="bi bi-check2-circle display-5 text-success d-block mb-2"></i>
+                            Không có phiếu nào chưa thanh toán! Tất cả các khoản thu đã được thanh toán đầy đủ.
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="list-group">
+                            @foreach (var up in Model.UnpaidFeeTickets)
+                            {
+                                <div class="list-group-item list-group-item-action p-3 mb-2 rounded-3 border d-flex justify-content-between align-items-center flex-wrap gap-2">
+                                    <div>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <strong class="text-primary font-monospace fs-6">@up.TicketCode</strong>
+                                            <span class="badge @up.StatusBadgeClass">@up.StatusVietnamese</span>
+                                        </div>
+                                        <div class="text-dark fw-semibold mt-1">@up.CustomerName - @up.CustomerPhone</div>
+                                        <div class="small text-muted">Thiết bị: @(up.ProductName ?? "Máy dịch vụ ngoài")</div>
+                                        <div class="small text-muted">Lỗi: @up.CustomerIssue</div>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="fs-5 fw-bold text-danger mb-1">@up.RepairCost.ToString("N0")đ</div>
+                                        <button type="button" class="btn btn-sm btn-primary rounded-pill px-3 fw-bold" 
+                                                onclick="selectTicketForCashier('@up.TicketId', '@up.TicketCode', @((long)up.RepairCost), '@up.CustomerName', '@up.CustomerPhone')">
+                                            <i class="bi bi-qr-code me-1"></i>Chọn Thu Tiền
+                                        </button>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <!-- Right: Active QR Payment Box -->
+                <div class="col-lg-5">
+                    <div class="p-4 rounded-3 border shadow-sm bg-white" id="cashierQrPanel">
+                        <h6 class="fw-bold text-primary mb-3 border-bottom pb-2">
+                            <i class="bi bi-wallet2 me-2"></i>Cổng Thanh Toán Tự Sinh QR ZaloPay
+                        </h6>
+
+                        <div class="alert alert-light border small mb-3">
+                            <div>Mã phiếu đang chọn: <strong class="text-primary font-monospace" id="cashierTicketCode">---</strong></div>
+                            <div>Khách hàng: <strong id="cashierCustomerName">Vui lòng chọn phiếu bên trái</strong></div>
+                            <div>Chi phí gốc: <strong class="text-danger fs-6" id="cashierOrigCost">0đ</strong></div>
+                        </div>
+
+                        <!-- Voucher Input -->
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-dark mb-1">Mã Voucher / Giảm giá (nếu có):</label>
+                            <div class="input-group input-group-sm">
+                                <input type="text" id="cashierVoucherInput" class="form-control text-uppercase" placeholder="VD: KITTYBH10, TRIANKHACH..." />
+                                <button type="button" class="btn btn-outline-primary" onclick="applyCashierVoucher()">Áp dụng</button>
+                            </div>
+                            <div id="cashierVoucherNote" class="small mt-1 text-success fw-semibold" style="display: none;"></div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-baseline border-top pt-2 mb-3">
+                            <span class="fw-bold text-dark small">SỐ TIỀN THU THỰC TẾ:</span>
+                            <span class="fs-4 fw-bold text-primary" id="cashierFinalAmount">0đ</span>
+                        </div>
+
+                        <!-- Live QR Image Container -->
+                        <div class="text-center bg-light p-3 rounded-3 border mb-3">
+                            <img id="cashierQrImage" src="https://img.vietqr.io/image/970454-0396166509-compact2.png?amount=0&addInfo=KITTYPHONE&accountName=DUONG%20NGOC%20ANH" 
+                                 alt="QR ZaloPay" class="img-fluid rounded shadow-sm bg-white p-2 border" style="max-width: 190px;" />
+                            <div class="small text-muted mt-2 fw-semibold"><i class="bi bi-camera me-1"></i>Quét bằng ZaloPay hoặc App Ngân Hàng</div>
+                            <div class="small text-dark mt-1">STK: <strong class="text-primary font-monospace">0396166509</strong> (DUONG NGOC ANH)</div>
+                        </div>
+
+                        <!-- Payment Form Submit -->
+                        <form asp-action="ProcessPayment" method="post">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="ticketId" id="cashierHiddenTicketId" value="" />
+                            <input type="hidden" name="paidAmount" id="cashierHiddenPaidAmount" value="0" />
+                            <input type="hidden" name="discountAmount" id="cashierHiddenDiscount" value="0" />
+                            <input type="hidden" name="voucherCode" id="cashierHiddenVoucher" value="" />
+                            <input type="hidden" name="paymentMethod" id="cashierHiddenMethod" value="ZaloPay QR" />
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary rounded-pill py-2 fw-bold" onclick="$('#cashierHiddenMethod').val('ZaloPay QR')">
+                                    <i class="bi bi-check2-circle me-1"></i>Xác Nhận Đã Nhận Chuyển Khoản QR
+                                </button>
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-outline-success rounded-pill flex-fill py-2 small fw-semibold" onclick="$('#cashierHiddenMethod').val('Tiền mặt')">
+                                        <i class="bi bi-cash me-1"></i>Thu Tiền Mặt
+                                    </button>
+                                    <button type="submit" class="btn btn-outline-info rounded-pill flex-fill py-2 small fw-semibold" onclick="$('#cashierHiddenMethod').val('Thẻ POS')">
+                                        <i class="bi bi-credit-card me-1"></i>Quẹt Thẻ POS
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 4: HANDOVER & DELIVER DESK             -->
+        <!-- ========================================== -->
+        <div class="tab-pane fade" id="tab-handover" role="tabpanel">
+            <h6 class="fw-bold text-success mb-3">
+                <i class="bi bi-box2-check-fill me-2"></i>Thiết Bị Đã Sửa Xong Sẵn Sàng Bàn Giao Cho Khách (@Model.CompletedTickets.Count)
+            </h6>
+
+            @if (Model.CompletedTickets.Count == 0)
+            {
+                <div class="text-center py-5 bg-light rounded-3 border text-muted">
+                    <i class="bi bi-inbox display-5 text-muted d-block mb-2"></i>
+                    Hiện không có máy nào đang chờ bàn giao.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle border mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Mã Phiếu</th>
+                                <th>Khách Hàng</th>
+                                <th>Dòng Máy / Model</th>
+                                <th>Phương Án Đã Sửa</th>
+                                <th>Chi Phí</th>
+                                <th>Thanh Toán</th>
+                                <th class="text-center">Thao Tác Bàn Giao</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var c in Model.CompletedTickets)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong class="text-primary font-monospace">@c.TicketCode</strong>
+                                        <div class="small text-muted">Nhận: @c.ReceiveDate.ToString("dd/MM/yyyy")</div>
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold text-dark">@c.CustomerName</div>
+                                        <div class="small text-muted"><i class="bi bi-telephone me-1"></i>@c.CustomerPhone</div>
+                                    </td>
+                                    <td>
+                                        <div>@c.ProductName</div>
+                                        @if (!string.IsNullOrEmpty(c.ImeiNumber))
+                                        {
+                                            <code class="small text-secondary font-monospace">@c.ImeiNumber</code>
+                                        }
+                                    </td>
+                                    <td style="max-width: 250px;">
+                                        <div class="small text-muted text-truncate" title="@c.RepairAction">@(c.RepairAction ?? "Đã sửa hoàn tất")</div>
+                                    </td>
+                                    <td class="fw-bold @(c.RepairCost == 0 ? "text-success" : "text-danger")">
+                                        @c.RepairCost.ToString("N0")đ
+                                    </td>
+                                    <td>
+                                        @if (c.RepairCost == 0 || c.PaymentStatus == "Paid")
+                                        {
+                                            <span class="badge bg-success-subtle text-success border border-success"><i class="bi bi-check2 me-1"></i>Đã đủ</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger-subtle text-danger border border-danger"><i class="bi bi-clock me-1"></i>Chưa thu</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="btn-group btn-group-sm">
+                                            <button type="button" class="btn btn-success rounded-pill px-3 fw-bold" onclick="openDeliverModal('@c.TicketId', '@c.TicketCode', '@c.CustomerName', '@c.CustomerPhone', @((long)c.RepairCost), '@c.PaymentStatus')">
+                                                <i class="bi bi-box-arrow-right me-1"></i>Trả Máy
+                                            </button>
+                                            <a asp-action="PrintTicket" asp-route-id="@c.TicketId" target="_blank" class="btn btn-outline-secondary rounded-pill ms-1" title="In phiếu biên nhận">
+                                                <i class="bi bi-printer"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 5: QUICK LOOKUP CONSOLE                -->
+        <!-- ========================================== -->
+        <div class="tab-pane fade" id="tab-lookup" role="tabpanel">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
+                    <div class="p-4 bg-light rounded-3 border text-center mb-4">
+                        <h5 class="fw-bold mb-2 text-dark"><i class="bi bi-search text-primary me-2"></i>Tra Cứu Thông Tin Bảo Hành & Sửa Chữa</h5>
+                        <p class="text-muted small mb-3">Nhập số IMEI (15 số), số Serial hoặc Số điện thoại của khách hàng để kiểm tra</p>
+                        
+                        <div class="input-group input-group-lg shadow-sm">
+                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-upc-scan text-primary"></i></span>
+                            <input type="text" id="wbSearchQuery" class="form-control border-start-0" placeholder="Ví dụ: 356789123456789 hoặc 0988776655..." onkeypress="if(event.keyCode==13) doWorkbenchLookup();" />
+                            <button type="button" class="btn btn-primary px-4 fw-bold" onclick="doWorkbenchLookup()">Tra Cứu</button>
+                        </div>
+                    </div>
+
+                    <!-- Ajax Lookup Result Container -->
+                    <div id="wbLookupResultBox"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Modal Quick Payment -->
+<div class="modal fade" id="modalQuickPay" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold text-primary">
+                    <i class="bi bi-qr-code-scan me-2"></i>Thu Tiền Sửa Chữa / Quét QR ZaloPay
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <p class="text-muted small mb-2">Mã phiếu: <strong class="text-primary font-monospace" id="modalPayTicketCode">---</strong></p>
+                <div class="bg-white p-3 rounded-3 border d-inline-block shadow-sm mb-3">
+                    <img id="modalPayQrImg" src="" alt="Mã QR ZaloPay" class="img-fluid rounded" style="max-width: 210px;" />
+                </div>
+                <div class="bg-light p-3 rounded-3 text-start small border mb-3">
+                    <div class="d-flex justify-content-between py-1 border-bottom">
+                        <span class="text-muted">Ngân hàng:</span>
+                        <strong class="text-dark">ZaloPay / VietQR</strong>
+                    </div>
+                    <div class="d-flex justify-content-between py-1 border-bottom">
+                        <span class="text-muted">Số tài khoản:</span>
+                        <span class="fw-bold font-monospace text-primary">0396166509</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-1 border-bottom">
+                        <span class="text-muted">Chủ tài khoản:</span>
+                        <strong class="text-dark">DUONG NGOC ANH</strong>
+                    </div>
+                    <div class="d-flex justify-content-between py-1">
+                        <span class="text-muted">Số tiền thanh toán:</span>
+                        <strong class="text-danger fs-5" id="modalPayAmountText">0đ</strong>
+                    </div>
+                </div>
+
+                <form asp-action="ProcessPayment" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="ticketId" id="modalPayHiddenTicketId" value="" />
+                    <input type="hidden" name="paidAmount" id="modalPayHiddenAmount" value="0" />
+                    <input type="hidden" name="discountAmount" value="0" />
+                    <input type="hidden" name="paymentMethod" value="ZaloPay QR" />
+
+                    <button type="submit" class="btn btn-primary rounded-pill w-100 py-2 fw-bold">
+                        <i class="bi bi-check2-circle me-1"></i>Xác Nhận Đã Nhận Thanh Toán
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Deliver Handover -->
+<div class="modal fade" id="modalDeliverHandover" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form asp-action="Deliver" method="post" id="formModalDeliver">
+                @Html.AntiForgeryToken()
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold text-success">
+                        <i class="bi bi-box-arrow-right me-2"></i>Bàn Giao Trả Thiết Bị Cho Khách Hàng
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-light border mb-3">
+                        <div>Mã phiếu: <strong class="text-primary font-monospace" id="modalDeliverTicketCode">---</strong></div>
+                        <div>Khách hàng: <strong id="modalDeliverCustomerName">---</strong> (<span id="modalDeliverCustomerPhone">---</span>)</div>
+                        <div>Chi phí sửa chữa: <strong class="text-danger" id="modalDeliverCost">0đ</strong></div>
+                        <div id="modalDeliverPaymentStatus"></div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Ghi chú khi bàn giao máy cho khách:</label>
+                        <textarea name="notes" class="form-control" rows="3" placeholder="Khách đã kiểm tra test kỹ màn hình, cảm ứng, chức năng hoạt động tốt, đã ký nhận bàn giao..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary rounded-pill px-3" data-bs-dismiss="modal">Đóng</button>
+                    <button type="submit" class="btn btn-success rounded-pill px-4 fw-bold">Xác Nhận Bàn Giao</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    function formatVND(n) {
+        return Math.round(n).toLocaleString('vi-VN') + 'đ';
+    }
+
+    function switchMainTab(tabId) {
+        const triggerEl = document.querySelector('#' + tabId + '-btn');
+        if (triggerEl) {
+            const tab = new bootstrap.Tab(triggerEl);
+            tab.show();
+        }
+    }
+
+    function filterWorkbench(status, btn) {
+        if (btn) {
+            $('.btn-filter').removeClass('btn-dark active').addClass('btn-outline-secondary');
+            $(btn).removeClass('btn-outline-secondary').addClass('btn-dark active');
+        }
+        if (status === 'ALL') {
+            $('.ticket-row').show();
+        } else if (status === 'Processing') {
+            $('.ticket-row').hide();
+            $('.ticket-row[data-status="Diagnosing"], .ticket-row[data-status="Processing"], .ticket-row[data-status="WaitingParts"]').show();
+        } else {
+            $('.ticket-row').hide();
+            $('.ticket-row[data-status="' + status + '"]').show();
+        }
+        switchMainTab('tab-active');
+    }
+
+    function searchWorkbenchTable() {
+        const q = ($('#filterTableSearch').val() || '').trim().toLowerCase();
+        $('.ticket-row').each(function() {
+            const s = $(this).data('search') || '';
+            if (!q || s.includes(q)) {
+                $(this).show();
+            } else {
+                $(this).hide();
+            }
+        });
+    }
+
+    // Cashier Panel Functions
+    let cashierCurrentCost = 0;
+    let cashierDiscount = 0;
+    let cashierCurrentTicketId = null;
+    let cashierTicketCodeStr = '';
+
+    function selectTicketForCashier(id, code, cost, name, phone) {
+        cashierCurrentTicketId = id;
+        cashierTicketCodeStr = code;
+        cashierCurrentCost = cost;
+        cashierDiscount = 0;
+
+        $('#cashierHiddenTicketId').val(id);
+        $('#cashierTicketCode').text(code);
+        $('#cashierCustomerName').text(name + ' (' + phone + ')');
+        $('#cashierOrigCost').text(formatVND(cost));
+        $('#cashierVoucherInput').val('');
+        $('#cashierVoucherNote').hide();
+        updateCashierTotal();
+    }
+
+    function applyCashierVoucher() {
+        const code = ($('#cashierVoucherInput').val() || '').trim().toUpperCase();
+        if (!code || cashierCurrentCost <= 0) return;
+
+        if (code === 'KITTYBH10') {
+            cashierDiscount = Math.round(cashierCurrentCost * 0.1);
+            $('#cashierVoucherNote').text('Áp dụng KITTYBH10: Giảm 10% (-' + formatVND(cashierDiscount) + ')').show();
+        } else if (code === 'TRIANKHACH') {
+            cashierDiscount = Math.min(50000, cashierCurrentCost);
+            $('#cashierVoucherNote').text('Áp dụng TRIANKHACH: Giảm 50.000đ').show();
+        } else {
+            cashierDiscount = Math.round(cashierCurrentCost * 0.05);
+            $('#cashierVoucherNote').text('Áp dụng ' + code + ': Giảm 5% (-' + formatVND(cashierDiscount) + ')').show();
+        }
+
+        $('#cashierHiddenVoucher').val(code);
+        updateCashierTotal();
+    }
+
+    function updateCashierTotal() {
+        const finalAmt = Math.max(0, cashierCurrentCost - cashierDiscount);
+        $('#cashierFinalAmount').text(formatVND(finalAmt));
+        $('#cashierHiddenPaidAmount').val(finalAmt);
+        $('#cashierHiddenDiscount').val(cashierDiscount);
+
+        const syntax = 'BH ' + cashierTicketCodeStr;
+        const qrUrl = 'https://img.vietqr.io/image/970454-0396166509-compact2.png?amount=' + finalAmt + '&addInfo=' + encodeURIComponent(syntax) + '&accountName=DUONG%20NGOC%20ANH';
+        $('#cashierQrImage').attr('src', qrUrl);
+    }
+
+    function openQuickPayModal(id, code, cost) {
+        $('#modalPayTicketCode').text(code);
+        $('#modalPayHiddenTicketId').val(id);
+        $('#modalPayHiddenAmount').val(cost);
+        $('#modalPayAmountText').text(formatVND(cost));
+
+        const syntax = 'BH ' + code;
+        const qrUrl = 'https://img.vietqr.io/image/970454-0396166509-compact2.png?amount=' + cost + '&addInfo=' + encodeURIComponent(syntax) + '&accountName=DUONG%20NGOC%20ANH';
+        $('#modalPayQrImg').attr('src', qrUrl);
+
+        const m = new bootstrap.Modal(document.getElementById('modalQuickPay'));
+        m.show();
+    }
+
+    function openDeliverModal(id, code, name, phone, cost, status) {
+        $('#formModalDeliver').attr('action', '/Technician/Deliver/' + id);
+        $('#modalDeliverTicketCode').text(code);
+        $('#modalDeliverCustomerName').text(name);
+        $('#modalDeliverCustomerPhone').text(phone);
+        $('#modalDeliverCost').text(formatVND(cost));
+        
+        if (cost === 0 || status === 'Paid') {
+            $('#modalDeliverPaymentStatus').html('<span class="badge bg-success"><i class="bi bi-check2 me-1"></i>Đã thanh toán đủ</span>');
+        } else {
+            $('#modalDeliverPaymentStatus').html('<span class="badge bg-danger"><i class="bi bi-clock me-1"></i>Chưa thanh toán chi phí sửa</span>');
+        }
+
+        const m = new bootstrap.Modal(document.getElementById('modalDeliverHandover'));
+        m.show();
+    }
+
+    function checkImeiForIntake() {
+        const imei = ($('#wbInputImei').val() || '').trim();
+        if (!imei) return;
+
+        $('#wbImeiResult').html('<span class="text-primary"><i class="bi bi-hourglass-split me-1"></i>Đang tra cứu dữ liệu máy...</span>');
+        $.get('/Technician/Lookup', { query: imei }, function(html) {
+            // Find if lookup success
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const foundHeader = doc.querySelector('h5');
+            
+            if (html.includes('Còn trong hạn bảo hành') || html.includes('Hết hạn bảo hành') || html.includes('Dòng máy:')) {
+                $('#wbImeiResult').html('<span class="text-success fw-bold"><i class="bi bi-check-circle me-1"></i>Tìm thấy máy trong hệ thống!</span>');
+            } else {
+                $('#wbImeiResult').html('<span class="text-muted"><i class="bi bi-info-circle me-1"></i>Thiết bị mang ngoài, sẽ tạo mới bảo hành dịch vụ.</span>');
+            }
+        });
+    }
+
+    function doWorkbenchLookup() {
+        const q = ($('#wbSearchQuery').val() || '').trim();
+        if (!q) return;
+
+        $('#wbLookupResultBox').html('<div class="text-center py-4"><div class="spinner-border text-primary" role="status"></div><div class="small text-muted mt-2">Đang tra cứu lịch sử và hạn bảo hành...</div></div>');
+        
+        $.get('/Technician/Lookup', { query: q }, function(html) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const mainContent = doc.querySelector('.container-fluid') || doc.querySelector('.container') || doc.body;
+            $('#wbLookupResultBox').html($(mainContent).html());
+        }).fail(function() {
+            $('#wbLookupResultBox').html('<div class="alert alert-danger">Lỗi khi kết nối tra cứu. Vui lòng thử lại.</div>');
+        });
+    }
+
+    // Auto select first ticket for cashier if available
+    $(document).ready(function() {
+        @if (Model.UnpaidFeeTickets.Count > 0)
+        {
+            var first = Model.UnpaidFeeTickets[0];
+            <text>
+            selectTicketForCashier('@first.TicketId', '@first.TicketCode', @((long)first.RepairCost), '@first.CustomerName', '@first.CustomerPhone');
+            </text>
+        }
+    });
+</script>
+}

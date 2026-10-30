@@ -24,6 +24,7 @@ namespace BTL_PTTKYC.Controllers
                 if (User.IsInRole("Admin")) return RedirectToAction("Index", "Admin");
                 if (User.IsInRole("Sales")) return RedirectToAction("Orders", "Sales");
                 if (User.IsInRole("Warehouse")) return RedirectToAction("Index", "Warehouse");
+                if (User.IsInRole("Technician")) return RedirectToAction("Index", "Technician");
             }
 
             ViewBag.ReturnUrl = returnUrl;
@@ -82,6 +83,10 @@ namespace BTL_PTTKYC.Controllers
             else if (account.Role == "Warehouse")
             {
                 return RedirectToAction("Index", "Warehouse");
+            }
+            else if (account.Role == "Technician")
+            {
+                return RedirectToAction("Workbench", "Technician");
             }
 
             return RedirectToAction("Index", "Home");

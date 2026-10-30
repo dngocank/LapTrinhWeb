@@ -23,6 +23,7 @@ yarn-error.log*
 !.env.example
 
 # Temporary / Binary Tools
+scratch/
 cloudflared.exe
 *.log
 

@@ -176,12 +176,28 @@ namespace BTL_PTTKYC.Data
                     {
                         var user = reader["username"]?.ToString() ?? "";
                         var hash = reader["password_hash"]?.ToString() ?? "";
-                        if (hash.Contains("REPLACE_WITH_BCRYPT_HASH") || !hash.StartsWith("$2"))
+                        string defaultPass = user switch
                         {
-                            if (user == "admin") toUpdate.Add(("admin", "admin123"));
-                            else if (user == "sales") toUpdate.Add(("sales", "sales123"));
-                            else if (user == "kho") toUpdate.Add(("kho", "kho123"));
-                            else toUpdate.Add((user, "123456"));
+                            "admin" => "admin123",
+                            "sales" => "sales123",
+                            "kho" => "kho123",
+                            "kythuat" => "kythuat123",
+                            _ => "123456"
+                        };
+
+                        bool match = false;
+                        try
+                        {
+                            match = BCrypt.Net.BCrypt.Verify(defaultPass, hash);
+                        }
+                        catch
+                        {
+                            match = false;
+                        }
+
+                        if (!match)
+                        {
+                            toUpdate.Add((user, defaultPass));
                         }
                     }
                     reader.Close();
@@ -196,7 +212,10 @@ namespace BTL_PTTKYC.Data
                     }
                 }
 
-                // 3. Ensure all products have 100% verified working images and rich 24hStore specs
+                // 3. Ensure warranty schema and technician roles
+                EnsureWarrantySchemaAndTechnician(conn);
+
+                // 4. Ensure all products have 100% verified working images and rich 24hStore specs
                 SyncProductCatalog(conn);
             }
             catch (Exception ex)
@@ -235,6 +254,226 @@ namespace BTL_PTTKYC.Data
                 cmd.Parameters.AddWithValue("@img", p.ImageUrl);
                 cmd.Parameters.AddWithValue("@desc", p.Description);
                 cmd.ExecuteNonQuery();
+            }
+        }
+
+        private static void EnsureWarrantySchemaAndTechnician(SqlConnection conn)
+        {
+            try
+            {
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = @"
+                    -- 1. Nới lỏng ràng buộc Position và Role cho Technician
+                    ALTER TABLE Employee DROP CONSTRAINT IF EXISTS CK_Employee_Position;
+                    ALTER TABLE Employee ADD CONSTRAINT CK_Employee_Position 
+                        CHECK (position IN (N'Manager', N'Sales', N'Warehouse Staff', N'Technician', N'Kỹ thuật viên', N'Technical Staff'));
+
+                    ALTER TABLE Account DROP CONSTRAINT IF EXISTS CK_Account_Role;
+                    ALTER TABLE Account ADD CONSTRAINT CK_Account_Role 
+                        CHECK (role IN ('Admin', 'Sales', 'Warehouse', 'Technician'));
+
+                    -- 2. Đảm bảo bảng Warranty_Ticket tồn tại
+                    IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Warranty_Ticket')
+                    BEGIN
+                        CREATE TABLE Warranty_Ticket (
+                            ticket_id            INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+                            ticket_code          VARCHAR(50)       NOT NULL UNIQUE,
+                            warranty_id          INT               NULL REFERENCES Warranty(warranty_id),
+                            serial_id            INT               NULL REFERENCES Product_Serial(serial_id),
+                            customer_id          INT               NULL REFERENCES Customer(customer_id),
+                            customer_name        NVARCHAR(100)     NOT NULL,
+                            customer_phone       VARCHAR(15)       NOT NULL,
+                            technician_id        INT               NULL REFERENCES Employee(employee_id),
+                            receive_date         DATETIME          NOT NULL DEFAULT GETDATE(),
+                            expected_return_date DATE              NULL,
+                            completed_date       DATETIME          NULL,
+                            customer_issue       NVARCHAR(1000)    NOT NULL,
+                            device_condition     NVARCHAR(500)     NULL,
+                            diagnosis            NVARCHAR(1000)    NULL,
+                            repair_action        NVARCHAR(1000)    NULL,
+                            repair_cost          DECIMAL(18,2)     NOT NULL DEFAULT 0 CHECK (repair_cost >= 0),
+                            status               VARCHAR(30)       NOT NULL DEFAULT 'Received' CHECK (status IN ('Received', 'Diagnosing', 'Processing', 'WaitingParts', 'Completed', 'Delivered', 'Cancelled')),
+                            notes                NVARCHAR(500)     NULL,
+                            created_at           DATETIME          NOT NULL DEFAULT GETDATE(),
+                            CONSTRAINT CK_WarrantyTicket_Dates CHECK (completed_date IS NULL OR completed_date >= receive_date)
+                        );
+                    END
+
+                    -- 3. Đảm bảo bảng Warranty_Ticket_Component tồn tại
+                    IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Warranty_Ticket_Component')
+                    BEGIN
+                        CREATE TABLE Warranty_Ticket_Component (
+                            component_id     INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+                            ticket_id        INT               NOT NULL REFERENCES Warranty_Ticket(ticket_id) ON DELETE CASCADE,
+                            component_name   NVARCHAR(150)     NOT NULL,
+                            quantity         INT               NOT NULL DEFAULT 1 CHECK (quantity > 0),
+                            price            DECIMAL(18,2)     NOT NULL DEFAULT 0 CHECK (price >= 0),
+                            note             NVARCHAR(255)     NULL
+                        );
+                    END
+
+                    -- 4. Đảm bảo nhân viên Kỹ thuật và Tài khoản kythuat tồn tại
+                    IF NOT EXISTS (SELECT 1 FROM Employee WHERE position = N'Technician' OR employee_name LIKE N'%Kỹ Thuật%')
+                    BEGIN
+                        INSERT INTO Employee (employee_name, phone, position)
+                        VALUES (N'Nguyễn Văn Kỹ Thuật', '0987654321', N'Technician');
+                    END
+
+                    DECLARE @tId INT;
+                    SELECT TOP 1 @tId = employee_id FROM Employee WHERE position = N'Technician' ORDER BY employee_id DESC;
+
+                    IF @tId IS NOT NULL AND NOT EXISTS (SELECT 1 FROM Account WHERE username = 'kythuat')
+                    BEGIN
+                        INSERT INTO Account (employee_id, username, password_hash, role, is_active)
+                        VALUES (@tId, 'kythuat', '$2a$11$N4k9RzBfH9F5tWk6RkQpEOb9xO2yZl9rP6p9Jz2U2Kx5R7Kz8Z1Xe', 'Technician', 1);
+                    END
+
+                    -- 5. Thêm các cột thanh toán và bảo hành tại nhà vào bảng Warranty_Ticket nếu chưa có
+                    IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='Warranty_Ticket' AND COLUMN_NAME='payment_status')
+                        ALTER TABLE Warranty_Ticket ADD payment_status VARCHAR(30) NOT NULL CONSTRAINT DF_WarrantyTicket_PaymentStatus DEFAULT 'Unpaid';
+
+                    IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='Warranty_Ticket' AND COLUMN_NAME='payment_method')
+                        ALTER TABLE Warranty_Ticket ADD payment_method NVARCHAR(50) NULL;
+
+                    IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='Warranty_Ticket' AND COLUMN_NAME='paid_amount')
+                        ALTER TABLE Warranty_Ticket ADD paid_amount DECIMAL(18,2) NOT NULL CONSTRAINT DF_WarrantyTicket_PaidAmount DEFAULT 0;
+
+                    IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='Warranty_Ticket' AND COLUMN_NAME='paid_at')
+                        ALTER TABLE Warranty_Ticket ADD paid_at DATETIME NULL;
+
+                    IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='Warranty_Ticket' AND COLUMN_NAME='discount_amount')
+                        ALTER TABLE Warranty_Ticket ADD discount_amount DECIMAL(18,2) NOT NULL CONSTRAINT DF_WarrantyTicket_Discount DEFAULT 0;
+
+                    IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='Warranty_Ticket' AND COLUMN_NAME='voucher_code')
+                        ALTER TABLE Warranty_Ticket ADD voucher_code VARCHAR(50) NULL;
+
+                    IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='Warranty_Ticket' AND COLUMN_NAME='customer_email')
+                        ALTER TABLE Warranty_Ticket ADD customer_email NVARCHAR(100) NULL;
+
+                    IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='Warranty_Ticket' AND COLUMN_NAME='is_home_service')
+                        ALTER TABLE Warranty_Ticket ADD is_home_service BIT NOT NULL CONSTRAINT DF_WarrantyTicket_IsHome DEFAULT 0;
+
+                    IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='Warranty_Ticket' AND COLUMN_NAME='pickup_address')
+                        ALTER TABLE Warranty_Ticket ADD pickup_address NVARCHAR(255) NULL;
+
+                    IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='Warranty_Ticket' AND COLUMN_NAME='pickup_time')
+                        ALTER TABLE Warranty_Ticket ADD pickup_time DATETIME NULL;
+
+                    IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='Warranty_Ticket' AND COLUMN_NAME='service_type')
+                        ALTER TABLE Warranty_Ticket ADD service_type NVARCHAR(50) NULL;
+
+                    IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='Warranty_Ticket' AND COLUMN_NAME='shipping_carrier')
+                        ALTER TABLE Warranty_Ticket ADD shipping_carrier NVARCHAR(50) NULL;
+
+                    IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='Warranty_Ticket' AND COLUMN_NAME='shipping_fee')
+                        ALTER TABLE Warranty_Ticket ADD shipping_fee DECIMAL(18,2) NOT NULL CONSTRAINT DF_WarrantyTicket_ShipFee DEFAULT 0;
+
+                    IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='Warranty_Ticket' AND COLUMN_NAME='shipping_distance_km')
+                        ALTER TABLE Warranty_Ticket ADD shipping_distance_km DECIMAL(6,2) NULL;
+
+                    -- 6. Đảm bảo bảng Warranty_Notification tồn tại để lưu vết Email & SMS
+                    IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'Warranty_Notification')
+                    BEGIN
+                        CREATE TABLE Warranty_Notification (
+                            notification_id INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+                            ticket_id       INT NOT NULL,
+                            ticket_code     VARCHAR(50) NOT NULL,
+                            customer_id     INT NULL,
+                            channel         VARCHAR(20) NOT NULL,
+                            recipient       NVARCHAR(100) NOT NULL,
+                            title           NVARCHAR(255) NOT NULL,
+                            message_body    NVARCHAR(MAX) NOT NULL,
+                            status          VARCHAR(30) NOT NULL DEFAULT 'Sent',
+                            sent_at         DATETIME NOT NULL DEFAULT GETDATE()
+                        );
+                    END
+
+                    -- 7. Thêm các cột vận chuyển ship về tận nhà vào bảng Invoice nếu chưa có
+                    IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='Invoice' AND COLUMN_NAME='shipping_carrier')
+                        ALTER TABLE Invoice ADD shipping_carrier NVARCHAR(50) NULL;
+
+                    IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='Invoice' AND COLUMN_NAME='shipping_fee')
+                        ALTER TABLE Invoice ADD shipping_fee DECIMAL(18,2) NOT NULL CONSTRAINT DF_Invoice_ShipFee DEFAULT 0;
+
+                    IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='Invoice' AND COLUMN_NAME='shipping_distance_km')
+                        ALTER TABLE Invoice ADD shipping_distance_km DECIMAL(6,2) NULL;
+
+                    IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME='Invoice' AND COLUMN_NAME='shipping_service_type')
+                        ALTER TABLE Invoice ADD shipping_service_type NVARCHAR(50) NULL;
+
+                    -- 8. Cập nhật VIEW vw_WarrantyTicketDetail bao gồm đầy đủ cột mới
+                    IF OBJECT_ID('vw_WarrantyTicketDetail', 'V') IS NOT NULL
+                        DROP VIEW vw_WarrantyTicketDetail;
+
+                    EXEC('
+                    CREATE VIEW vw_WarrantyTicketDetail
+                    AS
+                    SELECT
+                        t.ticket_id,
+                        t.ticket_code,
+                        t.warranty_id,
+                        t.serial_id,
+                        t.customer_id,
+                        t.customer_name,
+                        t.customer_phone,
+                        t.customer_email,
+                        t.technician_id,
+                        e.employee_name AS technician_name,
+                        e.phone AS technician_phone,
+                        t.receive_date,
+                        t.expected_return_date,
+                        t.completed_date,
+                        t.customer_issue,
+                        t.device_condition,
+                        t.diagnosis,
+                        t.repair_action,
+                        t.repair_cost,
+                        t.status,
+                        t.notes,
+                        t.created_at,
+                        t.payment_status,
+                        t.payment_method,
+                        t.paid_amount,
+                        t.paid_at,
+                        t.discount_amount,
+                        t.voucher_code,
+                        t.is_home_service,
+                        t.pickup_address,
+                        t.pickup_time,
+                        t.service_type,
+                        t.shipping_carrier,
+                        t.shipping_fee,
+                        t.shipping_distance_km,
+                        ps.imei_number,
+                        ps.serial_number,
+                        p.product_id,
+                        p.product_name,
+                        b.brand_name,
+                        w.warranty_start,
+                        w.warranty_end,
+                        w.warranty_status AS original_warranty_status,
+                        CASE 
+                            WHEN w.warranty_end IS NULL THEN N''Không có thẻ BH''
+                            WHEN w.warranty_end < CAST(GETDATE() AS DATE) THEN N''Hết hạn BH''
+                            ELSE N''Còn hạn BH''
+                        END AS warranty_coverage_text,
+                        CASE 
+                            WHEN w.warranty_end >= CAST(GETDATE() AS DATE) THEN DATEDIFF(DAY, CAST(GETDATE() AS DATE), w.warranty_end)
+                            ELSE 0
+                        END AS warranty_days_remaining
+                    FROM Warranty_Ticket t
+                    LEFT JOIN Employee e        ON t.technician_id = e.employee_id
+                    LEFT JOIN Product_Serial ps ON t.serial_id = ps.serial_id
+                    LEFT JOIN Product p         ON ps.product_id = p.product_id
+                    LEFT JOIN Brand b           ON p.brand_id = b.brand_id
+                    LEFT JOIN Warranty w        ON t.warranty_id = w.warranty_id;
+                    ');
+                ";
+                cmd.ExecuteNonQuery();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("EnsureWarrantySchema Error: " + ex.Message);
             }
         }
 

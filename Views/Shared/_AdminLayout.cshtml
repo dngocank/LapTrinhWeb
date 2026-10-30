@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - KittyPhone Quản Trị Hệ Thống</title>
     
-    <!-- Google Fonts Inter Typography -->
+    <!-- Google Fonts Inter Typography (Full Range & Vietnamese support) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
 
     <!-- Bootstrap 5 CSS -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
@@ -55,6 +55,10 @@
                         else if (User.IsInRole("Warehouse"))
                         {
                             <span class="badge bg-warning text-dark">Kho</span>
+                        }
+                        else if (User.IsInRole("Technician"))
+                        {
+                            <span class="badge bg-info text-dark">Kỹ thuật</span>
                         }
                     </div>
                 </div>
@@ -138,6 +142,48 @@
                         <a asp-controller="Warehouse" asp-action="Movements" class="admin-menu-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Warehouse" && ViewContext.RouteData.Values["action"]?.ToString() == "Movements" ? "active" : "")">
                             <i class="bi bi-clock-history"></i>
                             <span>Biến Động Kho</span>
+                        </a>
+                    </li>
+                }
+
+                @if (User.IsInRole("Technician") || User.IsInRole("Admin"))
+                {
+                    <li class="px-3 pt-3 pb-1 text-uppercase text-white-50" style="font-size: 0.7rem; font-weight: 700;">Nghiệp vụ Kỹ thuật & Bảo hành</li>
+                    <li>
+                        <a asp-controller="Technician" asp-action="Workbench" class="admin-menu-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Technician" && ViewContext.RouteData.Values["action"]?.ToString() == "Workbench" ? "active" : "")" style="background: rgba(56, 189, 248, 0.15); border-left: 3px solid #38bdf8;">
+                            <i class="bi bi-laptop-fill text-info"></i>
+                            <span class="fw-bold text-white">Bàn Làm Việc Kỹ Thuật</span>
+                            <span class="badge bg-primary ms-auto" style="font-size: 0.65rem;">All-in-one</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Technician" asp-action="Index" class="admin-menu-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Technician" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")">
+                            <i class="bi bi-speedometer"></i>
+                            <span>Tổng Quan Kỹ Thuật</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Technician" asp-action="Create" class="admin-menu-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Technician" && ViewContext.RouteData.Values["action"]?.ToString() == "Create" ? "active" : "")">
+                            <i class="bi bi-plus-circle"></i>
+                            <span>Tiếp Nhận Máy Mới</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Technician" asp-action="Tickets" class="admin-menu-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Technician" && (ViewContext.RouteData.Values["action"]?.ToString() == "Tickets" || ViewContext.RouteData.Values["action"]?.ToString() == "Detail" || ViewContext.RouteData.Values["action"]?.ToString() == "Process") ? "active" : "")">
+                            <i class="bi bi-tools"></i>
+                            <span>Phiếu Xử Lý Bảo Hành</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Technician" asp-action="Lookup" class="admin-menu-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Technician" && ViewContext.RouteData.Values["action"]?.ToString() == "Lookup" ? "active" : "")">
+                            <i class="bi bi-search"></i>
+                            <span>Tra Cứu IMEI / Bảo Hành</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a asp-controller="Technician" asp-action="WarrantyCards" class="admin-menu-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Technician" && ViewContext.RouteData.Values["action"]?.ToString() == "WarrantyCards" ? "active" : "")">
+                            <i class="bi bi-shield-check"></i>
+                            <span>Sổ Thẻ Bảo Hành</span>
                         </a>
                     </li>
                 }

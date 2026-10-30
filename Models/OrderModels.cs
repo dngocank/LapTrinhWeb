@@ -42,6 +42,14 @@ namespace BTL_PTTKYC.Models
         public decimal MinimumDeposit => Math.Round(TotalAmount * 0.5m / 10000m) * 10000m;
         public decimal CodRemaining => TotalAmount - MinimumDeposit;
         public List<PromotionModel> AvailablePromotions { get; set; } = new();
+
+        // Dịch vụ giao hàng tận nhà & cước phí
+        public string DeliveryMethod { get; set; } = "HomeDelivery"; // "HomeDelivery" hoặc "StorePickup"
+        public string ShippingCarrier { get; set; } = "xanhsm"; // "xanhsm", "grab", "viettelpost", "ghn"
+        public string ShippingCarrierName { get; set; } = "Xanh SM Express";
+        public decimal ShippingFee { get; set; } = 0;
+        public decimal ShippingDistanceKm { get; set; } = 5.0m;
+        public string? ShippingServiceType { get; set; } = "Giao hỏa tốc xe máy điện 30 - 60 phút";
     }
 
     public class InvoiceDetailModel
@@ -85,6 +93,12 @@ namespace BTL_PTTKYC.Models
         public string? CancelApprovedBy { get; set; }
         public DateTime? CancelApprovedAt { get; set; }
 
+        // Shipping Info
+        public string? ShippingCarrier { get; set; }
+        public decimal ShippingFee { get; set; }
+        public decimal? ShippingDistanceKm { get; set; }
+        public string? ShippingServiceType { get; set; }
+
         public bool IsInstallment => PaymentMethodSelected != null && PaymentMethodSelected.StartsWith("Trả góp");
 
         public string PaymentStatusText
@@ -114,7 +128,17 @@ namespace BTL_PTTKYC.Models
         public string AccountHolder { get; set; } = "DUONG NGOC ANH";
         public decimal DepositNeeded => Invoice.RequiredDeposit;
         public string TransferSyntax => $"KITTY #{Invoice.InvoiceId} {Invoice.CustomerPhone}";
-        public string QrCodeUrl { get; set; } = "/images/qr_kittystore.png";
+        
+        public decimal AmountToPay => IsInstallment 
+            ? (PrepayAmount > 0 ? PrepayAmount : Math.Round(Invoice.TotalAmount * PrepayPercent / 100m / 10000m) * 10000m) 
+            : (Invoice.PaymentMethodSelected == "COD" ? DepositNeeded : Invoice.TotalAmount);
+
+        private string? _qrCodeUrl;
+        public string QrCodeUrl
+        {
+            get => _qrCodeUrl ?? $"https://img.vietqr.io/image/970454-0396166509-compact2.png?amount={(long)AmountToPay}&addInfo={Uri.EscapeDataString(TransferSyntax)}&accountName=DUONG%20NGOC%20ANH";
+            set => _qrCodeUrl = value;
+        }
 
         // Installment details
         public bool IsInstallment => Invoice.IsInstallment;

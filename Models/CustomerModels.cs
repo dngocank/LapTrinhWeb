@@ -96,5 +96,9 @@ namespace BTL_PTTKYC.Models
         public CustomerModel Customer { get; set; } = new();
         public List<InvoiceModel> Orders { get; set; } = new();
         public List<CustomerPurchasedProductItem> PurchasedProducts { get; set; } = new();
+        public List<WarrantyTicketModel> WarrantyTickets { get; set; } = new();
+        public HomeWarrantyRegisterViewModel HomeWarrantyForm { get; set; } = new();
+        public ShippingQuoteRequest ShippingEstimator { get; set; } = new();
+        public List<WarrantyNotificationModel> RecentNotifications { get; set; } = new();
     }
 }

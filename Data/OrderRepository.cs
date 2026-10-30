@@ -95,8 +95,8 @@ namespace BTL_PTTKYC.Data
 
                 int invoiceId = 0;
                 var insertInvSql = @"
-                    INSERT INTO Invoice (customer_id, employee_id, invoice_date, status, shipping_address, order_notes, payment_method_selected, promotion_id)
-                    VALUES (@custId, @empId, CAST(GETDATE() AS DATE), @status, @shippingAddr, @notes, @payMethod, @promoId);
+                    INSERT INTO Invoice (customer_id, employee_id, invoice_date, status, shipping_address, order_notes, payment_method_selected, promotion_id, shipping_carrier, shipping_fee, shipping_distance_km, shipping_service_type)
+                    VALUES (@custId, @empId, CAST(GETDATE() AS DATE), @status, @shippingAddr, @notes, @payMethod, @promoId, @carrier, @shipFee, @distKm, @svcType);
                     SELECT SCOPE_IDENTITY();";
 
                 using (var invCmd = new SqlCommand(insertInvSql, conn, trans))
@@ -108,6 +108,10 @@ namespace BTL_PTTKYC.Data
                     invCmd.Parameters.AddWithValue("@notes", (object?)orderNotes ?? DBNull.Value);
                     invCmd.Parameters.AddWithValue("@payMethod", payMethodSelected);
                     invCmd.Parameters.AddWithValue("@promoId", model.PromotionId.HasValue && model.PromotionId.Value > 0 ? (object)model.PromotionId.Value : DBNull.Value);
+                    invCmd.Parameters.AddWithValue("@carrier", (object?)model.ShippingCarrierName ?? (object?)model.ShippingCarrier ?? DBNull.Value);
+                    invCmd.Parameters.AddWithValue("@shipFee", model.ShippingFee);
+                    invCmd.Parameters.AddWithValue("@distKm", model.ShippingDistanceKm);
+                    invCmd.Parameters.AddWithValue("@svcType", (object?)model.ShippingServiceType ?? DBNull.Value);
                     invoiceId = Convert.ToInt32(invCmd.ExecuteScalar());
                 }
 
@@ -162,6 +166,15 @@ namespace BTL_PTTKYC.Data
                     }
                 }
 
+                // Cộng thêm tiền cước vận chuyển vào total_amount nếu có
+                if (model.ShippingFee > 0)
+                {
+                    using var addShipCmd = new SqlCommand("UPDATE Invoice SET total_amount = ISNULL(total_amount, 0) + @shipFee WHERE invoice_id = @invId", conn, trans);
+                    addShipCmd.Parameters.AddWithValue("@shipFee", model.ShippingFee);
+                    addShipCmd.Parameters.AddWithValue("@invId", invoiceId);
+                    addShipCmd.ExecuteNonQuery();
+                }
+
                 trans.Commit();
                 return invoiceId;
             }
@@ -183,6 +196,7 @@ namespace BTL_PTTKYC.Data
                        i.employee_id, e.employee_name, i.promotion_id, pr.promotion_name,
                        i.invoice_date, i.sub_total, i.discount_amount, i.total_amount, i.status,
                        i.cancel_reason, i.cancel_requested_by, i.cancel_requested_at, i.cancel_approved_by, i.cancel_approved_at,
+                       i.shipping_carrier, i.shipping_fee, i.shipping_distance_km, i.shipping_service_type,
                        ISNULL((SELECT SUM(amount) FROM Payment WHERE invoice_id = i.invoice_id), 0) AS paid_amount
                 FROM Invoice i
                 JOIN Customer c ON c.customer_id = i.customer_id
@@ -200,31 +214,7 @@ namespace BTL_PTTKYC.Data
             using var r = cmd.ExecuteReader();
             while (r.Read())
             {
-                list.Add(new InvoiceModel
-                {
-                    InvoiceId = Convert.ToInt32(r["invoice_id"]),
-                    CustomerId = Convert.ToInt32(r["customer_id"]),
-                    CustomerName = r["customer_name"].ToString()!,
-                    CustomerPhone = r["customer_phone"].ToString()!,
-                    ShippingAddress = r["shipping_address"] != DBNull.Value ? r["shipping_address"].ToString() : null,
-                    OrderNotes = r["order_notes"] != DBNull.Value ? r["order_notes"].ToString() : null,
-                    PaymentMethodSelected = r["payment_method_selected"] != DBNull.Value ? r["payment_method_selected"].ToString() : null,
-                    EmployeeId = Convert.ToInt32(r["employee_id"]),
-                    EmployeeName = r["employee_name"].ToString()!,
-                    PromotionId = r["promotion_id"] != DBNull.Value ? Convert.ToInt32(r["promotion_id"]) : null,
-                    PromotionName = r["promotion_name"] != DBNull.Value ? r["promotion_name"].ToString() : null,
-                    InvoiceDate = Convert.ToDateTime(r["invoice_date"]),
-                    SubTotal = Convert.ToDecimal(r["sub_total"]),
-                    DiscountAmount = Convert.ToDecimal(r["discount_amount"]),
-                    TotalAmount = Convert.ToDecimal(r["total_amount"]),
-                    Status = r["status"].ToString()!,
-                    CancelReason = r["cancel_reason"] != DBNull.Value ? r["cancel_reason"].ToString() : null,
-                    CancelRequestedBy = r["cancel_requested_by"] != DBNull.Value ? r["cancel_requested_by"].ToString() : null,
-                    CancelRequestedAt = r["cancel_requested_at"] != DBNull.Value ? Convert.ToDateTime(r["cancel_requested_at"]) : null,
-                    CancelApprovedBy = r["cancel_approved_by"] != DBNull.Value ? r["cancel_approved_by"].ToString() : null,
-                    CancelApprovedAt = r["cancel_approved_at"] != DBNull.Value ? Convert.ToDateTime(r["cancel_approved_at"]) : null,
-                    PaidAmount = Convert.ToDecimal(r["paid_amount"])
-                });
+                list.Add(MapInvoiceFromReader(r));
             }
             return list;
         }
@@ -239,6 +229,7 @@ namespace BTL_PTTKYC.Data
                        i.employee_id, e.employee_name, i.promotion_id, pr.promotion_name,
                        i.invoice_date, i.sub_total, i.discount_amount, i.total_amount, i.status,
                        i.cancel_reason, i.cancel_requested_by, i.cancel_requested_at, i.cancel_approved_by, i.cancel_approved_at,
+                       i.shipping_carrier, i.shipping_fee, i.shipping_distance_km, i.shipping_service_type,
                        ISNULL((SELECT SUM(amount) FROM Payment WHERE invoice_id = i.invoice_id), 0) AS paid_amount
                 FROM Invoice i
                 JOIN Customer c ON c.customer_id = i.customer_id
@@ -254,31 +245,7 @@ namespace BTL_PTTKYC.Data
             using var r = cmd.ExecuteReader();
             while (r.Read())
             {
-                list.Add(new InvoiceModel
-                {
-                    InvoiceId = Convert.ToInt32(r["invoice_id"]),
-                    CustomerId = Convert.ToInt32(r["customer_id"]),
-                    CustomerName = r["customer_name"].ToString()!,
-                    CustomerPhone = r["customer_phone"].ToString()!,
-                    ShippingAddress = r["shipping_address"] != DBNull.Value ? r["shipping_address"].ToString() : null,
-                    OrderNotes = r["order_notes"] != DBNull.Value ? r["order_notes"].ToString() : null,
-                    PaymentMethodSelected = r["payment_method_selected"] != DBNull.Value ? r["payment_method_selected"].ToString() : null,
-                    EmployeeId = Convert.ToInt32(r["employee_id"]),
-                    EmployeeName = r["employee_name"].ToString()!,
-                    PromotionId = r["promotion_id"] != DBNull.Value ? Convert.ToInt32(r["promotion_id"]) : null,
-                    PromotionName = r["promotion_name"] != DBNull.Value ? r["promotion_name"].ToString() : null,
-                    InvoiceDate = Convert.ToDateTime(r["invoice_date"]),
-                    SubTotal = Convert.ToDecimal(r["sub_total"]),
-                    DiscountAmount = Convert.ToDecimal(r["discount_amount"]),
-                    TotalAmount = Convert.ToDecimal(r["total_amount"]),
-                    Status = r["status"].ToString()!,
-                    CancelReason = r["cancel_reason"] != DBNull.Value ? r["cancel_reason"].ToString() : null,
-                    CancelRequestedBy = r["cancel_requested_by"] != DBNull.Value ? r["cancel_requested_by"].ToString() : null,
-                    CancelRequestedAt = r["cancel_requested_at"] != DBNull.Value ? Convert.ToDateTime(r["cancel_requested_at"]) : null,
-                    CancelApprovedBy = r["cancel_approved_by"] != DBNull.Value ? r["cancel_approved_by"].ToString() : null,
-                    CancelApprovedAt = r["cancel_approved_at"] != DBNull.Value ? Convert.ToDateTime(r["cancel_approved_at"]) : null,
-                    PaidAmount = Convert.ToDecimal(r["paid_amount"])
-                });
+                list.Add(MapInvoiceFromReader(r));
             }
             return list;
         }
@@ -293,6 +260,7 @@ namespace BTL_PTTKYC.Data
                        i.employee_id, e.employee_name, i.promotion_id, pr.promotion_name,
                        i.invoice_date, i.sub_total, i.discount_amount, i.total_amount, i.status,
                        i.cancel_reason, i.cancel_requested_by, i.cancel_requested_at, i.cancel_approved_by, i.cancel_approved_at,
+                       i.shipping_carrier, i.shipping_fee, i.shipping_distance_km, i.shipping_service_type,
                        ISNULL((SELECT SUM(amount) FROM Payment WHERE invoice_id = i.invoice_id), 0) AS paid_amount
                 FROM Invoice i
                 JOIN Customer c ON c.customer_id = i.customer_id
@@ -306,31 +274,7 @@ namespace BTL_PTTKYC.Data
             using var r = cmd.ExecuteReader();
             if (r.Read())
             {
-                order = new InvoiceModel
-                {
-                    InvoiceId = Convert.ToInt32(r["invoice_id"]),
-                    CustomerId = Convert.ToInt32(r["customer_id"]),
-                    CustomerName = r["customer_name"].ToString()!,
-                    CustomerPhone = r["customer_phone"].ToString()!,
-                    ShippingAddress = r["shipping_address"] != DBNull.Value ? r["shipping_address"].ToString() : null,
-                    OrderNotes = r["order_notes"] != DBNull.Value ? r["order_notes"].ToString() : null,
-                    PaymentMethodSelected = r["payment_method_selected"] != DBNull.Value ? r["payment_method_selected"].ToString() : null,
-                    EmployeeId = Convert.ToInt32(r["employee_id"]),
-                    EmployeeName = r["employee_name"].ToString()!,
-                    PromotionId = r["promotion_id"] != DBNull.Value ? Convert.ToInt32(r["promotion_id"]) : null,
-                    PromotionName = r["promotion_name"] != DBNull.Value ? r["promotion_name"].ToString() : null,
-                    InvoiceDate = Convert.ToDateTime(r["invoice_date"]),
-                    SubTotal = Convert.ToDecimal(r["sub_total"]),
-                    DiscountAmount = Convert.ToDecimal(r["discount_amount"]),
-                    TotalAmount = Convert.ToDecimal(r["total_amount"]),
-                    Status = r["status"].ToString()!,
-                    CancelReason = r["cancel_reason"] != DBNull.Value ? r["cancel_reason"].ToString() : null,
-                    CancelRequestedBy = r["cancel_requested_by"] != DBNull.Value ? r["cancel_requested_by"].ToString() : null,
-                    CancelRequestedAt = r["cancel_requested_at"] != DBNull.Value ? Convert.ToDateTime(r["cancel_requested_at"]) : null,
-                    CancelApprovedBy = r["cancel_approved_by"] != DBNull.Value ? r["cancel_approved_by"].ToString() : null,
-                    CancelApprovedAt = r["cancel_approved_at"] != DBNull.Value ? Convert.ToDateTime(r["cancel_approved_at"]) : null,
-                    PaidAmount = Convert.ToDecimal(r["paid_amount"])
-                };
+                order = MapInvoiceFromReader(r);
             }
             r.Close();
 
@@ -594,6 +538,49 @@ namespace BTL_PTTKYC.Data
                 errorMessage = ex.Message;
                 return false;
             }
+        }
+
+        private static InvoiceModel MapInvoiceFromReader(SqlDataReader r)
+        {
+            return new InvoiceModel
+            {
+                InvoiceId = Convert.ToInt32(r["invoice_id"]),
+                CustomerId = Convert.ToInt32(r["customer_id"]),
+                CustomerName = r["customer_name"].ToString()!,
+                CustomerPhone = r["customer_phone"].ToString()!,
+                ShippingAddress = r["shipping_address"] != DBNull.Value ? r["shipping_address"].ToString() : null,
+                OrderNotes = r["order_notes"] != DBNull.Value ? r["order_notes"].ToString() : null,
+                PaymentMethodSelected = r["payment_method_selected"] != DBNull.Value ? r["payment_method_selected"].ToString() : null,
+                EmployeeId = Convert.ToInt32(r["employee_id"]),
+                EmployeeName = r["employee_name"].ToString()!,
+                PromotionId = r["promotion_id"] != DBNull.Value ? Convert.ToInt32(r["promotion_id"]) : null,
+                PromotionName = r["promotion_name"] != DBNull.Value ? r["promotion_name"].ToString() : null,
+                InvoiceDate = Convert.ToDateTime(r["invoice_date"]),
+                SubTotal = Convert.ToDecimal(r["sub_total"]),
+                DiscountAmount = Convert.ToDecimal(r["discount_amount"]),
+                TotalAmount = Convert.ToDecimal(r["total_amount"]),
+                Status = r["status"].ToString()!,
+                CancelReason = r["cancel_reason"] != DBNull.Value ? r["cancel_reason"].ToString() : null,
+                CancelRequestedBy = r["cancel_requested_by"] != DBNull.Value ? r["cancel_requested_by"].ToString() : null,
+                CancelRequestedAt = r["cancel_requested_at"] != DBNull.Value ? Convert.ToDateTime(r["cancel_requested_at"]) : null,
+                CancelApprovedBy = r["cancel_approved_by"] != DBNull.Value ? r["cancel_approved_by"].ToString() : null,
+                CancelApprovedAt = r["cancel_approved_at"] != DBNull.Value ? Convert.ToDateTime(r["cancel_approved_at"]) : null,
+                PaidAmount = Convert.ToDecimal(r["paid_amount"]),
+                ShippingCarrier = HasColumn(r, "shipping_carrier") && r["shipping_carrier"] != DBNull.Value ? r["shipping_carrier"].ToString() : null,
+                ShippingFee = HasColumn(r, "shipping_fee") && r["shipping_fee"] != DBNull.Value ? Convert.ToDecimal(r["shipping_fee"]) : 0,
+                ShippingDistanceKm = HasColumn(r, "shipping_distance_km") && r["shipping_distance_km"] != DBNull.Value ? Convert.ToDecimal(r["shipping_distance_km"]) : null,
+                ShippingServiceType = HasColumn(r, "shipping_service_type") && r["shipping_service_type"] != DBNull.Value ? r["shipping_service_type"].ToString() : null
+            };
+        }
+
+        private static bool HasColumn(SqlDataReader reader, string columnName)
+        {
+            for (int i = 0; i < reader.FieldCount; i++)
+            {
+                if (reader.GetName(i).Equals(columnName, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+            return false;
         }
     }
 }

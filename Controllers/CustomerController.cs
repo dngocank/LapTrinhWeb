@@ -6,17 +6,30 @@ using System.Security.Claims;
 using BTL_PTTKYC.Data;
 using BTL_PTTKYC.Models;
 
+using BTL_PTTKYC.Services;
+
 namespace BTL_PTTKYC.Controllers
 {
     public class CustomerController : Controller
     {
         private readonly CustomerRepository _customerRepo;
         private readonly OrderRepository _orderRepo;
+        private readonly WarrantyRepository _warrantyRepo;
+        private readonly IShippingService _shippingService;
+        private readonly INotificationService _notificationService;
 
-        public CustomerController(CustomerRepository customerRepo, OrderRepository orderRepo)
+        public CustomerController(
+            CustomerRepository customerRepo, 
+            OrderRepository orderRepo,
+            WarrantyRepository warrantyRepo,
+            IShippingService shippingService,
+            INotificationService notificationService)
         {
             _customerRepo = customerRepo;
             _orderRepo = orderRepo;
+            _warrantyRepo = warrantyRepo;
+            _shippingService = shippingService;
+            _notificationService = notificationService;
         }
 
         [HttpGet]
@@ -220,15 +233,161 @@ namespace BTL_PTTKYC.Controllers
 
             var orders = _orderRepo.GetOrdersByCustomerId(customerId);
             var purchased = _customerRepo.GetPurchasedProducts(customerId);
+            var warrantyTickets = _warrantyRepo.GetTicketsByCustomerId(customerId, customer.Phone);
+            var notifications = _notificationService.GetNotificationsByCustomerId(customerId);
+
+            var homeWarrantyForm = new HomeWarrantyRegisterViewModel
+            {
+                CustomerId = customer.CustomerId,
+                CustomerName = customer.CustomerName,
+                CustomerPhone = customer.Phone ?? string.Empty,
+                CustomerEmail = customer.Email ?? string.Empty,
+                PickupAddress = customer.Address ?? string.Empty,
+                PurchasedDevices = purchased,
+                DeviceName = purchased.FirstOrDefault()?.ProductName ?? "Điện thoại thông minh",
+                PickupDate = DateTime.Today.AddDays(1)
+            };
+
+            var shippingEstimator = new ShippingQuoteRequest
+            {
+                DestinationProvince = "Hà Nội",
+                DestinationDistrict = "Đống Đa",
+                DestinationAddress = customer.Address ?? "123 Thái Hà, Đống Đa, Hà Nội",
+                CustomerRank = customer.RankName,
+                DistanceKm = 3.5m
+            };
 
             var vm = new CustomerProfileViewModel
             {
                 Customer = customer,
                 Orders = orders,
-                PurchasedProducts = purchased
+                PurchasedProducts = purchased,
+                WarrantyTickets = warrantyTickets,
+                HomeWarrantyForm = homeWarrantyForm,
+                ShippingEstimator = shippingEstimator,
+                RecentNotifications = notifications
             };
 
             return View(vm);
+        }
+
+        // 1. THEO DÕI & TRACKING BẢO HÀNH RIÊNG
+        [Authorize(Roles = "Customer")]
+        [HttpGet]
+        public IActionResult Warranty()
+        {
+            var customerIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(customerIdClaim, out int customerId))
+            {
+                return RedirectToAction("Login");
+            }
+
+            var customer = _customerRepo.GetCustomerById(customerId);
+            if (customer == null) return RedirectToAction("Login");
+
+            var tickets = _warrantyRepo.GetTicketsByCustomerId(customerId, customer.Phone);
+            ViewBag.Customer = customer;
+            return View(tickets);
+        }
+
+        // 2. CHI TIẾT PHIẾU BẢO HÀNH & TIMELINE TIẾN ĐỘ
+        [Authorize(Roles = "Customer")]
+        [HttpGet]
+        public IActionResult WarrantyDetail(int id)
+        {
+            var customerIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(customerIdClaim, out int customerId))
+            {
+                return RedirectToAction("Login");
+            }
+
+            var customer = _customerRepo.GetCustomerById(customerId);
+            var ticket = _warrantyRepo.GetTicketById(id);
+            if (ticket == null)
+            {
+                TempData["ErrorMessage"] = "Không tìm thấy phiếu bảo hành yêu cầu.";
+                return RedirectToAction("Profile");
+            }
+
+            // Bảo mật: Kiểm tra quyền sở hữu phiếu của khách hàng
+            if (ticket.CustomerId.HasValue && ticket.CustomerId.Value != customerId && ticket.CustomerPhone != customer?.Phone)
+            {
+                TempData["ErrorMessage"] = "Bạn không có quyền xem thông tin phiếu bảo hành này.";
+                return RedirectToAction("Profile");
+            }
+
+            ViewBag.Customer = customer;
+            return View(ticket);
+        }
+
+        // 3. ĐĂNG KÝ BẢO HÀNH TẠI NHÀ
+        [Authorize(Roles = "Customer")]
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult RegisterHomeWarranty(HomeWarrantyRegisterViewModel model)
+        {
+            var customerIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (int.TryParse(customerIdClaim, out int customerId))
+            {
+                model.CustomerId = customerId;
+            }
+
+            if (!ModelState.IsValid)
+            {
+                TempData["ErrorMessage"] = "Vui lòng kiểm tra lại các trường thông tin đăng ký bảo hành.";
+                TempData["ActiveTab"] = "homewarranty-pane";
+                return RedirectToAction("Profile");
+            }
+
+            if (_warrantyRepo.CreateHomeWarrantyTicket(model, out string ticketCode, out int newTicketId, out string errorMessage))
+            {
+                var newTicket = _warrantyRepo.GetTicketById(newTicketId);
+                string emailResult = string.Empty;
+                string smsResult = string.Empty;
+
+                if (newTicket != null)
+                {
+                    // Tự động gửi Email và SMS xác nhận cho khách hàng
+                    _notificationService.SendHomeWarrantyConfirmation(newTicket, model.CustomerEmail, model.CustomerPhone, out emailResult, out smsResult);
+                }
+
+                TempData["SuccessMessage"] = $"Đăng ký bảo hành tại nhà thành công! Mã phiếu của bạn: {ticketCode}. Đã gửi Email và SMS thông báo xác nhận.";
+                TempData["ActiveTab"] = "warranty-pane";
+                return RedirectToAction("WarrantyDetail", new { id = newTicketId });
+            }
+
+            TempData["ErrorMessage"] = "Không thể đăng ký bảo hành tại nhà: " + errorMessage;
+            TempData["ActiveTab"] = "homewarranty-pane";
+            return RedirectToAction("Profile");
+        }
+
+        // 4. API TÍNH CƯỚC VẬN CHUYỂN TẬN NHÀ (DÙNG CHO AJAX)
+        [HttpPost]
+        public IActionResult CalculateShipping([FromBody] ShippingQuoteRequest request)
+        {
+            if (request == null)
+            {
+                return Json(new { success = false, message = "Dữ liệu yêu cầu không hợp lệ." });
+            }
+
+            var quote = _shippingService.CalculateShipping(request);
+            return Json(new { success = true, quote });
+        }
+
+        // 5. TRANG TRA CỨU & ƯỚC TÍNH TIỀN SHIP TẬN NHÀ
+        [HttpGet]
+        public IActionResult ShippingCalculator(string? province, string? district, decimal? distance)
+        {
+            var req = new ShippingQuoteRequest
+            {
+                DestinationProvince = province ?? "Hà Nội",
+                DestinationDistrict = district ?? "Đống Đa",
+                DistanceKm = distance ?? 5.0m
+            };
+
+            var quote = _shippingService.CalculateShipping(req);
+            ViewBag.Districts = _shippingService.GetAllDistricts();
+            return View(quote);
         }
 
         [Authorize(Roles = "Customer")]
