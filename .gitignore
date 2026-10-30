@@ -26,6 +26,7 @@ yarn-error.log*
 scratch/
 cloudflared.exe
 *.log
+docs/
 
 # OS generated files
 Thumbs.db
